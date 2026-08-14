@@ -1,6 +1,7 @@
 <p align="center">
-  <img src="https://github.com/itsonlycrypty/Cypher4x‑Ai/blob/main/cypher4x‑banner.png?raw=true" alt="CYPHER4X — Extreme AI" width="100%" />
+  <img src="https://github.com/itsonlycrypty/Cypher4x‑Ai/raw/main/cypher4x‑banner.png" alt="CYPHER4X Banner" width="100%" />
 </p>
+
 
 <h1 align="center">
   ⚡ CYPHER4X ⚡
