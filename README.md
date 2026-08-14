@@ -1,4 +1,5 @@
-![Uploading null (11)~2.jpg…]()
+<img width="2732" height="1386" alt="null (11)~2" src="https://github.com/user-attachments/assets/5b1ad898-4aa2-4ff6-af20-b7b5bd93a933" />
+
 
 
   ⚡ CYPHER4X ⚡
