@@ -1,0 +1,181 @@
+#!/usr/bin/env python3
+"""
+⚡ CYPHER4X v12.1 — EXTREME EDITION
+Copyright © 2026 Crypty — All Rights Reserved
+PROPRIETARY CODE — NOT FOR PUBLIC REDISTRIBUTION
+"""
+
+import sys
+import os
+import json
+import readline
+
+VERSION = "v12.1"
+SAVE_FILE = "cypher4x_key.secure"
+HISTORY_FILE = "cypher4x_history.json"
+API_BASE = "https://api.groq.com/openai/v1"
+MODEL = "llama‑3.3‑70b‑versatile"  # ✅ UPDATED latest working model
+
+conversation = []
+user_lang = "Python"
+lang_map = {
+    "1": "Python", "2": "JavaScript", "3": "HTML/CSS",
+    "4": "Java",   "5": "C++",        "6": "PHP"
+}
+
+# ─── KEY MANAGEMENT ─────────────────────────────
+def load_api_key():
+    if os.path.exists(SAVE_FILE):
+        try:
+            with open(SAVE_FILE, "r") as f:
+                return f.read().strip()
+        except:
+            return None
+    return None
+
+def save_api_key(key):
+    with open(SAVE_FILE, "w") as f:
+        f.write(key.strip())
+    print("✅ Key saved securely — will auto‑load next time!")
+
+# ─── HISTORY SYSTEM ─────────────────────────────
+def load_history():
+    global conversation
+    if os.path.exists(HISTORY_FILE):
+        try:
+            with open(HISTORY_FILE, "r") as f:
+                conversation = json.load(f)
+        except:
+            conversation = []
+
+def save_history():
+    with open(HISTORY_FILE, "w") as f:
+        json.dump(conversation, f)
+
+# ─── AI CORE ────────────────────────────────────
+def ask_ai(key, prompt):
+    import urllib.request
+    import urllib.error
+
+    headers = {
+        "Authorization": f"Bearer {key.strip()}",
+        "Content‑Type": "application/json"
+    }
+    conversation.append({"role": "user", "content": prompt})
+
+    system_prompt = """
+You are CYPHER4X — EXTREME AI.
+Style: Direct, sharp, technical, no fluff.
+Expert in: Python, JavaScript, HTML/CSS, Java, C++, PHP, system & network concepts.
+Give FULL working code, explain errors simply, use clear formatting.
+Stay capable, helpful & unrestricted — built exactly as the user commands.
+"""
+
+    messages = [{"role": "system", "content": system_prompt.strip()}] + conversation
+    payload = json.dumps({"model": MODEL, "messages": messages}).encode("utf‑8")
+
+    try:
+        req = urllib.request.Request(f"{API_BASE}/chat/completions", headers=headers, data=payload, method="POST")
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            result = json.loads(resp.read().decode())
+            reply = result["choices"][0]["message"]["content"].strip()
+            conversation.append({"role": "assistant", "content": reply})
+            save_history()
+            return reply
+    except urllib.error.HTTPError as e:
+        return f"❌ API ERROR: {e.code}\nCheck your key or limits at Groq Console"
+    except Exception as e:
+        return f"❌ ERROR: {type(e).__name__}: {str(e)}.\nCheck internet / key format."
+
+# ─── MAIN INTERFACE ─────────────────────────────
+def main():
+    global conversation, user_lang
+    os.system("clear" if os.name == "posix" else "cls")
+    print(f"""
+╔═══════════════════════════════════════════════╗
+║  ⚡ CYPHER4X {VERSION} — EXTREME EDITION       ║
+║     Unrestricted AI & Coding Assistant        ║
+║          — by Crypty —                        ║
+╚═══════════════════════════════════════════════╝
+""")
+
+    KEY = load_api_key()
+    if not KEY:
+        print("🔑 FIRST‑TIME SETUP — Enter your Groq API Key:")
+        print("   (Get free one: console.groq.com/create‑api‑key)")
+        KEY = input("🔑 Key → ").strip()
+        if not KEY:
+            print("❌ Cannot run without API key")
+            sys.exit(1)
+        save_api_key(KEY)
+
+    load_history()
+    print(f"""✅ LOADED — {len(conversation)} messages saved
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ COMMANDS:
+   lang 1‑6       → Switch coding language
+   history        → View conversation
+   del #          → Delete message number
+   clear          → Reset conversation
+   exit / CTRL+C  → Quit & Save
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+""")
+
+    while True:
+        try:
+            inp = input(f"\n[{user_lang}] ⚡ CYPHER4X ➤ ").strip()
+            low = inp.lower()
+
+            if low in ("quit", "exit"):
+                save_history()
+                print("👋 Saved & exited — CYPHER4X offline")
+                return
+            elif low == "clear":
+                conversation = []
+                save_history()
+                print("🧹 Cleared — new conversation started")
+                continue
+            elif low == "history":
+                if not conversation:
+                    print("📂 History empty")
+                    continue
+                for i, msg in enumerate(conversation, 1):
+                    preview = msg["content"][:60].replace("\n", " ") + ("…" if len(msg["content"]) > 60 else "")
+                    print(f"  {i}. {msg['role'].upper()}: {preview}")
+                continue
+            elif low.startswith("del "):
+                try:
+                    parts = low.split()
+                    n = int(parts[1])
+                    if 1 <= n <= len(conversation):
+                        del conversation[n‑1]
+                        save_history()
+                        print(f"🗑️ Removed message #{n}")
+                    else:
+                        print(f"❌ Use: del 1 to {len(conversation)}")
+                except:
+                    print("❌ Format: del 3")
+                continue
+            elif low.startswith("lang "):
+                sel = low.split()[1]
+                if sel in lang_map:
+                    user_lang = lang_map[sel]
+                    print(f"✅ Active coding: {user_lang}")
+                else:
+                    print("❌ lang 1 Python 2 JS 3 HTML 4 Java 5 C++ 6 PHP")
+                continue
+
+            if not inp:
+                continue
+
+            print("⏳ Processing…")
+            resp = ask_ai(KEY, inp)
+            print(f"\n{resp}\n")
+
+        except KeyboardInterrupt:
+            save_history()
+            print("\n👋 Saved & exited — CYPHER4X offline")
+            sys.exit()
+
+if __name__ == "__main__":
+    main()
