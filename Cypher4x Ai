@@ -1,0 +1,24 @@
+# ⚡ CYPHER4X v12.1 — EXTREME EDITION
+> **⚠️ PRIVATE / PROPRIETARY — NOT OPEN SOURCE**
+> Built & owned by Crypty
+
+## ✨ FEATURES
+- 🧠 Powered by Llama‑3.3‑70b — latest fast model[[__LINK_ICON]](https://console.groq.com/llms-full.txt?f_link_type=f_linkinlinenote&flow_extra=eyJpbmxpbmVfZGlzcGxheV9wb3NpdGlvbiI6MCwiZG9jX3Bvc2l0aW9uIjowLCJkb2NfaWQiOiJlMDgwN2E5ZjI4YWZjMTExLWI5ZWQ2NmMyNWRkMGM4OGQifQ%3D%3D "[__LINK_ICON]")
+- 💾 **Key ONCE enter → saved forever locally — NEVER shared**
+- 🔒 Stores: `cypher4x_key.secure` & `_history.json` — safe & private
+- ⌨️ Languages: 1 Python 2 JS 3 HTML 4 Java 5 C++ 6 PHP
+- 📋 Full history / delete / clear system
+- ⚡ Works: Laptop, Android Termux, Linux — everywhere Python 3 runs
+
+## ⚙️ HOW TO INSTALL & RUN
+```bash
+# 1️⃣ Make sure Python 3 installed
+python3 --version   # Need 3.8 or newer — works 3.10‑3.12 best
+
+# 2️⃣ Get files — create folder CYPHER4X & save these 3 files inside
+#     → cypher4x.py    (main brain — THIS ONE)
+#     → requirements.txt
+#     → README.md
+
+# 3️⃣ RUN IT
+python3 cypher4x.py
