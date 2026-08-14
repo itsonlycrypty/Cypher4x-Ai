@@ -1,10 +1,4 @@
-<img width="2732" height="1386" alt="null (11)~2" src="https://github.com/user-attachments/assets/79c79f08-876e-406f-8d13-b97e80cb64bd" />
-<p align="center">
-  <img src="https://github.com/itsonlycrypty/Cypher4x‑Ai/raw/main/null (11)~2.jpg" alt="CYPHER4X Banner" width="100%" />
-</p>
 
-
-<h1 align="center">
   ⚡ CYPHER4X ⚡
 </h1>
 
