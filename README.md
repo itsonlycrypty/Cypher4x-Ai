@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/itsonlycrypty/Cypher4x‑Ai/raw/main/cypher4x‑banner.png" alt="CYPHER4X Banner" width="100%" />
+  <img src="https://github.com/itsonlycrypty/Cypher4x‑Ai/raw/main/null (11)~2.jpg" alt="CYPHER4X Banner" width="100%" />
 </p>
 
 
