@@ -1,3 +1,4 @@
+<img width="2732" height="1386" alt="null (11)~2" src="https://github.com/user-attachments/assets/e6c9f6a8-5ea6-4d17-a80b-c8404cb84014" />
 
   ⚡ CYPHER4X ⚡
 </h1>
