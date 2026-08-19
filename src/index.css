@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --cypher-red: #ff003c;
+  --cypher-dark: #0c0c0c;
+  --cypher-darker: #000000;
+  --cypher-panel: #111111;
+  --cypher-border: rgba(255, 0, 60, 0.3);
+  --cypher-text: #e0e0e0;
+  --glow-red: 0 0 8px rgba(255, 0, 60, 0.6), 0 0 20px rgba(255, 0, 60, 0.3);
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--cypher-darker);
+  color: var(--cypher-text);
+  font-family: 'Courier New', 'JetBrains Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* RED SCROLLBAR — Arena style */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--cypher-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--cypher-red);
+  border-radius: 0;
+}
+
+/* ARENA-STYLE UTILITIES */
+.arena-header {
+  background: linear-gradient(180deg, #1a0008 0%, #0c0c0c 100%);
+  border-bottom: 1px solid var(--cypher-border);
+}
+
+.arena-tab {
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+.arena-tab.active {
+  background: rgba(255, 0, 60, 0.15);
+  border-color: var(--cypher-red);
+  box-shadow: inset 0 0 6px rgba(255, 0, 60, 0.2);
+}
+.arena-tab:hover:not(.active) {
+  border-color: rgba(255, 0, 60, 0.4);
+  background: rgba(255, 0, 60, 0.05);
+}
+
+.arena-message-user {
+  background: rgba(255, 0, 60, 0.12);
+  border-left: 2px solid var(--cypher-red);
+}
+.arena-message-ai {
+  background: rgba(20, 20, 20, 0.8);
+  border-left: 2px solid #444;
+}
+
+.arena-input {
+  background: #0f0f0f;
+  border: 1px solid #333;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.arena-input:focus {
+  outline: none;
+  border-color: var(--cypher-red);
+  box-shadow: 0 0 0 2px rgba(255, 0, 60, 0.25);
+}
+
+.arena-btn-primary {
+  background: var(--cypher-red);
+  transition: all 0.2s;
+}
+.arena-btn-primary:hover {
+  background: #ff3366;
+  box-shadow: var(--glow-red);
+}
+
+/* Boot screen animation */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.blink {
+  animation: blink 1s infinite;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
