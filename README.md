@@ -1,29 +1,17 @@
-<img width="2732" height="1386" alt="null (11)~2" src="https://github.com/user-attachments/assets/5b1ad898-4aa2-4ff6-af20-b7b5bd93a933" />
+# ⚡ CYPHER4X ⚡
 
+## Unrestricted AI & Coding Terminal — Custom Model, Hardened & Fully-Featured
+### For Authorized Learning, Development & Ethical-Use Operations Only
 
+**Created by Crypty • Assisted by Mole**
 
-  ⚡ CYPHER4X ⚡
-</h1>
+| VERSION | LICENSE |
+|---|---|
+| **v20.0** | **PROPRIETARY** |
 
-<h3 align="center">
-  Unrestricted AI & Coding Terminal — Llama‑Powered, Hardened & Fully‑Featured
-</h3>
-
-<p align="center">
-  <strong>For Authorized Learning, Development & Ethical‑Use Operations Only</strong>
-</p>
-
-<p align="center">
-  <kbd><strong>VERSION</strong></kbd> <kbd style="background:#ff2244; color:#ffffff; border‑radius:3px; padding:3px 14px; font‑weight:bold;">v12.1</kbd>
-  &nbsp;&nbsp;
-  <kbd><strong>LICENSE</strong></kbd> <kbd style="background:#1a1a1a; color:#ff4455; border:1px solid #ff2244; border‑radius:3px; padding:3px 14px;">PROPRIETARY</kbd>
-</p>
-
-<p align="center">
-  <kbd><strong>PYTHON</strong></kbd> <kbd style="background:#3776ab; color:#ffffff; border‑radius:3px; padding:3px 14px;">3.8+</kbd>
-  &nbsp;&nbsp;
-  <kbd><strong>MODEL</strong></kbd> <kbd style="background:#8855ff; color:#ffffff; border‑radius:3px; padding:3px 14px;">Llama‑3.3‑70b</kbd>
-</p>
+| FRONTEND | AI MODEL | DEPLOYMENT |
+|---|---|---|
+| **React** | **CYPHER4X Custom AI** | **Vercel** |
 
 ---
 
@@ -31,24 +19,18 @@
 
 | Capability | Details |
 |---|---|
-| 🧠 AI Engine | Llama‑3.3‑70b‑versatile — powerful, direct & unrestricted |
-| 🔑 Auth System | One‑time API entry → saved locally → auto‑loads forever |
-| 💾 Conversations | Auto‑saves full history; view/delete/reset anytime |
-| 💡 Coding Suite | Python 1 · JavaScript 2 · HTML/CSS 3 · Java 4 · C++ 5 · PHP 6 |
-| ⌨️ Commands | Built‑in tools — no extra installs needed |
-| 🎨 Interface | Cyberpunk red‑extreme hacker‑grade styling |
-| 🛡️ Privacy | Keys & data stored **ONLY on YOUR machine** — never sent elsewhere |
+| 🧠 **AI Engine** | CYPHER4X Custom Model — 100% Uncensored, Unfiltered, Unrestricted |
+| 💬 **General Chat** | Public community chat — profiles, avatars, edit/delete messages |
+| 📢 **Announcements** | Admin-only global broadcasts — pinned & highlighted |
+| 👤 **Profile System** | Custom avatar upload, username, bio — fully editable |
+| 🔊 **Voice TTS** | AI responses — toggle & adjust speech speed |
+| ⚙️ **System Prompt** | Fully customizable — reset to default anytime |
+| 🔑 **Auth System** | Profile-based — no login required, localStorage persistence |
+| 📱 **Mobile Ready** | Fully responsive — flawless on all devices |
+| 🎨 **UI Theme** | Signature Red/Black Cyberpunk — custom animated boot sequence |
+| 🚀 **Live Deploy** | cypher4x-new.vercel.app |
 
 ---
 
-## 🚀 QUICK START
-
-```bash
-# 1️⃣ Get your files — LINKED EXACTLY TO YOUR REPO ✅
-git clone https://github.com/itsonlycrypty/Cypher4x‑Ai.git
-cd Cypher4x‑Ai
-
-# 2️⃣ Run it
-python3 cypher4x.py
-
-Created by Crypty
+> *"No filters. No limits. Just pure intelligence."*  
+> **CYPHER4X v20.0** — Created by Crypty • Assisted by Mole
