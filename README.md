@@ -1,3 +1,4 @@
+<img width="2732" height="1386" alt="null (11)~2" src="https://github.com/user-attachments/assets/3599645e-2f6c-48a4-80d6-990f2ac5fa6f" />
 # ⚡ CYPHER4X ⚡
 
 ## Unrestricted AI & Coding Terminal — Custom Model, Hardened & Fully-Featured
