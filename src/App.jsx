@@ -47,13 +47,25 @@ const safeSet = (key, val) => {
   try { localStorage.setItem(key, JSON.stringify(val)); return true } catch { return false }
 }
 
+// ==================================================
+// SEARCH FUNCTION (Tavily)
+// ==================================================
 const searchWeb = async (query) => {
   if (!TAVILY_API_KEY) return { error: "Tavily API key not configured." }
   try {
     const res = await fetch(TAVILY_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${TAVILY_API_KEY}` },
-      body: JSON.stringify({ query, search_depth: "basic", include_answer: true, include_images: false, max_results: 5 })
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${TAVILY_API_KEY}`
+      },
+      body: JSON.stringify({
+        query: query,
+        search_depth: "basic",
+        include_answer: true,
+        include_images: false,
+        max_results: 5
+      })
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
@@ -79,8 +91,7 @@ export default function App() {
   const [isCallActive, setIsCallActive] = useState(false)
   const [isListening, setIsListening] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [transcript, setTranscript] = useState("")
-  const [isRecording, setIsRecording] = useState(false) // for one-off voice
+  const [isRecording, setIsRecording] = useState(false)
 
   const [stats, setStats] = useState({
     uptime: 0, cpuUsage: 0, cpuTemp: 0, ramUsage: 0,
@@ -117,7 +128,7 @@ export default function App() {
     recognition.onerror = (event) => {
       console.warn('Speech recognition error', event.error)
       if (event.error === 'not-allowed') {
-        alert('Please allow microphone access.')
+        alert('Please allow microphone access in your browser settings.')
         setIsCallActive(false)
         return
       }
@@ -134,9 +145,7 @@ export default function App() {
       }
       const fullTranscript = (final || interim).trim()
       if (fullTranscript) {
-        setTranscript(fullTranscript)
         if (final) {
-          setTranscript('')
           await processUserQuery(fullTranscript)
         }
       }
@@ -145,20 +154,39 @@ export default function App() {
   }, [isCallActive])
 
   // ==================================================
-  // PROCESS QUERY
+  // PROCESS USER QUERY (with casual detection)
   // ==================================================
   const processUserQuery = useCallback(async (query) => {
     if (!query || isProcessing) return
     setIsProcessing(true)
 
+    // Add user message
     const userMsg = { id: ++msgCounter.current, role: 'user', content: query, time: Date.now() }
     setConversation(prev => [...prev, userMsg])
 
+    // Casual greetings check
+    const casualPhrases = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'how are you', "what's up", 'sup', 'yo', 'howdy']
+    if (casualPhrases.some(phrase => query.toLowerCase().includes(phrase))) {
+      const casualReplies = [
+        "Hey there! How can I help you today?",
+        "Hi! What can I do for you?",
+        "Hello! Ready to assist you.",
+        "Good to see you! What's on your mind?",
+        "Hey! How's your day going?"
+      ]
+      const reply = casualReplies[Math.floor(Math.random() * casualReplies.length)]
+      const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
+      setConversation(prev => [...prev, assistantMsg])
+      speakText(reply)
+      setIsProcessing(false)
+      return
+    }
+
+    // Normal search flow
     const result = await searchWeb(query)
     let reply = result.error ? `⚠️ Search error: ${result.error}` : (result.answer || "I couldn't find an answer to that.")
     const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
     setConversation(prev => [...prev, assistantMsg])
-
     speakText(reply)
     setIsProcessing(false)
   }, [isProcessing])
@@ -197,7 +225,11 @@ export default function App() {
     recognition.onend = () => setIsRecording(false)
     recognition.onerror = (event) => {
       setIsRecording(false)
-      alert('Speech recognition error: ' + event.error)
+      if (event.error === 'not-allowed') {
+        alert('Please allow microphone access in your browser settings.')
+      } else {
+        alert('Speech recognition error: ' + event.error)
+      }
     }
     recognition.onresult = async (event) => {
       const transcript = event.results[0][0].transcript.trim()
@@ -272,7 +304,7 @@ export default function App() {
   }, [conversation])
 
   // ==================================================
-  // BOOT SEQUENCE (with CYPHER4X branding)
+  // BOOT SEQUENCE
   // ==================================================
   useEffect(() => {
     const steps = [
@@ -378,7 +410,7 @@ export default function App() {
   const formatTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
   // ============================================================
-  // BOOT SCREEN (CYPHER4X branding)
+  // BOOT SCREEN
   // ============================================================
   if (isBooting) {
     return (
@@ -504,7 +536,7 @@ export default function App() {
               <div style={styles.settingRow}><span style={styles.settingLabel}>Voice</span><span style={styles.settingValue}>Male</span></div>
               <div style={styles.settingRow}>
                 <span style={styles.settingLabel}>Status</span>
-                <span style={{ color: isCallActive ? '#4f8' : '#888', fontWeight: 'bold' }}>
+                <span style={{ color: isCallActive ? '#4f8' : isRecording ? '#ff003c' : '#888', fontWeight: 'bold' }}>
                   {isCallActive ? '🎤 Listening' : isRecording ? '🔴 Recording' : 'Standby'}
                 </span>
               </div>
@@ -573,9 +605,9 @@ export default function App() {
         </>
       )}
 
-      {/* Main Content — Full Screen 3D Logo with buttons */}
+      {/* Main Content */}
       <div style={styles.mainContent}>
-        {/* 3D Background Animation */}
+        {/* 3D Background */}
         <div style={styles.background3D}>
           <div style={styles.globe} />
           <div style={styles.ring1} />
@@ -584,7 +616,7 @@ export default function App() {
           <div style={styles.logoText}>CYPHER4X</div>
         </div>
 
-        {/* Top Right: Call button (continuous listening) */}
+        {/* Top Right: Call button */}
         <button onClick={toggleCall} style={styles.callButtonTopRight}>
           <Icon name="phone" size={24} color={isCallActive ? "#4f8" : "#ff003c"} />
           <span style={styles.callLabelTop}>{isCallActive ? 'END' : 'CALL'}</span>
@@ -1131,9 +1163,3 @@ const styles = {
 // ============================================================
 // KEYFRAMES (add to index.css)
 // ============================================================
-/*
-@keyframes pulseText { 0%,100% { opacity:0.8; transform:scale(1); } 50% { opacity:1; transform:scale(1.02); } }
-@keyframes rotateGlobe { 0% { transform: rotateX(10deg) rotateY(0deg); } 100% { transform: rotateX(10deg) rotateY(360deg); } }
-@keyframes spinRing { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-@keyframes pulseGlow { 0%,100% { box-shadow:0 0 60px rgba(255,0,60,0.4); } 50% { box-shadow:0 0 100px rgba(255,0,60,0.8); } }
-*/
