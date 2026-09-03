@@ -1,43 +1,16 @@
-@keyframes rollBall {
-  0% { transform: translate(-50%, -50%) rotate(0deg) translateX(120px) rotate(0deg); }
-  100% { transform: translate(-50%, -50%) rotate(360deg) translateX(120px) rotate(-360deg); }
+@keyframes pulseText {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.02); }
 }
-@keyframes shadowPulse {
-  0%, 100% { opacity: 0.3; transform: translateX(-50%) scale(1); }
-  50% { opacity: 0.8; transform: translateX(-50%) scale(1.2); }
+@keyframes rotateGlobe {
+  0% { transform: rotateX(10deg) rotateY(0deg); }
+  100% { transform: rotateX(10deg) rotateY(360deg); }
 }
-@keyframes spinTrail {
+@keyframes spinRing {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-@keyframes skullFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 60px rgba(255,0,60,0.4); }
+  50% { box-shadow: 0 0 100px rgba(255,0,60,0.8); }
 }
-@keyframes jawMove {
-  0%, 100% { transform: scaleY(1); }
-  50% { transform: scaleY(0.85); }
-}
-@keyframes glowPulse {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 0.9; transform: scale(1.15); }
-}
-@keyframes matrixRain {
-  0% { background-position: 0 0; }
-  100% { background-position: 0 10px; }
-}
-@keyframes glitchOverlay {
-  0%, 100% { opacity: 0.05; }
-  50% { opacity: 0.15; }
-}
-@keyframes glitch {
-  0%, 100% { transform: translate(0); }
-  20% { transform: translate(-4px, 2px); }
-  40% { transform: translate(4px, -2px); }
-  60% { transform: translate(-2px, 4px); }
-  80% { transform: translate(2px, -4px); }
-}
-@keyframes pulseText {
-  0%, 100% { opacity: 0.7; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.05); }
-       }
