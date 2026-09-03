@@ -78,7 +78,7 @@ const searchWeb = async (query) => {
 }
 
 // ==================================================
-// 3D CYBER GIRL FACE WITH LONG HAIR & TALKING MOUTH
+// CYBER GIRL FACE (with long hair & talking mouth)
 // ==================================================
 const CyberGirlFace = ({ size = 300, color = '#ff003c', isSpeaking = false }) => (
   <svg width={size} height={size} viewBox="0 0 400 400" style={{ display: 'block' }}>
@@ -121,9 +121,8 @@ const CyberGirlFace = ({ size = 300, color = '#ff003c', isSpeaking = false }) =>
       <animate attributeName="opacity" values="0.3;0.7;0.3" dur="1.5s" repeatCount="indefinite"/>
     </ellipse>
 
-    {/* Long flowing hair (behind head) */}
+    {/* Long flowing hair */}
     <g opacity="0.8" filter="url(#hairShadow)">
-      {/* Left side hair flowing down */}
       <path d="M120 80 Q80 130 70 200 Q60 280 80 340 Q90 360 100 370" stroke="#1a0000" strokeWidth="30" fill="none" strokeLinecap="round">
         <animate attributeName="d" values="M120 80 Q80 130 70 200 Q60 280 80 340 Q90 360 100 370;M120 80 Q75 130 65 200 Q55 280 75 340 Q85 360 95 370;M120 80 Q80 130 70 200 Q60 280 80 340 Q90 360 100 370" dur="3s" repeatCount="indefinite"/>
         <animate attributeName="opacity" values="0.7;0.9;0.7" dur="3s" repeatCount="indefinite"/>
@@ -134,8 +133,6 @@ const CyberGirlFace = ({ size = 300, color = '#ff003c', isSpeaking = false }) =>
       <path d="M140 60 Q80 110 70 200 Q60 290 80 360" stroke="#1a0000" strokeWidth="18" fill="none" strokeLinecap="round">
         <animate attributeName="d" values="M140 60 Q80 110 70 200 Q60 290 80 360;M140 60 Q75 110 65 200 Q55 290 75 360;M140 60 Q80 110 70 200 Q60 290 80 360" dur="4s" repeatCount="indefinite"/>
       </path>
-
-      {/* Right side hair flowing down */}
       <path d="M280 80 Q320 130 330 200 Q340 280 320 340 Q310 360 300 370" stroke="#1a0000" strokeWidth="30" fill="none" strokeLinecap="round">
         <animate attributeName="d" values="M280 80 Q320 130 330 200 Q340 280 320 340 Q310 360 300 370;M280 80 Q325 130 335 200 Q345 280 325 340 Q315 360 305 370;M280 80 Q320 130 330 200 Q340 280 320 340 Q310 360 300 370" dur="3.2s" repeatCount="indefinite"/>
         <animate attributeName="opacity" values="0.7;0.9;0.7" dur="3.2s" repeatCount="indefinite"/>
@@ -148,15 +145,13 @@ const CyberGirlFace = ({ size = 300, color = '#ff003c', isSpeaking = false }) =>
       </path>
     </g>
 
-    {/* Main face shape (3D with gradient) */}
+    {/* Main face shape */}
     <ellipse cx="200" cy="195" rx="100" ry="135" fill="url(#skinGrad)" stroke={color} strokeWidth="3">
       <animate attributeName="ry" values="133;137;133" dur="2s" repeatCount="indefinite"/>
     </ellipse>
-
-    {/* Face highlight (3D shine) */}
     <ellipse cx="170" cy="180" rx="50" ry="70" fill={color} opacity="0.05" />
 
-    {/* Cheek highlights */}
+    {/* Cheeks */}
     <ellipse cx="130" cy="225" rx="30" ry="18" fill={color} opacity="0.15">
       <animate attributeName="opacity" values="0.1;0.25;0.1" dur="1.8s" repeatCount="indefinite"/>
     </ellipse>
@@ -164,25 +159,20 @@ const CyberGirlFace = ({ size = 300, color = '#ff003c', isSpeaking = false }) =>
       <animate attributeName="opacity" values="0.1;0.25;0.1" dur="1.8s" begin="0.3s" repeatCount="indefinite"/>
     </ellipse>
 
-    {/* Eyes (large, feminine, 3D with depth) */}
-    {/* Left eye */}
+    {/* Eyes */}
     <g>
       <ellipse cx="150" cy="165" rx="32" ry="22" fill="#0a0000" stroke={color} strokeWidth="2"/>
       <ellipse cx="150" cy="165" rx="20" ry="15" fill="url(#eyeGlow)">
         <animate attributeName="rx" values="18;22;18" dur="1.2s" repeatCount="indefinite"/>
         <animate attributeName="ry" values="13;17;13" dur="1.2s" repeatCount="indefinite"/>
       </ellipse>
-      {/* Pupil / inner glow */}
       <circle cx="150" cy="165" r="6" fill="#fff" opacity="0.4">
         <animate attributeName="r" values="5;7;5" dur="1.5s" repeatCount="indefinite"/>
       </circle>
-      {/* Eyelashes */}
       <path d="M118 160 Q112 150 108 155" stroke={color} strokeWidth="2.5" fill="none" opacity="0.7"/>
       <path d="M123 154 Q117 144 113 149" stroke={color} strokeWidth="2.5" fill="none" opacity="0.7"/>
       <path d="M128 151 Q122 141 118 146" stroke={color} strokeWidth="2.5" fill="none" opacity="0.7"/>
     </g>
-
-    {/* Right eye */}
     <g>
       <ellipse cx="250" cy="165" rx="32" ry="22" fill="#0a0000" stroke={color} strokeWidth="2"/>
       <ellipse cx="250" cy="165" rx="20" ry="15" fill="url(#eyeGlow)">
@@ -197,7 +187,7 @@ const CyberGirlFace = ({ size = 300, color = '#ff003c', isSpeaking = false }) =>
       <path d="M272 151 Q278 141 282 146" stroke={color} strokeWidth="2.5" fill="none" opacity="0.7"/>
     </g>
 
-    {/* Eyebrows (arched, feminine) */}
+    {/* Eyebrows */}
     <path d="M125 145 Q150 128 175 143" stroke={color} strokeWidth="3" fill="none" opacity="0.7">
       <animate attributeName="d" values="M125 145 Q150 128 175 143;M125 143 Q150 126 175 141;M125 145 Q150 128 175 143" dur="2s" repeatCount="indefinite"/>
     </path>
@@ -205,27 +195,24 @@ const CyberGirlFace = ({ size = 300, color = '#ff003c', isSpeaking = false }) =>
       <animate attributeName="d" values="M225 143 Q250 126 275 145;M225 141 Q250 124 275 143;M225 143 Q250 126 275 145" dur="2s" begin="0.5s" repeatCount="indefinite"/>
     </path>
 
-    {/* Nose (subtle, 3D shading) */}
+    {/* Nose */}
     <path d="M200 185 L194 215 L206 215 Z" fill="none" stroke={color} strokeWidth="2" opacity="0.5"/>
     <path d="M200 185 L198 200" stroke={color} strokeWidth="1.5" opacity="0.3"/>
 
-    {/* Lips – animated speaking mouth */}
+    {/* Lips - animated */}
     <g>
-      {/* Upper lip */}
       <path d="M170 245 Q200 260 230 245" stroke={color} strokeWidth="3" fill="none" opacity="0.8">
         <animate attributeName="d" 
           values="M170 245 Q200 260 230 245;M165 248 Q200 265 235 248;M170 245 Q200 260 230 245" 
           dur={isSpeaking ? "0.4s" : "1.5s"} 
           repeatCount="indefinite"/>
       </path>
-      {/* Lower lip (moves more) */}
       <path d="M175 245 Q200 265 225 245" stroke="#ff6688" strokeWidth="3" fill="none" opacity="0.7">
         <animate attributeName="d" 
           values="M175 245 Q200 265 225 245;M170 248 Q200 275 230 248;M175 245 Q200 265 225 245" 
           dur={isSpeaking ? "0.3s" : "1.5s"} 
           repeatCount="indefinite"/>
       </path>
-      {/* Lip glow when speaking */}
       {isSpeaking && (
         <ellipse cx="200" cy="255" rx="30" ry="10" fill={color} opacity="0.15">
           <animate attributeName="ry" values="8;14;8" dur="0.3s" repeatCount="indefinite"/>
@@ -233,7 +220,7 @@ const CyberGirlFace = ({ size = 300, color = '#ff003c', isSpeaking = false }) =>
       )}
     </g>
 
-    {/* Hair strands in front (side bangs) */}
+    {/* Hair strands in front */}
     <path d="M140 100 Q120 140 115 180" stroke="#1a0000" strokeWidth="8" fill="none" opacity="0.6">
       <animate attributeName="d" values="M140 100 Q120 140 115 180;M140 100 Q115 140 110 180;M140 100 Q120 140 115 180" dur="4s" repeatCount="indefinite"/>
     </path>
@@ -241,7 +228,7 @@ const CyberGirlFace = ({ size = 300, color = '#ff003c', isSpeaking = false }) =>
       <animate attributeName="d" values="M260 100 Q280 140 285 180;M260 100 Q285 140 290 180;M260 100 Q280 140 285 180" dur="4.2s" repeatCount="indefinite"/>
     </path>
 
-    {/* Cyber headband / visor */}
+    {/* Cyber headband */}
     <path d="M120 115 Q200 95 280 115" stroke={color} strokeWidth="4" fill="none" opacity="0.6">
       <animate attributeName="d" values="M120 115 Q200 95 280 115;M120 113 Q200 93 280 113;M120 115 Q200 95 280 115" dur="3s" repeatCount="indefinite"/>
       <animate attributeName="opacity" values="0.5;0.8;0.5" dur="3s" repeatCount="indefinite"/>
@@ -251,7 +238,7 @@ const CyberGirlFace = ({ size = 300, color = '#ff003c', isSpeaking = false }) =>
       <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite"/>
     </circle>
 
-    {/* Cyber lines on cheeks (3D accent) */}
+    {/* Cyber lines */}
     <path d="M125 235 L105 260 L115 270" stroke={color} strokeWidth="2" fill="none" opacity="0.4">
       <animate attributeName="opacity" values="0.3;0.6;0.3" dur="2s" repeatCount="indefinite"/>
     </path>
@@ -265,7 +252,7 @@ const CyberGirlFace = ({ size = 300, color = '#ff003c', isSpeaking = false }) =>
       <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/>
     </text>
 
-    {/* Outer rings (3D depth rings) */}
+    {/* Outer rings */}
     <circle cx="200" cy="200" r="170" fill="none" stroke={color} strokeWidth="1.5" opacity="0.15">
       <animate attributeName="r" values="160;180;160" dur="4s" repeatCount="indefinite"/>
       <animate attributeName="opacity" values="0.1;0.25;0.1" dur="4s" repeatCount="indefinite"/>
@@ -297,7 +284,7 @@ export default function App() {
   const [isListening, setIsListening] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
-  const [isAISpeaking, setIsAISpeaking] = useState(false) // NEW: for mouth animation
+  const [isAISpeaking, setIsAISpeaking] = useState(false)
 
   const [faceRecognition, setFaceRecognition] = useState(false)
   const [biometricAuth, setBiometricAuth] = useState(false)
@@ -364,7 +351,7 @@ export default function App() {
   }, [isCallActive])
 
   // ==================================================
-  // TEXT-TO-SPEECH (with isAISpeaking flag)
+  // TEXT-TO-SPEECH
   // ==================================================
   const speakText = useCallback((text) => {
     if (!text || !synthRef.current) return
@@ -787,11 +774,11 @@ export default function App() {
   }
 
   // ============================================================
-  // MAIN APP
+  // MAIN APP – MINIMALIST LAYOUT (inspired by screenshot)
   // ============================================================
   return (
     <div style={styles.app}>
-      {/* Sidebar (unchanged) - omitted for brevity, same as before */}
+      {/* Sidebar (unchanged) */}
       {sidebarOpen && (
         <>
           <div style={styles.sidebarOverlay} onClick={() => setSidebarOpen(false)} />
@@ -890,12 +877,12 @@ export default function App() {
         </>
       )}
 
-      {/* Main Content */}
+      {/* Main Content – Minimalist like screenshot */}
       <div style={styles.mainContent}>
+        {/* Background with cyber girl face */}
         <div style={styles.backgroundFace}>
-          {/* Pass isSpeaking state to animate mouth */}
-          <CyberGirlFace size={350} isSpeaking={isAISpeaking} />
-          <div style={styles.faceSubtitle}>CYPHER4X • Cyber Girl AI</div>
+          <CyberGirlFace size={380} isSpeaking={isAISpeaking} />
+          <div style={styles.faceTitle}>CYPHER4X</div>
         </div>
 
         {/* Top Right: Call button */}
@@ -904,14 +891,14 @@ export default function App() {
           <span style={styles.callLabelTop}>{isCallActive ? 'END' : 'CALL'}</span>
         </button>
 
-        {/* Bottom center: Voice button */}
+        {/* Bottom center: Tap to Speak button */}
         <div style={styles.voiceButtonContainer}>
           <button
             onClick={startRecording}
             disabled={isRecording || isProcessing || isCallActive}
             style={{ ...styles.voiceButton, ...(isRecording ? styles.voiceButtonActive : {}) }}
           >
-            <Icon name="mic" size={36} color="#fff" />
+            <Icon name="mic" size={40} color="#fff" />
             <span style={styles.voiceLabel}>
               {isRecording ? 'Recording...' : isProcessing ? 'Processing...' : 'Tap to Speak'}
             </span>
@@ -928,7 +915,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES (reuse from previous)
+// STYLES – Minimalist & Clean
 // ============================================================
 const styles = {
   app: {
@@ -1302,24 +1289,27 @@ const styles = {
     zIndex: 0,
     background: 'radial-gradient(ellipse at center, #0a0000 0%, #000 100%)',
   },
-  faceSubtitle: {
+  faceTitle: {
     position: 'absolute',
     bottom: '15%',
-    fontSize: 'clamp(14px, 2vw, 24px)',
-    color: '#ff6688',
-    letterSpacing: '4px',
-    opacity: 0.7,
-    textShadow: '0 0 20px rgba(255,0,60,0.3)',
+    fontSize: 'clamp(28px, 4vw, 42px)',
+    fontWeight: 'bold',
+    color: '#ff003c',
+    textShadow: '0 0 30px #ff003c, 0 0 60px #ff003c44',
+    letterSpacing: '8px',
+    textAlign: 'center',
+    width: '100%',
+    animation: 'pulseText 2s ease-in-out infinite',
   },
   callButtonTopRight: {
     position: 'absolute',
-    top: '20px',
-    right: '20px',
+    top: '25px',
+    right: '25px',
     zIndex: 10,
     backgroundColor: 'rgba(0,0,0,0.6)',
     border: '2px solid #ff003c',
     borderRadius: '30px',
-    padding: '8px 16px',
+    padding: '10px 20px',
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
@@ -1341,18 +1331,18 @@ const styles = {
   },
   voiceButtonContainer: {
     position: 'absolute',
-    bottom: '40px',
+    bottom: '50px',
     left: '50%',
     transform: 'translateX(-50%)',
     zIndex: 10,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '8px',
+    gap: '10px',
   },
   voiceButton: {
-    width: '80px',
-    height: '80px',
+    width: '90px',
+    height: '90px',
     borderRadius: '50%',
     backgroundColor: '#1a1a1a',
     border: '3px solid #ff003c',
@@ -1363,10 +1353,10 @@ const styles = {
     justifyContent: 'center',
     gap: '4px',
     transition: 'all 0.3s ease',
-    boxShadow: '0 0 30px rgba(255,0,60,0.2)',
+    boxShadow: '0 0 40px rgba(255,0,60,0.2)',
     '&:hover': {
       transform: 'scale(1.05)',
-      boxShadow: '0 0 50px rgba(255,0,60,0.4)',
+      boxShadow: '0 0 60px rgba(255,0,60,0.4)',
     },
     '&:disabled': {
       opacity: 0.5,
@@ -1377,20 +1367,20 @@ const styles = {
   voiceButtonActive: {
     backgroundColor: '#ff003c',
     borderColor: '#ff003c',
-    boxShadow: '0 0 60px rgba(255,0,60,0.6)',
+    boxShadow: '0 0 80px rgba(255,0,60,0.7)',
     animation: 'pulseGlow 1s ease-in-out infinite',
   },
   voiceLabel: {
     color: '#fff',
-    fontSize: '11px',
+    fontSize: '12px',
     fontWeight: 'bold',
     letterSpacing: '1px',
-    marginTop: '2px',
+    marginTop: '4px',
   },
   hamburgerBtn: {
     position: 'absolute',
-    top: '20px',
-    left: '20px',
+    top: '25px',
+    left: '25px',
     backgroundColor: 'transparent',
     border: 'none',
     cursor: 'pointer',
