@@ -1,6 +1,60 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
 // ==================================================
+// ICON SYSTEM
+// ==================================================
+const Icon = ({ name, size = 18, color = 'currentColor' }) => {
+  const icons = {
+    lightning: 'M13 2L4 14h6l-2 8 9-12h-6l2-8z',
+    lock: 'M12 2C8.13 2 5 5.13 5 9v2c0 3.87 3.13 7 7 7s7-3.13 7-7V9c0-3.87-3.13-7-7-7zm1 12h-2m0-4v2',
+    brain: 'M9 3a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H9zm-4 7a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2H5z',
+    camera: 'M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+    user: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+    pencil: 'M17 3a2 2 0 0 1 4 4L7 21l-4 1 1-4L17 3z',
+    trash: 'M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m4 4v8m6-8v8',
+    megaphone: 'M18.5 13.5c.5-1.5.5-3.5 0-5M20.5 12c1-2 1-6 0-8M10 5a2 2 0 0 1 4 0v10a2 2 0 0 1-4 0V5zM4 13a2 2 0 0 1 2-2h4l5 4v6l-5 4H6a2 2 0 0 1-2-2v-4z',
+    chat: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z',
+    bot: 'M9 17c-.5-1-.5-2.5 0-3.5M15 17c.5-1 .5-2.5 0-3.5M12 3v2M3 12h2M19 12h2M12 19v2M12 7a4 4 0 0 0-4 4v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-4a4 4 0 0 0-4-4z',
+    crown: 'M12 2L16 6L20 4L18 10L12 20L6 10L4 4L8 6L12 2Z',
+    settings: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-7-3h2m10 0h2M12 6V4m0 16v-2',
+    chart: 'M18 20V4M12 20V8M6 20V12',
+    hourglass: 'M12 2v4M12 22v-4M4 6h16M4 18h16M8 6v3a4 4 0 0 0 8 0V6H8zm0 12v-3a4 4 0 0 1 8 0v3H8z',
+    arrowRight: 'M5 12h14M12 5l7 7-7 7',
+    check: 'M20 6L9 17l-5-5',
+    chevronRight: 'M9 18l6-6-6-6',
+    alertTriangle: 'M12 9v4m0 4h.01M12 2L1 21h22L12 2z',
+    x: 'M18 6L6 18M6 6l12 12',
+    refresh: 'M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15',
+    volume: 'M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07',
+    volumeX: 'M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6',
+    menu: 'M3 6h18M3 12h18M3 18h18',
+    atSign: 'M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-6a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0-4.5V13',
+    edit: 'M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z',
+    delete: 'M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2',
+    save: 'M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8',
+    send: 'M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z',
+    thinking: 'M20 12h2M4 12h2M12 4V2M12 22v-2M8 6l-1-2M16 6l1-2M8 18l-1 2M16 18l1 2',
+    paperclip: 'M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48',
+    smiley: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zm-4-8s1.5 2 4 2 4-2 4-2M8 9h.01M16 9h.01',
+    users: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M12 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+    cpu: 'M4 4h4v4H4zm6 0h10v4H10zM4 10h10v4H4zm12 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z',
+    memory: 'M2 6h20v12H2zM6 10h4v4H6zm6 0h4v4h-4zm6 0h4v4h-4z',
+    network: 'M4 12a8 8 0 0 1 16 0M6 12a6 6 0 0 1 12 0M8 12a4 4 0 0 1 8 0M10 12a2 2 0 0 1 4 0',
+    microphone: 'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zm-7 9v1a7 7 0 0 0 14 0v-1M12 22v-3',
+    calendar: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
+    clock: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zm1-16v6l4 2M12 6v4',
+    faceId: 'M4 8V6a2 2 0 0 1 2-2h2M20 8V6a2 2 0 0 0-2-2h-2M4 16v2a2 2 0 0 0 2 2h2M20 16v2a2 2 0 0 1-2 2h-2M9 12h6M12 9v6',
+  }
+  const path = icons[name]
+  if (!path) return null
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }}>
+      <path d={path} />
+    </svg>
+  )
+}
+
+// ==================================================
 // CONFIG
 // ==================================================
 const GROQ_API_KEY = "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"
@@ -55,61 +109,11 @@ const searchWeb = async (query) => {
 }
 
 // ==================================================
-// ICON SYSTEM
+// MAIN APP
 // ==================================================
-const Icon = ({ name, size = 18, color = 'currentColor' }) => {
-  const icons = {
-    lightning: 'M13 2L4 14h6l-2 8 9-12h-6l2-8z',
-    lock: 'M12 2C8.13 2 5 5.13 5 9v2c0 3.87 3.13 7 7 7s7-3.13 7-7V9c0-3.87-3.13-7-7-7zm1 12h-2m0-4v2',
-    brain: 'M9 3a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H9zm-4 7a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2H5z',
-    camera: 'M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
-    user: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
-    pencil: 'M17 3a2 2 0 0 1 4 4L7 21l-4 1 1-4L17 3z',
-    trash: 'M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m4 4v8m6-8v8',
-    megaphone: 'M18.5 13.5c.5-1.5.5-3.5 0-5M20.5 12c1-2 1-6 0-8M10 5a2 2 0 0 1 4 0v10a2 2 0 0 1-4 0V5zM4 13a2 2 0 0 1 2-2h4l5 4v6l-5 4H6a2 2 0 0 1-2-2v-4z',
-    chat: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z',
-    bot: 'M9 17c-.5-1-.5-2.5 0-3.5M15 17c.5-1 .5-2.5 0-3.5M12 3v2M3 12h2M19 12h2M12 19v2M12 7a4 4 0 0 0-4 4v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-4a4 4 0 0 0-4-4z',
-    crown: 'M12 2L16 6L20 4L18 10L12 20L6 10L4 4L8 6L12 2Z',
-    settings: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-7-3h2m10 0h2M12 6V4m0 16v-2',
-    chart: 'M18 20V4M12 20V8M6 20V12',
-    hourglass: 'M12 2v4M12 22v-4M4 6h16M4 18h16M8 6v3a4 4 0 0 0 8 0V6H8zm0 12v-3a4 4 0 0 1 8 0v3H8z',
-    arrowRight: 'M5 12h14M12 5l7 7-7 7',
-    check: 'M20 6L9 17l-5-5',
-    chevronRight: 'M9 18l6-6-6-6',
-    alertTriangle: 'M12 9v4m0 4h.01M12 2L1 21h22L12 2z',
-    x: 'M18 6L6 18M6 6l12 12',
-    refresh: 'M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15',
-    volume: 'M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07',
-    volumeX: 'M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6',
-    menu: 'M3 6h18M3 12h18M3 18h18',
-    atSign: 'M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-6a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0-4.5V13',
-    edit: 'M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z',
-    delete: 'M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2',
-    save: 'M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8',
-    send: 'M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z',
-    thinking: 'M20 12h2M4 12h2M12 4V2M12 22v-2M8 6l-1-2M16 6l1-2M8 18l-1 2M16 18l1 2',
-    paperclip: 'M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48',
-    smiley: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zm-4-8s1.5 2 4 2 4-2 4-2M8 9h.01M16 9h.01',
-    users: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M12 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
-    cpu: 'M4 4h4v4H4zm6 0h10v4H10zM4 10h10v4H4zm12 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z',
-    memory: 'M2 6h20v12H2zM6 10h4v4H6zm6 0h4v4h-4zm6 0h4v4h-4z',
-    network: 'M4 12a8 8 0 0 1 16 0M6 12a6 6 0 0 1 12 0M8 12a4 4 0 0 1 8 0M10 12a2 2 0 0 1 4 0',
-    microphone: 'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zm-7 9v1a7 7 0 0 0 14 0v-1M12 22v-3',
-    calendar: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
-    clock: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zm1-16v6l4 2M12 6v4',
-    faceId: 'M4 8V6a2 2 0 0 1 2-2h2M20 8V6a2 2 0 0 0-2-2h-2M4 16v2a2 2 0 0 0 2 2h2M20 16v2a2 2 0 0 1-2 2h-2M9 12h6M12 9v6',
-  }
-  const path = icons[name]
-  if (!path) return null
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }}>
-      <path d={path} />
-    </svg>
-  )
-}
-
 export default function App() {
   const [isBooting, setIsBooting] = useState(true)
+
   const [profile, setProfile] = useState(null)
   const [profileForm, setProfileForm] = useState({ name: "", username: "", avatar: "", bio: "" })
   const [showProfileSetup, setShowProfileSetup] = useState(false)
@@ -544,7 +548,9 @@ export default function App() {
     )
   }
 
+  // ============================================================
   // BOOT SCREEN
+  // ============================================================
   if (isBooting) {
     return (
       <div style={styles.bootContainer}>
@@ -563,7 +569,9 @@ export default function App() {
     )
   }
 
+  // ============================================================
   // PROFILE SETUP
+  // ============================================================
   if (showProfileSetup || editingProfile) {
     return (
       <div style={styles.profileContainer}>
@@ -628,7 +636,9 @@ export default function App() {
     )
   }
 
+  // ============================================================
   // MAIN APP
+  // ============================================================
   return (
     <div style={styles.app}>
       {/* Header */}
@@ -783,20 +793,89 @@ export default function App() {
       {/* Main Chat Area */}
       <div style={styles.mainContent}>
         <div ref={chatAreaRef} style={styles.chatArea}>
+          {/* 3D Skull overlay when AI is speaking */}
           {isAISpeaking && (
             <div style={styles.skullContainer}>
-              <div style={styles.skull3D}>
-                <div style={styles.skullTop}>
-                  <div style={styles.skullCranium} />
-                  <div style={styles.skullEyeLeft} />
-                  <div style={styles.skullEyeRight} />
-                  <div style={styles.skullNose} />
-                </div>
-                <div style={styles.skullJaw}>
-                  <div style={styles.skullTeeth} />
-                </div>
-                <div style={styles.skullGlow} />
-              </div>
+              <svg width="200" height="220" viewBox="0 0 200 220" style={styles.skullSVG}>
+                <defs>
+                  <radialGradient id="skullGlowGrad" cx="50%" cy="40%" r="60%">
+                    <stop offset="0%" stopColor="#ff003c" stopOpacity="0.8"/>
+                    <stop offset="50%" stopColor="#66001a" stopOpacity="0.5"/>
+                    <stop offset="100%" stopColor="#000" stopOpacity="0"/>
+                  </radialGradient>
+                  <radialGradient id="eyeGlow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#ff003c" stopOpacity="0.9"/>
+                    <stop offset="60%" stopColor="#ff003c" stopOpacity="0.3"/>
+                    <stop offset="100%" stopColor="#000" stopOpacity="0"/>
+                  </radialGradient>
+                </defs>
+                
+                {/* Glow behind skull */}
+                <ellipse cx="100" cy="100" rx="110" ry="120" fill="url(#skullGlowGrad)" opacity="0.6">
+                  <animate attributeName="rx" values="105;115;105" dur="2s" repeatCount="indefinite"/>
+                  <animate attributeName="ry" values="115;125;115" dur="2s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" values="0.4;0.8;0.4" dur="1.5s" repeatCount="indefinite"/>
+                </ellipse>
+                
+                {/* Skull main shape */}
+                <g>
+                  <animateTransform attributeName="transform" type="scale" values="1;1.03;1" dur="2s" repeatCount="indefinite"/>
+                  
+                  {/* Cranium */}
+                  <path d="M35 120 Q35 45 100 20 Q165 45 165 120 Q165 155 145 170 L55 170 Q35 155 35 120Z" 
+                        fill="#ff003c" stroke="#990022" strokeWidth="2"/>
+                  
+                  {/* Cranium highlight */}
+                  <path d="M55 120 Q55 65 100 45 Q145 65 145 120 Q145 140 130 150 L70 150 Q55 140 55 120Z" 
+                        fill="#ff2244" opacity="0.4"/>
+                  
+                  {/* Left eye socket */}
+                  <ellipse cx="70" cy="95" rx="25" ry="20" fill="#1a0000" stroke="#990022" strokeWidth="1.5"/>
+                  <ellipse cx="70" cy="95" rx="18" ry="14" fill="url(#eyeGlow)">
+                    <animate attributeName="rx" values="16;20;16" dur="1.2s" repeatCount="indefinite"/>
+                    <animate attributeName="ry" values="12;16;12" dur="1.2s" repeatCount="indefinite"/>
+                  </ellipse>
+                  
+                  {/* Right eye socket */}
+                  <ellipse cx="130" cy="95" rx="25" ry="20" fill="#1a0000" stroke="#990022" strokeWidth="1.5"/>
+                  <ellipse cx="130" cy="95" rx="18" ry="14" fill="url(#eyeGlow)">
+                    <animate attributeName="rx" values="16;20;16" dur="1.2s" begin="0.3s" repeatCount="indefinite"/>
+                    <animate attributeName="ry" values="12;16;12" dur="1.2s" begin="0.3s" repeatCount="indefinite"/>
+                  </ellipse>
+                  
+                  {/* Nose cavity */}
+                  <path d="M90 115 L100 135 L110 115 Q100 108 90 115Z" fill="#1a0000" stroke="#990022" strokeWidth="1.5"/>
+                  
+                  {/* Cheekbone highlights */}
+                  <ellipse cx="50" cy="125" rx="14" ry="9" fill="#ff4466" opacity="0.3"/>
+                  <ellipse cx="150" cy="125" rx="14" ry="9" fill="#ff4466" opacity="0.3"/>
+                  
+                  {/* Teeth row */}
+                  <rect x="58" y="165" width="84" height="22" rx="4" fill="#ff003c" stroke="#990022" strokeWidth="1.5"/>
+                  
+                  {/* Individual teeth */}
+                  <g fill="#ff2255" stroke="#990022" strokeWidth="0.5">
+                    <rect x="62" y="167" width="9" height="18" rx="1"/>
+                    <rect x="74" y="167" width="9" height="18" rx="1"/>
+                    <rect x="86" y="167" width="9" height="18" rx="1"/>
+                    <rect x="98" y="167" width="9" height="18" rx="1"/>
+                    <rect x="110" y="167" width="9" height="18" rx="1"/>
+                    <rect x="122" y="167" width="9" height="18" rx="1"/>
+                    <rect x="134" y="167" width="9" height="18" rx="1"/>
+                    
+                    {/* Bottom teeth */}
+                    <rect x="65" y="173" width="7" height="11" rx="1" opacity="0.7"/>
+                    <rect x="77" y="173" width="7" height="11" rx="1" opacity="0.7"/>
+                    <rect x="89" y="173" width="7" height="11" rx="1" opacity="0.7"/>
+                    <rect x="101" y="173" width="7" height="11" rx="1" opacity="0.7"/>
+                    <rect x="113" y="173" width="7" height="11" rx="1" opacity="0.7"/>
+                    <rect x="125" y="173" width="7" height="11" rx="1" opacity="0.7"/>
+                  </g>
+                  
+                  {/* Jaw line */}
+                  <path d="M55 158 Q100 185 145 158" stroke="#990022" strokeWidth="2" fill="none"/>
+                </g>
+              </svg>
             </div>
           )}
 
@@ -854,7 +933,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES (unchanged from previous version – included for completeness)
+// STYLES
 // ============================================================
 const styles = {
   app: {
@@ -1330,94 +1409,13 @@ const styles = {
     zIndex: 20,
     pointerEvents: 'none',
   },
-  skull3D: {
-    width: '140px',
-    height: '170px',
-    position: 'relative',
-    transform: 'perspective(600px) rotateX(10deg)',
-    animation: 'skullFloat 3s ease-in-out infinite',
-  },
-  skullTop: {
-    position: 'relative',
-    width: '100%',
-    height: '75%',
-    background: 'radial-gradient(ellipse at 50% 30%, #ff003c, #66001a)',
-    borderRadius: '50% 50% 30% 30%',
-    boxShadow: '0 0 60px rgba(255,0,60,0.6), inset 0 -30px 40px rgba(0,0,0,0.6)',
-  },
-  skullCranium: {
-    position: 'absolute',
-    top: '10%',
-    left: '10%',
-    width: '80%',
-    height: '70%',
-    background: 'radial-gradient(ellipse at 50% 40%, #ff2244, #990022)',
-    borderRadius: '50% 50% 40% 40%',
-    opacity: 0.5,
-  },
-  skullEyeLeft: {
-    position: 'absolute',
-    top: '35%',
-    left: '22%',
-    width: '20%',
-    height: '18%',
-    background: 'radial-gradient(circle at center, #000, #000 60%, #ff003c44)',
-    borderRadius: '50%',
-    boxShadow: 'inset 0 0 20px #000, 0 0 30px rgba(255,0,60,0.3)',
-    animation: 'eyeGlow 1.5s ease-in-out infinite',
-  },
-  skullEyeRight: {
-    position: 'absolute',
-    top: '35%',
-    right: '22%',
-    width: '20%',
-    height: '18%',
-    background: 'radial-gradient(circle at center, #000, #000 60%, #ff003c44)',
-    borderRadius: '50%',
-    boxShadow: 'inset 0 0 20px #000, 0 0 30px rgba(255,0,60,0.3)',
-    animation: 'eyeGlow 1.5s ease-in-out infinite 0.3s',
-  },
-  skullNose: {
-    position: 'absolute',
-    top: '55%',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    width: '12%',
-    height: '15%',
-    clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
-    background: 'radial-gradient(ellipse at bottom, #220000, #000)',
-  },
-  skullJaw: {
-    position: 'relative',
-    width: '80%',
-    height: '25%',
-    margin: '-5% auto 0',
-    background: 'radial-gradient(ellipse at 50% 100%, #ff003c, #66001a)',
-    borderRadius: '0 0 40% 40% / 0 0 60% 60%',
-    boxShadow: '0 0 40px rgba(255,0,60,0.3), inset 0 20px 30px rgba(0,0,0,0.5)',
-    animation: 'jawMove 0.6s ease-in-out infinite alternate',
-    transformOrigin: 'top center',
-  },
-  skullTeeth: {
-    position: 'absolute',
-    bottom: '20%',
-    left: '15%',
-    width: '70%',
-    height: '30%',
-    display: 'flex',
-    justifyContent: 'center',
-    gap: '4px',
-  },
-  skullGlow: {
-    position: 'absolute',
-    top: '-40px',
-    left: '-40px',
-    right: '-40px',
-    bottom: '-40px',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(255,0,60,0.2) 0%, transparent 70%)',
-    animation: 'glowPulse 1.5s ease-in-out infinite',
-    pointerEvents: 'none',
+  skullSVG: {
+    filter: 'drop-shadow(0 0 60px rgba(255,0,60,0.7))',
+    display: 'block',
+    width: 'auto',
+    height: 'auto',
+    maxWidth: '200px',
+    maxHeight: '220px',
   },
   inputBar: {
     display: 'flex',
