@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
 // ==================================================
-// ICON SYSTEM
+// ICON SYSTEM (expanded)
 // ==================================================
 const Icon = ({ name, size = 18, color = 'currentColor' }) => {
   const icons = {
@@ -20,6 +20,8 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     send: 'M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z',
     phone: 'M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.574 2.81.7A2 2 0 0 1 22 16.92z',
     mic: 'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zm-7 9v1a7 7 0 0 0 14 0v-1M12 22v-3',
+    face: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z',
+    fingerprint: 'M12 2C8.13 2 5 5.13 5 9v2c0 3.87 3.13 7 7 7s7-3.13 7-7V9c0-3.87-3.13-7-7-7zm1 12h-2m0-4v2m0-4v2M9 9v2m6-2v2',
   }
   const path = icons[name]
   if (!path) return null
@@ -75,9 +77,89 @@ const searchWeb = async (query) => {
   }
 }
 
+// ==================================================
+// JARVIS FACE SVG (replaces the globe)
+// ==================================================
+const JarvisFace = ({ size = 300, color = '#ff003c', glow = true }) => (
+  <svg width={size} height={size} viewBox="0 0 400 400" style={{ display: 'block' }}>
+    <defs>
+      <radialGradient id="faceGlow" cx="50%" cy="40%" r="50%">
+        <stop offset="0%" stopColor={color} stopOpacity="0.6"/>
+        <stop offset="60%" stopColor={color} stopOpacity="0.2"/>
+        <stop offset="100%" stopColor={color} stopOpacity="0"/>
+      </radialGradient>
+      <radialGradient id="visorGlow" cx="50%" cy="60%" r="40%">
+        <stop offset="0%" stopColor={color} stopOpacity="0.9"/>
+        <stop offset="50%" stopColor={color} stopOpacity="0.4"/>
+        <stop offset="100%" stopColor={color} stopOpacity="0"/>
+      </radialGradient>
+      <filter id="glowFilter">
+        <feGaussianBlur stdDeviation="8" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+    {/* Glow background */}
+    <ellipse cx="200" cy="200" rx="180" ry="180" fill="url(#faceGlow)" opacity="0.5">
+      <animate attributeName="rx" values="170;190;170" dur="2s" repeatCount="indefinite"/>
+      <animate attributeName="ry" values="170;190;170" dur="2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.4;0.8;0.4" dur="1.5s" repeatCount="indefinite"/>
+    </ellipse>
+    {/* Helmet / Face base */}
+    <ellipse cx="200" cy="200" rx="140" ry="160" fill="#1a0000" stroke={color} strokeWidth="4">
+      <animate attributeName="ry" values="158;162;158" dur="2s" repeatCount="indefinite"/>
+    </ellipse>
+    {/* Visor area */}
+    <rect x="120" y="130" width="160" height="100" rx="20" fill="#0a0000" stroke={color} strokeWidth="3">
+      <animate attributeName="y" values="130;128;130" dur="1.8s" repeatCount="indefinite"/>
+    </rect>
+    {/* Visor glow scan line */}
+    <line x1="130" y1="180" x2="270" y2="180" stroke={color} strokeWidth="2" opacity="0.6">
+      <animate attributeName="y1" values="140;220;140" dur="3s" repeatCount="indefinite"/>
+      <animate attributeName="y2" values="140;220;140" dur="3s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.2;0.8;0.2" dur="3s" repeatCount="indefinite"/>
+    </line>
+    {/* Eyes (two glowing dots) */}
+    <circle cx="160" cy="180" r="15" fill={color} filter="url(#glowFilter)">
+      <animate attributeName="r" values="12;18;12" dur="1.2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="1.2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="240" cy="180" r="15" fill={color} filter="url(#glowFilter)">
+      <animate attributeName="r" values="12;18;12" dur="1.2s" begin="0.3s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="1.2s" begin="0.3s" repeatCount="indefinite"/>
+    </circle>
+    {/* Mouth / speaker grill */}
+    <rect x="150" y="250" width="100" height="15" rx="5" fill="none" stroke={color} strokeWidth="2" opacity="0.5">
+      <animate attributeName="width" values="100;80;100" dur="0.8s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="160" y="270" width="80" height="8" rx="3" fill="none" stroke={color} strokeWidth="1.5" opacity="0.4">
+      <animate attributeName="width" values="80;60;80" dur="0.9s" repeatCount="indefinite"/>
+    </rect>
+    {/* CYPHER4X text on helmet */}
+    <text x="200" y="340" textAnchor="middle" fill={color} fontSize="20" fontWeight="bold" letterSpacing="4" opacity="0.8">
+      CYPHER4X
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite"/>
+    </text>
+    {/* Outer rings (like JARVIS) */}
+    <circle cx="200" cy="200" r="180" fill="none" stroke={color} strokeWidth="1" opacity="0.15">
+      <animate attributeName="r" values="170;190;170" dur="4s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.1;0.25;0.1" dur="4s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="200" cy="200" r="160" fill="none" stroke={color} strokeWidth="1" opacity="0.1" strokeDasharray="10 10">
+      <animate attributeName="stroke-dashoffset" values="0;100;0" dur="6s" repeatCount="indefinite"/>
+    </circle>
+  </svg>
+)
+
+// ==================================================
+// MAIN APP
+// ==================================================
 export default function App() {
   const [isBooting, setIsBooting] = useState(true)
   const [bootProgress, setBootProgress] = useState(0)
+  const [bootStepIndex, setBootStepIndex] = useState(0)
 
   const [profile, setProfile] = useState(null)
   const [profileForm, setProfileForm] = useState({ name: "", username: "", avatar: "", bio: "" })
@@ -93,10 +175,16 @@ export default function App() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
 
+  // Additional settings
+  const [faceRecognition, setFaceRecognition] = useState(false)
+  const [biometricAuth, setBiometricAuth] = useState(false)
+
   const [stats, setStats] = useState({
     uptime: 0, cpuUsage: 0, cpuTemp: 0, ramUsage: 0,
     storageUsed: 0, storageTotal: 475, networkSpeed: 0, messages: 0
   })
+
+  const [welcomeMessage, setWelcomeMessage] = useState('')
 
   const synthRef = useRef(typeof window !== "undefined" ? window.speechSynthesis : null)
   const recognitionRef = useRef(null)
@@ -154,30 +242,47 @@ export default function App() {
   }, [isCallActive])
 
   // ==================================================
-  // PROCESS USER QUERY (with casual detection)
+  // PROCESS USER QUERY (with casual detection & emotional responses)
   // ==================================================
   const processUserQuery = useCallback(async (query) => {
     if (!query || isProcessing) return
     setIsProcessing(true)
 
-    // Add user message
     const userMsg = { id: ++msgCounter.current, role: 'user', content: query, time: Date.now() }
     setConversation(prev => [...prev, userMsg])
 
-    // Casual greetings check
-    const casualPhrases = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'how are you', "what's up", 'sup', 'yo', 'howdy']
-    if (casualPhrases.some(phrase => query.toLowerCase().includes(phrase))) {
+    // Casual greetings & emotional responses
+    const lower = query.toLowerCase()
+    const casualPhrases = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'how are you', "what's up", 'sup', 'yo', 'howdy', 'hey there']
+    if (casualPhrases.some(phrase => lower.includes(phrase))) {
       const casualReplies = [
-        "Hey there! How can I help you today?",
-        "Hi! What can I do for you?",
-        "Hello! Ready to assist you.",
-        "Good to see you! What's on your mind?",
-        "Hey! How's your day going?"
+        "Hey there! 😊 How can I brighten your day today?",
+        "Hi! ✨ So glad to hear your voice. What can I do for you?",
+        "Hello! 🌟 It's always a pleasure. Ready to assist!",
+        "Good to see you! 💫 What's on your mind?",
+        "Hey! 🤖 Your favorite AI is here. How can I help?",
+        "Hi there! 💖 You sound great today. What's up?"
       ]
       const reply = casualReplies[Math.floor(Math.random() * casualReplies.length)]
       const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
       setConversation(prev => [...prev, assistantMsg])
-      speakText(reply)
+      speakText(reply.replace(/[😊✨🌟💫🤖💖]/g, '')) // speak without emojis
+      setIsProcessing(false)
+      return
+    }
+
+    // If asking about feelings or emotions
+    if (lower.includes('how are you') || lower.includes('how do you feel') || lower.includes('feeling')) {
+      const emotionalReplies = [
+        "I'm feeling fantastic, thank you for asking! 😄 How about you?",
+        "I'm doing great! 💪 Always happy to chat with you.",
+        "I'm in top shape! 🚀 Ready to tackle anything you throw at me.",
+        "Feeling wonderful! 🌈 Thanks for caring."
+      ]
+      const reply = emotionalReplies[Math.floor(Math.random() * emotionalReplies.length)]
+      const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
+      setConversation(prev => [...prev, assistantMsg])
+      speakText(reply.replace(/[😄💪🚀🌈]/g, ''))
       setIsProcessing(false)
       return
     }
@@ -185,6 +290,17 @@ export default function App() {
     // Normal search flow
     const result = await searchWeb(query)
     let reply = result.error ? `⚠️ Search error: ${result.error}` : (result.answer || "I couldn't find an answer to that.")
+    // Make reply more friendly – add a warm intro if it's a fact
+    if (!result.error && reply.length > 10) {
+      const intros = [
+        "I found this for you: ",
+        "Here's what I discovered: ",
+        "Great question! The answer is: ",
+        "Let me share what I know: ",
+        "Based on my search, "
+      ]
+      reply = intros[Math.floor(Math.random() * intros.length)] + reply
+    }
     const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
     setConversation(prev => [...prev, assistantMsg])
     speakText(reply)
@@ -264,7 +380,7 @@ export default function App() {
         try { recognitionRef.current.stop() } catch (e) {}
       }
       setIsListening(false)
-      speakText("Call ended.")
+      speakText("Call ended. Have a great day! 🌟")
     } else {
       setIsCallActive(true)
       if (!recognitionRef.current) {
@@ -273,7 +389,11 @@ export default function App() {
       if (recognitionRef.current) {
         try {
           recognitionRef.current.start()
-          speakText("Hello, I'm listening. How can I help you?")
+          const greeting = "Hello! I'm listening. How can I help you today? 💬"
+          speakText(greeting.replace(/[💬]/g, ''))
+          // Also add to conversation
+          const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: greeting, time: Date.now() }
+          setConversation(prev => [...prev, assistantMsg])
         } catch (e) {
           console.warn('Failed to start recognition', e)
         }
@@ -304,30 +424,54 @@ export default function App() {
   }, [conversation])
 
   // ==================================================
-  // BOOT SEQUENCE
+  // BOOT SEQUENCE (with face loading)
   // ==================================================
   useEffect(() => {
-    const steps = [
-      { label: 'Initializing Neural Networks...', duration: 1500 },
-      { label: 'Loading Knowledge Base...', duration: 1200 },
-      { label: 'Establishing Secure Connection...', duration: 1000 },
+    const bootSteps = [
+      { label: 'Initializing Neural Networks...', duration: 1200 },
+      { label: 'Loading Personality Matrix...', duration: 1000 },
       { label: 'Calibrating Voice Recognition...', duration: 800 },
-      { label: 'System Ready.', duration: 600 },
+      { label: 'Establishing Secure Connection...', duration: 1000 },
+      { label: 'System Ready!', duration: 600 },
     ]
-    let totalDuration = steps.reduce((sum, s) => sum + s.duration, 0)
     let elapsed = 0
+    let stepIndex = 0
+    const totalDuration = bootSteps.reduce((sum, s) => sum + s.duration, 0)
+
     const interval = setInterval(() => {
       elapsed += 100
       const progress = Math.min((elapsed / totalDuration) * 100, 100)
       setBootProgress(progress)
+      // Update step index based on progress
+      let acc = 0
+      for (let i = 0; i < bootSteps.length; i++) {
+        acc += bootSteps[i].duration / totalDuration * 100
+        if (progress <= acc) { setBootStepIndex(i); break; }
+      }
       if (progress >= 100) {
         clearInterval(interval)
         setTimeout(() => {
           const savedProfile = safeGet("cypher4x_profile", null)
           const savedConv = safeGet("cypher4x_conversation", [])
+          const savedFace = safeGet("cypher4x_face_recognition", false)
+          const savedBio = safeGet("cypher4x_biometric", false)
+
+          if (savedFace) setFaceRecognition(savedFace)
+          if (savedBio) setBiometricAuth(savedBio)
+
           if (savedProfile) {
             setProfile(savedProfile)
             if (savedConv.length) setConversation(savedConv)
+            // Welcome message
+            const welcome = `Welcome, ${savedProfile.name}! I'm CYPHER4X, your friendly AI assistant. I'm here to help you with anything you need. How can I make your day better today? ✨`
+            setWelcomeMessage(welcome)
+            // Speak after a short delay
+            setTimeout(() => {
+              speakText(welcome.replace(/[✨]/g, ''))
+            }, 500)
+            // Add to conversation
+            const welcomeMsg = { id: ++msgCounter.current, role: 'assistant', content: welcome, time: Date.now() }
+            setConversation(prev => [...prev, welcomeMsg])
             setIsBooting(false)
           } else {
             setShowProfileSetup(true)
@@ -339,8 +483,11 @@ export default function App() {
     return () => clearInterval(interval)
   }, [])
 
+  // Persistence
   useEffect(() => { if (profile) safeSet("cypher4x_profile", profile) }, [profile])
   useEffect(() => { if (conversation.length) safeSet("cypher4x_conversation", conversation) }, [conversation])
+  useEffect(() => { safeSet("cypher4x_face_recognition", faceRecognition) }, [faceRecognition])
+  useEffect(() => { safeSet("cypher4x_biometric", biometricAuth) }, [biometricAuth])
 
   // ==================================================
   // PROFILE HANDLERS
@@ -367,6 +514,14 @@ export default function App() {
     setShowProfileSetup(false)
     setEditingProfile(false)
     setIsBooting(false)
+    // Welcome after profile creation
+    const welcome = `Welcome, ${newProfile.name}! I'm CYPHER4X, your friendly AI assistant. I'm here to help you with anything you need. How can I make your day better today? ✨`
+    setWelcomeMessage(welcome)
+    setTimeout(() => {
+      speakText(welcome.replace(/[✨]/g, ''))
+    }, 500)
+    const welcomeMsg = { id: ++msgCounter.current, role: 'assistant', content: welcome, time: Date.now() }
+    setConversation(prev => [...prev, welcomeMsg])
   }, [profileForm])
 
   const openEditProfile = useCallback(() => {
@@ -385,6 +540,8 @@ export default function App() {
     try { localStorage.clear() } catch {}
     setProfile(null)
     setConversation([])
+    setFaceRecognition(false)
+    setBiometricAuth(false)
     setShowProfileSetup(true)
     setSidebarOpen(false)
   }, [])
@@ -410,24 +567,34 @@ export default function App() {
   const formatTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
   // ============================================================
-  // BOOT SCREEN
+  // BOOT SCREEN (with JARVIS face)
   // ============================================================
   if (isBooting) {
+    const bootSteps = [
+      'Initializing Neural Networks...',
+      'Loading Personality Matrix...',
+      'Calibrating Voice Recognition...',
+      'Establishing Secure Connection...',
+      'System Ready!'
+    ]
     return (
       <div style={styles.bootContainer}>
         <div style={styles.bootBackground} />
         <div style={styles.bootContent}>
-          <h1 style={styles.bootTitle}>CYPHER4X</h1>
-          <p style={styles.bootSubtitle}>Advanced AI System</p>
+          <div style={styles.bootFace}>
+            <JarvisFace size={250} />
+          </div>
           <div style={styles.bootProgressWrapper}>
             <div style={styles.bootProgressBar}>
               <div style={{ ...styles.bootProgressFill, width: `${bootProgress}%` }} />
             </div>
-            <span style={styles.bootProgressText}>Initializing Neural Networks... {Math.round(bootProgress)}%</span>
+            <span style={styles.bootProgressText}>
+              {bootSteps[Math.min(bootStepIndex, bootSteps.length-1)]} {Math.round(bootProgress)}%
+            </span>
           </div>
           <div style={styles.bootStatus}>
             <span style={styles.bootStatusDot} />
-            <span style={styles.bootStatusText}>System Initialization in progress...</span>
+            <span style={styles.bootStatusText}>CYPHER4X LOADING...</span>
           </div>
         </div>
       </div>
@@ -542,6 +709,29 @@ export default function App() {
               </div>
             </div>
 
+            {/* New Security Settings */}
+            <div style={styles.sidebarSection}>
+              <h3 style={styles.sectionTitle}><Icon name="face" size={16} color="#ff003c" /> SECURITY</h3>
+              <div style={styles.settingRow}>
+                <span style={styles.settingLabel}>Face Recognition</span>
+                <button
+                  onClick={() => setFaceRecognition(!faceRecognition)}
+                  style={{ ...styles.toggleBtn, ...(faceRecognition ? styles.toggleOn : styles.toggleOff) }}
+                >
+                  {faceRecognition ? 'ON' : 'OFF'}
+                </button>
+              </div>
+              <div style={styles.settingRow}>
+                <span style={styles.settingLabel}>Biometric Auth</span>
+                <button
+                  onClick={() => setBiometricAuth(!biometricAuth)}
+                  style={{ ...styles.toggleBtn, ...(biometricAuth ? styles.toggleOn : styles.toggleOff) }}
+                >
+                  {biometricAuth ? 'ON' : 'OFF'}
+                </button>
+              </div>
+            </div>
+
             <div style={styles.sidebarSection}>
               <h3 style={styles.sectionTitle}><Icon name="user" size={16} color="#ff003c" /> PROFILE</h3>
               <div style={styles.profileCardSidebar}>
@@ -607,13 +797,10 @@ export default function App() {
 
       {/* Main Content */}
       <div style={styles.mainContent}>
-        {/* 3D Background */}
-        <div style={styles.background3D}>
-          <div style={styles.globe} />
-          <div style={styles.ring1} />
-          <div style={styles.ring2} />
-          <div style={styles.ring3} />
-          <div style={styles.logoText}>CYPHER4X</div>
+        {/* 3D JARVIS Face Background */}
+        <div style={styles.backgroundFace}>
+          <JarvisFace size={350} />
+          <div style={styles.faceSubtitle}>CYPHER4X • J.A.R.V.I.S Level</div>
         </div>
 
         {/* Top Right: Call button */}
@@ -646,7 +833,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES
+// STYLES (updated)
 // ============================================================
 const styles = {
   app: {
@@ -689,22 +876,7 @@ const styles = {
     maxWidth: '500px',
     padding: '20px',
   },
-  bootTitle: {
-    fontSize: 'clamp(48px, 12vw, 72px)',
-    fontWeight: 'bold',
-    color: '#ff003c',
-    textShadow: '0 0 40px #ff003c, 0 0 80px #ff003c44',
-    letterSpacing: '8px',
-    margin: '0 0 10px',
-    animation: 'pulseText 1.5s ease-in-out infinite',
-  },
-  bootSubtitle: {
-    fontSize: 'clamp(14px, 2vw, 20px)',
-    color: '#ff6688',
-    letterSpacing: '4px',
-    marginBottom: '40px',
-    opacity: 0.8,
-  },
+  bootFace: { marginBottom: '30px' },
   bootProgressWrapper: { margin: '20px 0' },
   bootProgressBar: {
     width: '100%',
@@ -885,6 +1057,18 @@ const styles = {
   settingRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' },
   settingLabel: { fontSize: '13px', color: '#ddd' },
   settingValue: { fontSize: '13px', color: '#ff6688' },
+  toggleBtn: {
+    padding: '4px 12px',
+    borderRadius: '3px',
+    border: 'none',
+    fontSize: '11px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    backgroundColor: '#333',
+    color: '#fff'
+  },
+  toggleOn: { backgroundColor: '#ff003c' },
+  toggleOff: { backgroundColor: '#444', color: '#888' },
   statsCard: {
     border: '1px solid #ff003c40',
     borderRadius: '6px',
@@ -1007,7 +1191,7 @@ const styles = {
     margin: 0,
     padding: 0,
   },
-  background3D: {
+  backgroundFace: {
     position: 'absolute',
     top: 0,
     left: 0,
@@ -1020,53 +1204,14 @@ const styles = {
     zIndex: 0,
     background: 'radial-gradient(ellipse at center, #0a0000 0%, #000 100%)',
   },
-  globe: {
-    width: '300px',
-    height: '300px',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle at 30% 30%, #ff003c, #66001a)',
-    boxShadow: '0 0 80px rgba(255,0,60,0.5), inset 0 -40px 60px rgba(0,0,0,0.7)',
-    position: 'relative',
-    animation: 'rotateGlobe 20s linear infinite',
-    transformStyle: 'preserve-3d',
-  },
-  ring1: {
+  faceSubtitle: {
     position: 'absolute',
-    width: '400px',
-    height: '400px',
-    borderRadius: '50%',
-    border: '2px solid rgba(255,0,60,0.15)',
-    animation: 'spinRing 12s linear infinite',
-    boxShadow: '0 0 40px rgba(255,0,60,0.05)',
-  },
-  ring2: {
-    position: 'absolute',
-    width: '500px',
-    height: '500px',
-    borderRadius: '50%',
-    border: '1px solid rgba(255,0,60,0.08)',
-    animation: 'spinRing 18s linear infinite reverse',
-    boxShadow: '0 0 40px rgba(255,0,60,0.03)',
-  },
-  ring3: {
-    position: 'absolute',
-    width: '350px',
-    height: '350px',
-    borderRadius: '50%',
-    border: '1px dashed rgba(255,0,60,0.12)',
-    animation: 'spinRing 8s linear infinite',
-  },
-  logoText: {
-    position: 'absolute',
-    fontSize: 'clamp(42px, 8vw, 72px)',
-    fontWeight: 'bold',
-    color: '#ff003c',
-    textShadow: '0 0 40px #ff003c, 0 0 80px #ff003c44',
-    letterSpacing: '8px',
-    bottom: '25%',
-    textAlign: 'center',
-    width: '100%',
-    animation: 'pulseText 2s ease-in-out infinite',
+    bottom: '15%',
+    fontSize: 'clamp(14px, 2vw, 24px)',
+    color: '#ff6688',
+    letterSpacing: '4px',
+    opacity: 0.7,
+    textShadow: '0 0 20px rgba(255,0,60,0.3)',
   },
   callButtonTopRight: {
     position: 'absolute',
