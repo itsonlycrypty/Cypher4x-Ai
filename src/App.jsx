@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
 // ==================================================
-// ICON SYSTEM (reduced to essentials)
+// ICON SYSTEM
 // ==================================================
 const Icon = ({ name, size = 18, color = 'currentColor' }) => {
   const icons = {
@@ -19,7 +19,6 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     alertTriangle: 'M12 9v4m0 4h.01M12 2L1 21h22L12 2z',
     send: 'M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z',
     phone: 'M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.574 2.81.7A2 2 0 0 1 22 16.92z',
-    send: 'M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z',
     mic: 'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zm-7 9v1a7 7 0 0 0 14 0v-1M12 22v-3',
   }
   const path = icons[name]
@@ -41,9 +40,6 @@ const CREATED_BY = "Crypty"
 const ASSISTED_BY = "Mole"
 const APP_START_TIME = Date.now()
 
-// ==================================================
-// SAFE STORAGE
-// ==================================================
 const safeGet = (key, fallback) => {
   try { const val = localStorage.getItem(key); if (val === null) return fallback; return JSON.parse(val) } catch { return fallback }
 }
@@ -51,27 +47,13 @@ const safeSet = (key, val) => {
   try { localStorage.setItem(key, JSON.stringify(val)); return true } catch { return false }
 }
 
-// ==================================================
-// SEARCH FUNCTION (Tavily only)
-// ==================================================
 const searchWeb = async (query) => {
-  if (!TAVILY_API_KEY) {
-    return { error: "Tavily API key not configured." }
-  }
+  if (!TAVILY_API_KEY) return { error: "Tavily API key not configured." }
   try {
     const res = await fetch(TAVILY_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${TAVILY_API_KEY}`
-      },
-      body: JSON.stringify({
-        query: query,
-        search_depth: "basic",
-        include_answer: true,
-        include_images: false,
-        max_results: 5
-      })
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${TAVILY_API_KEY}` },
+      body: JSON.stringify({ query, search_depth: "basic", include_answer: true, include_images: false, max_results: 5 })
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
@@ -81,50 +63,37 @@ const searchWeb = async (query) => {
   }
 }
 
-// ==================================================
-// MAIN APP
-// ==================================================
 export default function App() {
   const [isBooting, setIsBooting] = useState(true)
   const [bootProgress, setBootProgress] = useState(0)
 
-  // Profile
   const [profile, setProfile] = useState(null)
   const [profileForm, setProfileForm] = useState({ name: "", username: "", avatar: "", bio: "" })
   const [showProfileSetup, setShowProfileSetup] = useState(false)
   const [editingProfile, setEditingProfile] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  // Conversation (transcript)
-  const [conversation, setConversation] = useState([]) // [{role: 'user'|'assistant', content, time}]
+  const [conversation, setConversation] = useState([])
   const [inputText, setInputText] = useState("")
 
-  // Voice state
   const [isCallActive, setIsCallActive] = useState(false)
   const [isListening, setIsListening] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [transcript, setTranscript] = useState("")
+  const [isRecording, setIsRecording] = useState(false) // for one-off voice
 
-  // Stats (simulated)
   const [stats, setStats] = useState({
-    uptime: 0,
-    cpuUsage: 0,
-    cpuTemp: 0,
-    ramUsage: 0,
-    storageUsed: 0,
-    storageTotal: 475,
-    networkSpeed: 0,
-    messages: 0,
+    uptime: 0, cpuUsage: 0, cpuTemp: 0, ramUsage: 0,
+    storageUsed: 0, storageTotal: 475, networkSpeed: 0, messages: 0
   })
 
-  // Refs
   const synthRef = useRef(typeof window !== "undefined" ? window.speechSynthesis : null)
   const recognitionRef = useRef(null)
   const msgCounter = useRef(0)
   const fileInputRef = useRef(null)
 
   // ==================================================
-  // SPEECH RECOGNITION SETUP
+  // SPEECH RECOGNITION SETUP (continuous call)
   // ==================================================
   const setupSpeechRecognition = useCallback(() => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -138,20 +107,13 @@ export default function App() {
     recognition.lang = 'en-US'
     recognition.maxAlternatives = 1
 
-    recognition.onstart = () => {
-      setIsListening(true)
-    }
-
+    recognition.onstart = () => setIsListening(true)
     recognition.onend = () => {
       setIsListening(false)
-      // If call is still active, restart recognition
       if (isCallActive) {
-        try {
-          recognition.start()
-        } catch (e) {}
+        try { recognition.start() } catch (e) {}
       }
     }
-
     recognition.onerror = (event) => {
       console.warn('Speech recognition error', event.error)
       if (event.error === 'not-allowed') {
@@ -159,76 +121,45 @@ export default function App() {
         setIsCallActive(false)
         return
       }
-      // Restart on error if call active
       if (isCallActive) {
-        setTimeout(() => {
-          try { recognition.start() } catch (e) {}
-        }, 500)
+        setTimeout(() => { try { recognition.start() } catch (e) {} }, 500)
       }
     }
-
     recognition.onresult = async (event) => {
-      let final = ''
-      let interim = ''
+      let final = '', interim = ''
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i]
-        if (result.isFinal) {
-          final += result[0].transcript
-        } else {
-          interim += result[0].transcript
-        }
+        if (result.isFinal) final += result[0].transcript
+        else interim += result[0].transcript
       }
       const fullTranscript = (final || interim).trim()
       if (fullTranscript) {
         setTranscript(fullTranscript)
-        // If final, process the query
         if (final) {
           setTranscript('')
-          await processUserQuery(final)
+          await processUserQuery(fullTranscript)
         }
       }
     }
-
     return recognition
   }, [isCallActive])
 
   // ==================================================
-  // PROCESS QUERY (Tavily search)
+  // PROCESS QUERY
   // ==================================================
   const processUserQuery = useCallback(async (query) => {
     if (!query || isProcessing) return
     setIsProcessing(true)
 
-    // Add user message to conversation
-    const userMsg = {
-      id: ++msgCounter.current,
-      role: 'user',
-      content: query,
-      time: Date.now()
-    }
+    const userMsg = { id: ++msgCounter.current, role: 'user', content: query, time: Date.now() }
     setConversation(prev => [...prev, userMsg])
 
-    // Search the web
     const result = await searchWeb(query)
-    let reply = ''
-    if (result.error) {
-      reply = `⚠️ Search error: ${result.error}`
-    } else {
-      reply = result.answer || "I couldn't find an answer to that."
-    }
-
-    // Add assistant reply to conversation
-    const assistantMsg = {
-      id: ++msgCounter.current,
-      role: 'assistant',
-      content: reply,
-      time: Date.now()
-    }
+    let reply = result.error ? `⚠️ Search error: ${result.error}` : (result.answer || "I couldn't find an answer to that.")
+    const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
     setConversation(prev => [...prev, assistantMsg])
 
-    // Speak the reply
     speakText(reply)
-
     setIsProcessing(false)
   }, [isProcessing])
 
@@ -244,10 +175,42 @@ export default function App() {
       utterance.pitch = 1
       utterance.volume = 1
       synthRef.current.speak(utterance)
-    } catch (e) {
-      console.warn('TTS error', e)
-    }
+    } catch (e) {}
   }, [])
+
+  // ==================================================
+  // VOICE RECORDING (one‑off)
+  // ==================================================
+  const startRecording = useCallback(() => {
+    if (isRecording) return
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert("Your browser doesn't support speech recognition.")
+      return
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    const recognition = new SpeechRecognition()
+    recognition.continuous = false
+    recognition.interimResults = false
+    recognition.lang = 'en-US'
+
+    recognition.onstart = () => setIsRecording(true)
+    recognition.onend = () => setIsRecording(false)
+    recognition.onerror = (event) => {
+      setIsRecording(false)
+      alert('Speech recognition error: ' + event.error)
+    }
+    recognition.onresult = async (event) => {
+      const transcript = event.results[0][0].transcript.trim()
+      if (transcript) {
+        await processUserQuery(transcript)
+      }
+    }
+    try {
+      recognition.start()
+    } catch (e) {
+      alert('Failed to start recording: ' + e.message)
+    }
+  }, [processUserQuery])
 
   // ==================================================
   // SEND TEXT FROM SIDEBAR
@@ -260,20 +223,17 @@ export default function App() {
   }, [inputText, isProcessing, processUserQuery])
 
   // ==================================================
-  // VOICE CALL TOGGLE
+  // CALL TOGGLE (continuous listening)
   // ==================================================
   const toggleCall = useCallback(() => {
     if (isCallActive) {
-      // End call
       setIsCallActive(false)
       if (recognitionRef.current) {
         try { recognitionRef.current.stop() } catch (e) {}
       }
       setIsListening(false)
-      // Optionally speak a goodbye
       speakText("Call ended.")
     } else {
-      // Start call
       setIsCallActive(true)
       if (!recognitionRef.current) {
         recognitionRef.current = setupSpeechRecognition()
@@ -293,7 +253,7 @@ export default function App() {
   }, [isCallActive, setupSpeechRecognition, speakText])
 
   // ==================================================
-  // SIMULATE SYSTEM STATS
+  // SIMULATE STATS
   // ==================================================
   useEffect(() => {
     const timer = setInterval(() => {
@@ -312,7 +272,7 @@ export default function App() {
   }, [conversation])
 
   // ==================================================
-  // BOOT SEQUENCE (System Initialization)
+  // BOOT SEQUENCE (with CYPHER4X branding)
   // ==================================================
   useEffect(() => {
     const steps = [
@@ -330,7 +290,6 @@ export default function App() {
       setBootProgress(progress)
       if (progress >= 100) {
         clearInterval(interval)
-        // Load profile
         setTimeout(() => {
           const savedProfile = safeGet("cypher4x_profile", null)
           const savedConv = safeGet("cypher4x_conversation", [])
@@ -348,13 +307,8 @@ export default function App() {
     return () => clearInterval(interval)
   }, [])
 
-  // Persistence
-  useEffect(() => {
-    if (profile) safeSet("cypher4x_profile", profile)
-  }, [profile])
-  useEffect(() => {
-    if (conversation.length) safeSet("cypher4x_conversation", conversation)
-  }, [conversation])
+  useEffect(() => { if (profile) safeSet("cypher4x_profile", profile) }, [profile])
+  useEffect(() => { if (conversation.length) safeSet("cypher4x_conversation", conversation) }, [conversation])
 
   // ==================================================
   // PROFILE HANDLERS
@@ -403,10 +357,7 @@ export default function App() {
     setSidebarOpen(false)
   }, [])
 
-  const clearConversation = useCallback(() => {
-    setConversation([])
-  }, [])
-
+  const clearConversation = useCallback(() => setConversation([]), [])
   const exportChat = useCallback(() => {
     const data = { conversation, profile, exportedAt: new Date().toISOString() }
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -427,15 +378,15 @@ export default function App() {
   const formatTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
   // ============================================================
-  // BOOT SCREEN — System Initialization
+  // BOOT SCREEN (CYPHER4X branding)
   // ============================================================
   if (isBooting) {
     return (
       <div style={styles.bootContainer}>
         <div style={styles.bootBackground} />
         <div style={styles.bootContent}>
-          <h1 style={styles.bootTitle}>J.A.R.V.I.S</h1>
-          <p style={styles.bootSubtitle}>Just A Rather Very Intelligent System</p>
+          <h1 style={styles.bootTitle}>CYPHER4X</h1>
+          <p style={styles.bootSubtitle}>Advanced AI System</p>
           <div style={styles.bootProgressWrapper}>
             <div style={styles.bootProgressBar}>
               <div style={{ ...styles.bootProgressFill, width: `${bootProgress}%` }} />
@@ -519,7 +470,7 @@ export default function App() {
   }
 
   // ============================================================
-  // MAIN APP — Full screen with 3D logo, call button, sidebar
+  // MAIN APP
   // ============================================================
   return (
     <div style={styles.app}>
@@ -533,7 +484,6 @@ export default function App() {
               <button onClick={() => setSidebarOpen(false)} style={styles.closeBtn}><Icon name="x" size={20} color="#888" /></button>
             </div>
 
-            {/* System Stats */}
             <div style={styles.sidebarSection}>
               <h3 style={styles.sectionTitle}><Icon name="chart" size={16} color="#ff003c" /> SYSTEM STATS</h3>
               <div style={styles.statsCard}>
@@ -547,22 +497,19 @@ export default function App() {
               </div>
             </div>
 
-            {/* AI Config (simplified) */}
             <div style={styles.sidebarSection}>
               <h3 style={styles.sectionTitle}><Icon name="settings" size={16} color="#ff003c" /> AI CONFIG</h3>
               <div style={styles.settingRow}><span style={styles.settingLabel}>AI Engine</span><span style={styles.settingValue}>TAVILY</span></div>
               <div style={styles.settingRow}><span style={styles.settingLabel}>Language</span><span style={styles.settingValue}>English</span></div>
-              <div style={styles.settingRow}>
-                <span style={styles.settingLabel}>Voice</span>
-                <span style={styles.settingValue}>Male</span>
-              </div>
+              <div style={styles.settingRow}><span style={styles.settingLabel}>Voice</span><span style={styles.settingValue}>Male</span></div>
               <div style={styles.settingRow}>
                 <span style={styles.settingLabel}>Status</span>
-                <span style={{ color: isCallActive ? '#4f8' : '#888', fontWeight: 'bold' }}>{isCallActive ? '🎤 Listening' : 'Standby'}</span>
+                <span style={{ color: isCallActive ? '#4f8' : '#888', fontWeight: 'bold' }}>
+                  {isCallActive ? '🎤 Listening' : isRecording ? '🔴 Recording' : 'Standby'}
+                </span>
               </div>
             </div>
 
-            {/* Profile */}
             <div style={styles.sidebarSection}>
               <h3 style={styles.sectionTitle}><Icon name="user" size={16} color="#ff003c" /> PROFILE</h3>
               <div style={styles.profileCardSidebar}>
@@ -577,14 +524,12 @@ export default function App() {
               <button onClick={openEditProfile} style={styles.sidebarBtn}><Icon name="edit" size={14} color="#fff" /> Edit Profile</button>
             </div>
 
-            {/* Today's Events (static example) */}
             <div style={styles.sidebarSection}>
               <h3 style={styles.sectionTitle}><Icon name="calendar" size={16} color="#ff003c" /> TODAY'S EVENTS</h3>
               <div style={styles.dashEvent}><span>Team Meeting</span><span style={styles.eventTime}>2:00 PM</span></div>
               <div style={styles.dashEvent}><span>Meeting my girl</span><span style={styles.eventTime}>8:00 PM</span></div>
             </div>
 
-            {/* Conversation Transcript */}
             <div style={styles.sidebarSection}>
               <h3 style={styles.sectionTitle}><Icon name="clock" size={16} color="#ff003c" /> CONVERSATION</h3>
               <div style={styles.conversationLog}>
@@ -605,7 +550,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Text Input in Sidebar */}
             <div style={styles.sidebarInputArea}>
               <input
                 type="text"
@@ -621,7 +565,6 @@ export default function App() {
               </button>
             </div>
 
-            {/* Danger Zone */}
             <div style={styles.sidebarSection}>
               <h3 style={styles.sectionTitle}><Icon name="alertTriangle" size={16} color="#ff003c" /> DANGER ZONE</h3>
               <button onClick={resetAllData} style={styles.dangerBtn}><Icon name="trash" size={14} color="#fff" /> Reset All Data</button>
@@ -630,7 +573,7 @@ export default function App() {
         </>
       )}
 
-      {/* Main Content — Full Screen 3D Logo + Call Button */}
+      {/* Main Content — Full Screen 3D Logo with buttons */}
       <div style={styles.mainContent}>
         {/* 3D Background Animation */}
         <div style={styles.background3D}>
@@ -639,27 +582,29 @@ export default function App() {
           <div style={styles.ring2} />
           <div style={styles.ring3} />
           <div style={styles.logoText}>CYPHER4X</div>
-          <div style={styles.logoSub}>J.A.R.V.I.S Level AI</div>
         </div>
 
-        {/* Call Button */}
-        <div style={styles.callContainer}>
+        {/* Top Right: Call button (continuous listening) */}
+        <button onClick={toggleCall} style={styles.callButtonTopRight}>
+          <Icon name="phone" size={24} color={isCallActive ? "#4f8" : "#ff003c"} />
+          <span style={styles.callLabelTop}>{isCallActive ? 'END' : 'CALL'}</span>
+        </button>
+
+        {/* Bottom center: Voice button (one‑off recording) */}
+        <div style={styles.voiceButtonContainer}>
           <button
-            onClick={toggleCall}
-            style={{ ...styles.callButton, ...(isCallActive ? styles.callButtonActive : {}) }}
+            onClick={startRecording}
+            disabled={isRecording || isProcessing || isCallActive}
+            style={{ ...styles.voiceButton, ...(isRecording ? styles.voiceButtonActive : {}) }}
           >
-            {isCallActive ? <Icon name="phone" size={48} color="#fff" /> : <Icon name="mic" size={48} color="#fff" />}
-            <span style={styles.callLabel}>{isCallActive ? 'END CALL' : 'START CALL'}</span>
+            <Icon name="mic" size={36} color="#fff" />
+            <span style={styles.voiceLabel}>
+              {isRecording ? 'Recording...' : isProcessing ? 'Processing...' : 'Tap to Speak'}
+            </span>
           </button>
-          {isCallActive && (
-            <div style={styles.listeningIndicator}>
-              <span style={styles.listeningDot} />
-              <span style={styles.listeningText}>{isListening ? 'Listening...' : 'Processing...'}</span>
-            </div>
-          )}
         </div>
 
-        {/* Hamburger Menu to open sidebar */}
+        {/* Hamburger menu */}
         <button onClick={() => setSidebarOpen(true)} style={styles.hamburgerBtn}>
           <Icon name="menu" size={28} color="#ff003c" />
         </button>
@@ -680,6 +625,8 @@ const styles = {
     fontFamily: "'Segoe UI', 'Courier New', monospace",
     overflow: 'hidden',
     border: 'none',
+    margin: 0,
+    padding: 0,
   },
   // Boot
   bootContainer: {
@@ -691,6 +638,8 @@ const styles = {
     position: 'relative',
     overflow: 'hidden',
     fontFamily: "'Courier New', monospace",
+    margin: 0,
+    padding: 0,
   },
   bootBackground: {
     position: 'absolute',
@@ -724,9 +673,7 @@ const styles = {
     marginBottom: '40px',
     opacity: 0.8,
   },
-  bootProgressWrapper: {
-    margin: '20px 0',
-  },
+  bootProgressWrapper: { margin: '20px 0' },
   bootProgressBar: {
     width: '100%',
     height: '8px',
@@ -777,6 +724,7 @@ const styles = {
     justifyContent: 'center',
     padding: '20px',
     border: 'none',
+    margin: 0,
   },
   profileCard: {
     width: '100%',
@@ -1013,7 +961,7 @@ const styles = {
     justifyContent: 'center',
   },
 
-  // Main Content — Full Screen
+  // Main Content
   mainContent: {
     flex: 1,
     display: 'flex',
@@ -1024,6 +972,8 @@ const styles = {
     overflow: 'hidden',
     height: '100vh',
     border: 'none',
+    margin: 0,
+    padding: 0,
   },
   background3D: {
     position: 'absolute',
@@ -1081,32 +1031,53 @@ const styles = {
     color: '#ff003c',
     textShadow: '0 0 40px #ff003c, 0 0 80px #ff003c44',
     letterSpacing: '8px',
-    bottom: '20%',
+    bottom: '25%',
     textAlign: 'center',
     width: '100%',
     animation: 'pulseText 2s ease-in-out infinite',
   },
-  logoSub: {
+  callButtonTopRight: {
     position: 'absolute',
-    fontSize: 'clamp(14px, 2vw, 22px)',
-    color: '#ff6688',
-    letterSpacing: '4px',
-    bottom: '12%',
-    textAlign: 'center',
-    width: '100%',
-    opacity: 0.8,
+    top: '20px',
+    right: '20px',
+    zIndex: 10,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    border: '2px solid #ff003c',
+    borderRadius: '30px',
+    padding: '8px 16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    cursor: 'pointer',
+    color: '#ff003c',
+    fontSize: '14px',
+    fontWeight: 'bold',
+    letterSpacing: '1px',
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      backgroundColor: 'rgba(255,0,60,0.2)',
+    },
   },
-  callContainer: {
-    position: 'relative',
+  callLabelTop: {
+    fontSize: '12px',
+    fontWeight: 'bold',
+    letterSpacing: '1px',
+    color: '#fff',
+  },
+  voiceButtonContainer: {
+    position: 'absolute',
+    bottom: '40px',
+    left: '50%',
+    transform: 'translateX(-50%)',
     zIndex: 10,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '20px',
+    gap: '8px',
   },
-  callButton: {
-    width: '120px',
-    height: '120px',
+  voiceButton: {
+    width: '80px',
+    height: '80px',
     borderRadius: '50%',
     backgroundColor: '#1a1a1a',
     border: '3px solid #ff003c',
@@ -1116,45 +1087,30 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     gap: '4px',
-    boxShadow: '0 0 40px rgba(255,0,60,0.2)',
     transition: 'all 0.3s ease',
+    boxShadow: '0 0 30px rgba(255,0,60,0.2)',
     '&:hover': {
       transform: 'scale(1.05)',
-      boxShadow: '0 0 60px rgba(255,0,60,0.4)',
+      boxShadow: '0 0 50px rgba(255,0,60,0.4)',
+    },
+    '&:disabled': {
+      opacity: 0.5,
+      cursor: 'not-allowed',
+      transform: 'none',
     },
   },
-  callButtonActive: {
+  voiceButtonActive: {
     backgroundColor: '#ff003c',
     borderColor: '#ff003c',
-    boxShadow: '0 0 80px rgba(255,0,60,0.6)',
+    boxShadow: '0 0 60px rgba(255,0,60,0.6)',
     animation: 'pulseGlow 1s ease-in-out infinite',
   },
-  callLabel: {
+  voiceLabel: {
     color: '#fff',
     fontSize: '11px',
     fontWeight: 'bold',
-    letterSpacing: '2px',
-    marginTop: '4px',
-  },
-  listeningIndicator: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    color: '#ff6688',
-    fontSize: '14px',
-    fontWeight: 'bold',
-    letterSpacing: '2px',
-  },
-  listeningDot: {
-    width: '10px',
-    height: '10px',
-    borderRadius: '50%',
-    backgroundColor: '#4f8',
-    animation: 'pulseText 0.8s infinite',
-    boxShadow: '0 0 20px #4f8',
-  },
-  listeningText: {
-    color: '#ff6688',
+    letterSpacing: '1px',
+    marginTop: '2px',
   },
   hamburgerBtn: {
     position: 'absolute',
@@ -1175,3 +1131,9 @@ const styles = {
 // ============================================================
 // KEYFRAMES (add to index.css)
 // ============================================================
+/*
+@keyframes pulseText { 0%,100% { opacity:0.8; transform:scale(1); } 50% { opacity:1; transform:scale(1.02); } }
+@keyframes rotateGlobe { 0% { transform: rotateX(10deg) rotateY(0deg); } 100% { transform: rotateX(10deg) rotateY(360deg); } }
+@keyframes spinRing { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes pulseGlow { 0%,100% { box-shadow:0 0 60px rgba(255,0,60,0.4); } 50% { box-shadow:0 0 100px rgba(255,0,60,0.8); } }
+*/
