@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
 // ==================================================
-// ICON SYSTEM
+// ICON SYSTEM (unchanged)
 // ==================================================
 const Icon = ({ name, size = 18, color = 'currentColor' }) => {
   const icons = {
@@ -78,9 +78,9 @@ const searchWeb = async (query) => {
 }
 
 // ==================================================
-// CYBER GIRL FACE (SVG)
+// 3D CYBER GIRL FACE WITH LONG HAIR & TALKING MOUTH
 // ==================================================
-const CyberGirlFace = ({ size = 300, color = '#ff003c', glow = true }) => (
+const CyberGirlFace = ({ size = 300, color = '#ff003c', isSpeaking = false }) => (
   <svg width={size} height={size} viewBox="0 0 400 400" style={{ display: 'block' }}>
     <defs>
       <radialGradient id="faceGlow" cx="50%" cy="40%" r="50%">
@@ -94,8 +94,13 @@ const CyberGirlFace = ({ size = 300, color = '#ff003c', glow = true }) => (
         <stop offset="100%" stopColor={color} stopOpacity="0"/>
       </radialGradient>
       <linearGradient id="hairGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stopColor="#1a0000" stopOpacity="0.8"/>
-        <stop offset="100%" stopColor="#0a0000" stopOpacity="0.9"/>
+        <stop offset="0%" stopColor="#1a0000" stopOpacity="0.9"/>
+        <stop offset="100%" stopColor="#0a0000" stopOpacity="0.95"/>
+      </linearGradient>
+      <linearGradient id="skinGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#2a0a0a"/>
+        <stop offset="50%" stopColor="#1a0a0a"/>
+        <stop offset="100%" stopColor="#0a0000"/>
       </linearGradient>
       <filter id="glowFilter">
         <feGaussianBlur stdDeviation="6" result="blur"/>
@@ -103,6 +108,9 @@ const CyberGirlFace = ({ size = 300, color = '#ff003c', glow = true }) => (
           <feMergeNode in="blur"/>
           <feMergeNode in="SourceGraphic"/>
         </feMerge>
+      </filter>
+      <filter id="hairShadow">
+        <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="#000" floodOpacity="0.6"/>
       </filter>
     </defs>
 
@@ -113,92 +121,152 @@ const CyberGirlFace = ({ size = 300, color = '#ff003c', glow = true }) => (
       <animate attributeName="opacity" values="0.3;0.7;0.3" dur="1.5s" repeatCount="indefinite"/>
     </ellipse>
 
-    {/* Hair (flowing lines behind head) */}
-    <path d="M120 80 Q100 120 90 180 Q80 240 100 300" stroke="#1a0000" strokeWidth="20" fill="none" opacity="0.6"/>
-    <path d="M280 80 Q300 120 310 180 Q320 240 300 300" stroke="#1a0000" strokeWidth="20" fill="none" opacity="0.6"/>
-    <path d="M150 70 Q130 130 120 200 Q110 270 130 340" stroke="#1a0000" strokeWidth="15" fill="none" opacity="0.4"/>
-    <path d="M250 70 Q270 130 280 200 Q290 270 270 340" stroke="#1a0000" strokeWidth="15" fill="none" opacity="0.4"/>
+    {/* Long flowing hair (behind head) */}
+    <g opacity="0.8" filter="url(#hairShadow)">
+      {/* Left side hair flowing down */}
+      <path d="M120 80 Q80 130 70 200 Q60 280 80 340 Q90 360 100 370" stroke="#1a0000" strokeWidth="30" fill="none" strokeLinecap="round">
+        <animate attributeName="d" values="M120 80 Q80 130 70 200 Q60 280 80 340 Q90 360 100 370;M120 80 Q75 130 65 200 Q55 280 75 340 Q85 360 95 370;M120 80 Q80 130 70 200 Q60 280 80 340 Q90 360 100 370" dur="3s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.7;0.9;0.7" dur="3s" repeatCount="indefinite"/>
+      </path>
+      <path d="M130 70 Q70 120 60 210 Q50 300 70 370" stroke="#1a0000" strokeWidth="22" fill="none" strokeLinecap="round">
+        <animate attributeName="d" values="M130 70 Q70 120 60 210 Q50 300 70 370;M130 70 Q65 120 55 210 Q45 300 65 370;M130 70 Q70 120 60 210 Q50 300 70 370" dur="3.5s" repeatCount="indefinite"/>
+      </path>
+      <path d="M140 60 Q80 110 70 200 Q60 290 80 360" stroke="#1a0000" strokeWidth="18" fill="none" strokeLinecap="round">
+        <animate attributeName="d" values="M140 60 Q80 110 70 200 Q60 290 80 360;M140 60 Q75 110 65 200 Q55 290 75 360;M140 60 Q80 110 70 200 Q60 290 80 360" dur="4s" repeatCount="indefinite"/>
+      </path>
 
-    {/* Main face shape (feminine oval) */}
-    <ellipse cx="200" cy="200" rx="100" ry="130" fill="#1a0000" stroke={color} strokeWidth="3">
-      <animate attributeName="ry" values="128;132;128" dur="2s" repeatCount="indefinite"/>
+      {/* Right side hair flowing down */}
+      <path d="M280 80 Q320 130 330 200 Q340 280 320 340 Q310 360 300 370" stroke="#1a0000" strokeWidth="30" fill="none" strokeLinecap="round">
+        <animate attributeName="d" values="M280 80 Q320 130 330 200 Q340 280 320 340 Q310 360 300 370;M280 80 Q325 130 335 200 Q345 280 325 340 Q315 360 305 370;M280 80 Q320 130 330 200 Q340 280 320 340 Q310 360 300 370" dur="3.2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.7;0.9;0.7" dur="3.2s" repeatCount="indefinite"/>
+      </path>
+      <path d="M270 70 Q330 120 340 210 Q350 300 330 370" stroke="#1a0000" strokeWidth="22" fill="none" strokeLinecap="round">
+        <animate attributeName="d" values="M270 70 Q330 120 340 210 Q350 300 330 370;M270 70 Q335 120 345 210 Q355 300 335 370;M270 70 Q330 120 340 210 Q350 300 330 370" dur="3.7s" repeatCount="indefinite"/>
+      </path>
+      <path d="M260 60 Q320 110 330 200 Q340 290 320 360" stroke="#1a0000" strokeWidth="18" fill="none" strokeLinecap="round">
+        <animate attributeName="d" values="M260 60 Q320 110 330 200 Q340 290 320 360;M260 60 Q325 110 335 200 Q345 290 325 360;M260 60 Q320 110 330 200 Q340 290 320 360" dur="4.2s" repeatCount="indefinite"/>
+      </path>
+    </g>
+
+    {/* Main face shape (3D with gradient) */}
+    <ellipse cx="200" cy="195" rx="100" ry="135" fill="url(#skinGrad)" stroke={color} strokeWidth="3">
+      <animate attributeName="ry" values="133;137;133" dur="2s" repeatCount="indefinite"/>
     </ellipse>
+
+    {/* Face highlight (3D shine) */}
+    <ellipse cx="170" cy="180" rx="50" ry="70" fill={color} opacity="0.05" />
 
     {/* Cheek highlights */}
-    <ellipse cx="140" cy="220" rx="25" ry="15" fill={color} opacity="0.15">
+    <ellipse cx="130" cy="225" rx="30" ry="18" fill={color} opacity="0.15">
       <animate attributeName="opacity" values="0.1;0.25;0.1" dur="1.8s" repeatCount="indefinite"/>
     </ellipse>
-    <ellipse cx="260" cy="220" rx="25" ry="15" fill={color} opacity="0.15">
+    <ellipse cx="270" cy="225" rx="30" ry="18" fill={color} opacity="0.15">
       <animate attributeName="opacity" values="0.1;0.25;0.1" dur="1.8s" begin="0.3s" repeatCount="indefinite"/>
     </ellipse>
 
-    {/* Eyes (large, feminine with eyelashes) */}
+    {/* Eyes (large, feminine, 3D with depth) */}
     {/* Left eye */}
     <g>
-      <ellipse cx="150" cy="170" rx="30" ry="20" fill="#0a0000" stroke={color} strokeWidth="2"/>
-      <ellipse cx="150" cy="170" rx="18" ry="14" fill="url(#eyeGlow)">
-        <animate attributeName="rx" values="16;20;16" dur="1.2s" repeatCount="indefinite"/>
-        <animate attributeName="ry" values="12;16;12" dur="1.2s" repeatCount="indefinite"/>
+      <ellipse cx="150" cy="165" rx="32" ry="22" fill="#0a0000" stroke={color} strokeWidth="2"/>
+      <ellipse cx="150" cy="165" rx="20" ry="15" fill="url(#eyeGlow)">
+        <animate attributeName="rx" values="18;22;18" dur="1.2s" repeatCount="indefinite"/>
+        <animate attributeName="ry" values="13;17;13" dur="1.2s" repeatCount="indefinite"/>
       </ellipse>
+      {/* Pupil / inner glow */}
+      <circle cx="150" cy="165" r="6" fill="#fff" opacity="0.4">
+        <animate attributeName="r" values="5;7;5" dur="1.5s" repeatCount="indefinite"/>
+      </circle>
       {/* Eyelashes */}
-      <path d="M120 165 Q115 155 110 160" stroke={color} strokeWidth="2" fill="none" opacity="0.6"/>
-      <path d="M125 160 Q120 150 115 155" stroke={color} strokeWidth="2" fill="none" opacity="0.6"/>
-      <path d="M130 157 Q125 147 120 152" stroke={color} strokeWidth="2" fill="none" opacity="0.6"/>
+      <path d="M118 160 Q112 150 108 155" stroke={color} strokeWidth="2.5" fill="none" opacity="0.7"/>
+      <path d="M123 154 Q117 144 113 149" stroke={color} strokeWidth="2.5" fill="none" opacity="0.7"/>
+      <path d="M128 151 Q122 141 118 146" stroke={color} strokeWidth="2.5" fill="none" opacity="0.7"/>
     </g>
 
     {/* Right eye */}
     <g>
-      <ellipse cx="250" cy="170" rx="30" ry="20" fill="#0a0000" stroke={color} strokeWidth="2"/>
-      <ellipse cx="250" cy="170" rx="18" ry="14" fill="url(#eyeGlow)">
-        <animate attributeName="rx" values="16;20;16" dur="1.2s" begin="0.3s" repeatCount="indefinite"/>
-        <animate attributeName="ry" values="12;16;12" dur="1.2s" begin="0.3s" repeatCount="indefinite"/>
+      <ellipse cx="250" cy="165" rx="32" ry="22" fill="#0a0000" stroke={color} strokeWidth="2"/>
+      <ellipse cx="250" cy="165" rx="20" ry="15" fill="url(#eyeGlow)">
+        <animate attributeName="rx" values="18;22;18" dur="1.2s" begin="0.3s" repeatCount="indefinite"/>
+        <animate attributeName="ry" values="13;17;13" dur="1.2s" begin="0.3s" repeatCount="indefinite"/>
       </ellipse>
-      <path d="M280 165 Q285 155 290 160" stroke={color} strokeWidth="2" fill="none" opacity="0.6"/>
-      <path d="M275 160 Q280 150 285 155" stroke={color} strokeWidth="2" fill="none" opacity="0.6"/>
-      <path d="M270 157 Q275 147 280 152" stroke={color} strokeWidth="2" fill="none" opacity="0.6"/>
+      <circle cx="250" cy="165" r="6" fill="#fff" opacity="0.4">
+        <animate attributeName="r" values="5;7;5" dur="1.5s" begin="0.3s" repeatCount="indefinite"/>
+      </circle>
+      <path d="M282 160 Q288 150 292 155" stroke={color} strokeWidth="2.5" fill="none" opacity="0.7"/>
+      <path d="M277 154 Q283 144 287 149" stroke={color} strokeWidth="2.5" fill="none" opacity="0.7"/>
+      <path d="M272 151 Q278 141 282 146" stroke={color} strokeWidth="2.5" fill="none" opacity="0.7"/>
     </g>
 
     {/* Eyebrows (arched, feminine) */}
-    <path d="M125 150 Q150 135 175 148" stroke={color} strokeWidth="2.5" fill="none" opacity="0.6">
-      <animate attributeName="d" values="M125 150 Q150 135 175 148;M125 148 Q150 133 175 146;M125 150 Q150 135 175 148" dur="2s" repeatCount="indefinite"/>
+    <path d="M125 145 Q150 128 175 143" stroke={color} strokeWidth="3" fill="none" opacity="0.7">
+      <animate attributeName="d" values="M125 145 Q150 128 175 143;M125 143 Q150 126 175 141;M125 145 Q150 128 175 143" dur="2s" repeatCount="indefinite"/>
     </path>
-    <path d="M225 148 Q250 133 275 150" stroke={color} strokeWidth="2.5" fill="none" opacity="0.6">
-      <animate attributeName="d" values="M225 148 Q250 133 275 150;M225 146 Q250 131 275 148;M225 148 Q250 133 275 150" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+    <path d="M225 143 Q250 126 275 145" stroke={color} strokeWidth="3" fill="none" opacity="0.7">
+      <animate attributeName="d" values="M225 143 Q250 126 275 145;M225 141 Q250 124 275 143;M225 143 Q250 126 275 145" dur="2s" begin="0.5s" repeatCount="indefinite"/>
     </path>
 
-    {/* Nose (subtle) */}
-    <path d="M200 190 L195 215 L205 215 Z" fill="none" stroke={color} strokeWidth="1.5" opacity="0.4"/>
+    {/* Nose (subtle, 3D shading) */}
+    <path d="M200 185 L194 215 L206 215 Z" fill="none" stroke={color} strokeWidth="2" opacity="0.5"/>
+    <path d="M200 185 L198 200" stroke={color} strokeWidth="1.5" opacity="0.3"/>
 
-    {/* Lips (glowing cyber lips) */}
-    <path d="M175 240 Q200 255 225 240" stroke={color} strokeWidth="3" fill="none" opacity="0.6">
-      <animate attributeName="opacity" values="0.5;0.8;0.5" dur="1s" repeatCount="indefinite"/>
+    {/* Lips – animated speaking mouth */}
+    <g>
+      {/* Upper lip */}
+      <path d="M170 245 Q200 260 230 245" stroke={color} strokeWidth="3" fill="none" opacity="0.8">
+        <animate attributeName="d" 
+          values="M170 245 Q200 260 230 245;M165 248 Q200 265 235 248;M170 245 Q200 260 230 245" 
+          dur={isSpeaking ? "0.4s" : "1.5s"} 
+          repeatCount="indefinite"/>
+      </path>
+      {/* Lower lip (moves more) */}
+      <path d="M175 245 Q200 265 225 245" stroke="#ff6688" strokeWidth="3" fill="none" opacity="0.7">
+        <animate attributeName="d" 
+          values="M175 245 Q200 265 225 245;M170 248 Q200 275 230 248;M175 245 Q200 265 225 245" 
+          dur={isSpeaking ? "0.3s" : "1.5s"} 
+          repeatCount="indefinite"/>
+      </path>
+      {/* Lip glow when speaking */}
+      {isSpeaking && (
+        <ellipse cx="200" cy="255" rx="30" ry="10" fill={color} opacity="0.15">
+          <animate attributeName="ry" values="8;14;8" dur="0.3s" repeatCount="indefinite"/>
+        </ellipse>
+      )}
+    </g>
+
+    {/* Hair strands in front (side bangs) */}
+    <path d="M140 100 Q120 140 115 180" stroke="#1a0000" strokeWidth="8" fill="none" opacity="0.6">
+      <animate attributeName="d" values="M140 100 Q120 140 115 180;M140 100 Q115 140 110 180;M140 100 Q120 140 115 180" dur="4s" repeatCount="indefinite"/>
     </path>
-    <path d="M180 240 Q200 250 220 240" stroke="#ff6688" strokeWidth="2" fill="none" opacity="0.4">
-      <animate attributeName="opacity" values="0.3;0.6;0.3" dur="1.2s" repeatCount="indefinite"/>
+    <path d="M260 100 Q280 140 285 180" stroke="#1a0000" strokeWidth="8" fill="none" opacity="0.6">
+      <animate attributeName="d" values="M260 100 Q280 140 285 180;M260 100 Q285 140 290 180;M260 100 Q280 140 285 180" dur="4.2s" repeatCount="indefinite"/>
     </path>
 
     {/* Cyber headband / visor */}
-    <path d="M120 120 Q200 100 280 120" stroke={color} strokeWidth="4" fill="none" opacity="0.5">
-      <animate attributeName="d" values="M120 120 Q200 100 280 120;M120 118 Q200 98 280 118;M120 120 Q200 100 280 120" dur="3s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.4;0.7;0.4" dur="3s" repeatCount="indefinite"/>
+    <path d="M120 115 Q200 95 280 115" stroke={color} strokeWidth="4" fill="none" opacity="0.6">
+      <animate attributeName="d" values="M120 115 Q200 95 280 115;M120 113 Q200 93 280 113;M120 115 Q200 95 280 115" dur="3s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.5;0.8;0.5" dur="3s" repeatCount="indefinite"/>
     </path>
-    <circle cx="200" cy="108" r="8" fill={color} opacity="0.7">
-      <animate attributeName="r" values="6;10;6" dur="1.5s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.5;1;0.5" dur="1.5s" repeatCount="indefinite"/>
+    <circle cx="200" cy="103" r="10" fill={color} opacity="0.8">
+      <animate attributeName="r" values="8;12;8" dur="1.5s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite"/>
     </circle>
 
-    {/* Cyber lines on cheeks */}
-    <path d="M130 230 L110 250 L115 260" stroke={color} strokeWidth="1.5" fill="none" opacity="0.3"/>
-    <path d="M270 230 L290 250 L285 260" stroke={color} strokeWidth="1.5" fill="none" opacity="0.3"/>
+    {/* Cyber lines on cheeks (3D accent) */}
+    <path d="M125 235 L105 260 L115 270" stroke={color} strokeWidth="2" fill="none" opacity="0.4">
+      <animate attributeName="opacity" values="0.3;0.6;0.3" dur="2s" repeatCount="indefinite"/>
+    </path>
+    <path d="M275 235 L295 260 L285 270" stroke={color} strokeWidth="2" fill="none" opacity="0.4">
+      <animate attributeName="opacity" values="0.3;0.6;0.3" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+    </path>
 
     {/* Text label */}
-    <text x="200" y="360" textAnchor="middle" fill={color} fontSize="18" fontWeight="bold" letterSpacing="4" opacity="0.8">
+    <text x="200" y="365" textAnchor="middle" fill={color} fontSize="20" fontWeight="bold" letterSpacing="5" opacity="0.9">
       CYPHER4X
-      <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/>
     </text>
 
-    {/* Outer rings */}
-    <circle cx="200" cy="200" r="170" fill="none" stroke={color} strokeWidth="1" opacity="0.15">
+    {/* Outer rings (3D depth rings) */}
+    <circle cx="200" cy="200" r="170" fill="none" stroke={color} strokeWidth="1.5" opacity="0.15">
       <animate attributeName="r" values="160;180;160" dur="4s" repeatCount="indefinite"/>
       <animate attributeName="opacity" values="0.1;0.25;0.1" dur="4s" repeatCount="indefinite"/>
     </circle>
@@ -229,11 +297,11 @@ export default function App() {
   const [isListening, setIsListening] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
+  const [isAISpeaking, setIsAISpeaking] = useState(false) // NEW: for mouth animation
 
   const [faceRecognition, setFaceRecognition] = useState(false)
   const [biometricAuth, setBiometricAuth] = useState(false)
-  // Voice gender preference
-  const [voiceGender, setVoiceGender] = useState('female') // 'male' or 'female'
+  const [voiceGender, setVoiceGender] = useState('female')
 
   const [stats, setStats] = useState({
     uptime: 0, cpuUsage: 0, cpuTemp: 0, ramUsage: 0,
@@ -246,7 +314,7 @@ export default function App() {
   const fileInputRef = useRef(null)
 
   // ==================================================
-  // SPEECH RECOGNITION SETUP (continuous call)
+  // SPEECH RECOGNITION (continuous call)
   // ==================================================
   const setupSpeechRecognition = useCallback(() => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -296,7 +364,7 @@ export default function App() {
   }, [isCallActive])
 
   // ==================================================
-  // TEXT-TO-SPEECH (with gender support)
+  // TEXT-TO-SPEECH (with isAISpeaking flag)
   // ==================================================
   const speakText = useCallback((text) => {
     if (!text || !synthRef.current) return
@@ -306,12 +374,17 @@ export default function App() {
       utterance.rate = 1
       utterance.pitch = voiceGender === 'female' ? 1.3 : 1.0
       utterance.volume = 1
+      utterance.onstart = () => setIsAISpeaking(true)
+      utterance.onend = () => setIsAISpeaking(false)
+      utterance.onerror = () => setIsAISpeaking(false)
       synthRef.current.speak(utterance)
-    } catch (e) {}
+    } catch (e) {
+      setIsAISpeaking(false)
+    }
   }, [voiceGender])
 
   // ==================================================
-  // PROCESS USER QUERY (with emotional responses)
+  // PROCESS USER QUERY
   // ==================================================
   const processUserQuery = useCallback(async (query) => {
     if (!query || isProcessing) return
@@ -612,7 +685,7 @@ export default function App() {
   const formatTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
   // ============================================================
-  // BOOT SCREEN (with Cyber Girl Face)
+  // BOOT SCREEN
   // ============================================================
   if (isBooting) {
     const bootSteps = [
@@ -627,7 +700,7 @@ export default function App() {
         <div style={styles.bootBackground} />
         <div style={styles.bootContent}>
           <div style={styles.bootFace}>
-            <CyberGirlFace size={250} />
+            <CyberGirlFace size={250} isSpeaking={false} />
           </div>
           <div style={styles.bootProgressWrapper}>
             <div style={styles.bootProgressBar}>
@@ -718,7 +791,7 @@ export default function App() {
   // ============================================================
   return (
     <div style={styles.app}>
-      {/* Sidebar */}
+      {/* Sidebar (unchanged) - omitted for brevity, same as before */}
       {sidebarOpen && (
         <>
           <div style={styles.sidebarOverlay} onClick={() => setSidebarOpen(false)} />
@@ -727,7 +800,6 @@ export default function App() {
               <h2 style={styles.sidebarTitle}><Icon name="settings" size={20} color="#ff003c" /> CONTROL PANEL</h2>
               <button onClick={() => setSidebarOpen(false)} style={styles.closeBtn}><Icon name="x" size={20} color="#888" /></button>
             </div>
-
             <div style={styles.sidebarSection}>
               <h3 style={styles.sectionTitle}><Icon name="chart" size={16} color="#ff003c" /> SYSTEM STATS</h3>
               <div style={styles.statsCard}>
@@ -740,18 +812,13 @@ export default function App() {
                 <div style={styles.statRow}><span style={styles.statLabel}><Icon name="chat" size={14} color="#888" /> Messages</span><span style={styles.statValue}>{stats.messages}</span></div>
               </div>
             </div>
-
             <div style={styles.sidebarSection}>
               <h3 style={styles.sectionTitle}><Icon name="settings" size={16} color="#ff003c" /> AI CONFIG</h3>
               <div style={styles.settingRow}><span style={styles.settingLabel}>AI Engine</span><span style={styles.settingValue}>TAVILY</span></div>
               <div style={styles.settingRow}><span style={styles.settingLabel}>Language</span><span style={styles.settingValue}>English</span></div>
               <div style={styles.settingRow}>
                 <span style={styles.settingLabel}>Voice Gender</span>
-                <select
-                  value={voiceGender}
-                  onChange={(e) => setVoiceGender(e.target.value)}
-                  style={styles.selectInput}
-                >
+                <select value={voiceGender} onChange={(e) => setVoiceGender(e.target.value)} style={styles.selectInput}>
                   <option value="male">Male</option>
                   <option value="female">Female</option>
                 </select>
@@ -763,29 +830,17 @@ export default function App() {
                 </span>
               </div>
             </div>
-
             <div style={styles.sidebarSection}>
               <h3 style={styles.sectionTitle}><Icon name="face" size={16} color="#ff003c" /> SECURITY</h3>
               <div style={styles.settingRow}>
                 <span style={styles.settingLabel}>Face Recognition</span>
-                <button
-                  onClick={() => setFaceRecognition(!faceRecognition)}
-                  style={{ ...styles.toggleBtn, ...(faceRecognition ? styles.toggleOn : styles.toggleOff) }}
-                >
-                  {faceRecognition ? 'ON' : 'OFF'}
-                </button>
+                <button onClick={() => setFaceRecognition(!faceRecognition)} style={{ ...styles.toggleBtn, ...(faceRecognition ? styles.toggleOn : styles.toggleOff) }}>{faceRecognition ? 'ON' : 'OFF'}</button>
               </div>
               <div style={styles.settingRow}>
                 <span style={styles.settingLabel}>Biometric Auth</span>
-                <button
-                  onClick={() => setBiometricAuth(!biometricAuth)}
-                  style={{ ...styles.toggleBtn, ...(biometricAuth ? styles.toggleOn : styles.toggleOff) }}
-                >
-                  {biometricAuth ? 'ON' : 'OFF'}
-                </button>
+                <button onClick={() => setBiometricAuth(!biometricAuth)} style={{ ...styles.toggleBtn, ...(biometricAuth ? styles.toggleOn : styles.toggleOff) }}>{biometricAuth ? 'ON' : 'OFF'}</button>
               </div>
             </div>
-
             <div style={styles.sidebarSection}>
               <h3 style={styles.sectionTitle}><Icon name="user" size={16} color="#ff003c" /> PROFILE</h3>
               <div style={styles.profileCardSidebar}>
@@ -799,13 +854,11 @@ export default function App() {
               </div>
               <button onClick={openEditProfile} style={styles.sidebarBtn}><Icon name="edit" size={14} color="#fff" /> Edit Profile</button>
             </div>
-
             <div style={styles.sidebarSection}>
               <h3 style={styles.sectionTitle}><Icon name="calendar" size={16} color="#ff003c" /> TODAY'S EVENTS</h3>
               <div style={styles.dashEvent}><span>Team Meeting</span><span style={styles.eventTime}>2:00 PM</span></div>
               <div style={styles.dashEvent}><span>Meeting my girl</span><span style={styles.eventTime}>8:00 PM</span></div>
             </div>
-
             <div style={styles.sidebarSection}>
               <h3 style={styles.sectionTitle}><Icon name="clock" size={16} color="#ff003c" /> CONVERSATION</h3>
               <div style={styles.conversationLog}>
@@ -825,22 +878,10 @@ export default function App() {
                 <button onClick={exportChat} style={styles.dashBtn}><Icon name="save" size={14} color="#fff" /> Export</button>
               </div>
             </div>
-
             <div style={styles.sidebarInputArea}>
-              <input
-                type="text"
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && sendTextMessage()}
-                placeholder="Type a message..."
-                style={styles.sidebarInput}
-                disabled={isProcessing}
-              />
-              <button onClick={sendTextMessage} style={styles.sidebarSendBtn} disabled={isProcessing}>
-                <Icon name="send" size={18} color="#fff" />
-              </button>
+              <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && sendTextMessage()} placeholder="Type a message..." style={styles.sidebarInput} disabled={isProcessing} />
+              <button onClick={sendTextMessage} style={styles.sidebarSendBtn} disabled={isProcessing}><Icon name="send" size={18} color="#fff" /></button>
             </div>
-
             <div style={styles.sidebarSection}>
               <h3 style={styles.sectionTitle}><Icon name="alertTriangle" size={16} color="#ff003c" /> DANGER ZONE</h3>
               <button onClick={resetAllData} style={styles.dangerBtn}><Icon name="trash" size={14} color="#fff" /> Reset All Data</button>
@@ -851,9 +892,9 @@ export default function App() {
 
       {/* Main Content */}
       <div style={styles.mainContent}>
-        {/* 3D Cyber Girl Face */}
         <div style={styles.backgroundFace}>
-          <CyberGirlFace size={350} />
+          {/* Pass isSpeaking state to animate mouth */}
+          <CyberGirlFace size={350} isSpeaking={isAISpeaking} />
           <div style={styles.faceSubtitle}>CYPHER4X • Cyber Girl AI</div>
         </div>
 
@@ -887,7 +928,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES (updated)
+// STYLES (reuse from previous)
 // ============================================================
 const styles = {
   app: {
