@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
 // ==================================================
-// ICON SYSTEM (expanded)
+// ICON SYSTEM
 // ==================================================
 const Icon = ({ name, size = 18, color = 'currentColor' }) => {
   const icons = {
@@ -50,7 +50,7 @@ const safeSet = (key, val) => {
 }
 
 // ==================================================
-// SEARCH FUNCTION (Tavily)
+// SEARCH FUNCTION
 // ==================================================
 const searchWeb = async (query) => {
   if (!TAVILY_API_KEY) return { error: "Tavily API key not configured." }
@@ -78,9 +78,9 @@ const searchWeb = async (query) => {
 }
 
 // ==================================================
-// JARVIS FACE SVG (replaces the globe)
+// CYBER GIRL FACE (SVG)
 // ==================================================
-const JarvisFace = ({ size = 300, color = '#ff003c', glow = true }) => (
+const CyberGirlFace = ({ size = 300, color = '#ff003c', glow = true }) => (
   <svg width={size} height={size} viewBox="0 0 400 400" style={{ display: 'block' }}>
     <defs>
       <radialGradient id="faceGlow" cx="50%" cy="40%" r="50%">
@@ -88,66 +88,121 @@ const JarvisFace = ({ size = 300, color = '#ff003c', glow = true }) => (
         <stop offset="60%" stopColor={color} stopOpacity="0.2"/>
         <stop offset="100%" stopColor={color} stopOpacity="0"/>
       </radialGradient>
-      <radialGradient id="visorGlow" cx="50%" cy="60%" r="40%">
-        <stop offset="0%" stopColor={color} stopOpacity="0.9"/>
-        <stop offset="50%" stopColor={color} stopOpacity="0.4"/>
+      <radialGradient id="eyeGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor="#ff6688" stopOpacity="0.9"/>
+        <stop offset="60%" stopColor={color} stopOpacity="0.5"/>
         <stop offset="100%" stopColor={color} stopOpacity="0"/>
       </radialGradient>
+      <linearGradient id="hairGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#1a0000" stopOpacity="0.8"/>
+        <stop offset="100%" stopColor="#0a0000" stopOpacity="0.9"/>
+      </linearGradient>
       <filter id="glowFilter">
-        <feGaussianBlur stdDeviation="8" result="blur"/>
+        <feGaussianBlur stdDeviation="6" result="blur"/>
         <feMerge>
           <feMergeNode in="blur"/>
           <feMergeNode in="SourceGraphic"/>
         </feMerge>
       </filter>
     </defs>
-    {/* Glow background */}
-    <ellipse cx="200" cy="200" rx="180" ry="180" fill="url(#faceGlow)" opacity="0.5">
+
+    {/* Glow aura */}
+    <ellipse cx="200" cy="200" rx="180" ry="180" fill="url(#faceGlow)" opacity="0.4">
       <animate attributeName="rx" values="170;190;170" dur="2s" repeatCount="indefinite"/>
       <animate attributeName="ry" values="170;190;170" dur="2s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.4;0.8;0.4" dur="1.5s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.3;0.7;0.3" dur="1.5s" repeatCount="indefinite"/>
     </ellipse>
-    {/* Helmet / Face base */}
-    <ellipse cx="200" cy="200" rx="140" ry="160" fill="#1a0000" stroke={color} strokeWidth="4">
-      <animate attributeName="ry" values="158;162;158" dur="2s" repeatCount="indefinite"/>
+
+    {/* Hair (flowing lines behind head) */}
+    <path d="M120 80 Q100 120 90 180 Q80 240 100 300" stroke="#1a0000" strokeWidth="20" fill="none" opacity="0.6"/>
+    <path d="M280 80 Q300 120 310 180 Q320 240 300 300" stroke="#1a0000" strokeWidth="20" fill="none" opacity="0.6"/>
+    <path d="M150 70 Q130 130 120 200 Q110 270 130 340" stroke="#1a0000" strokeWidth="15" fill="none" opacity="0.4"/>
+    <path d="M250 70 Q270 130 280 200 Q290 270 270 340" stroke="#1a0000" strokeWidth="15" fill="none" opacity="0.4"/>
+
+    {/* Main face shape (feminine oval) */}
+    <ellipse cx="200" cy="200" rx="100" ry="130" fill="#1a0000" stroke={color} strokeWidth="3">
+      <animate attributeName="ry" values="128;132;128" dur="2s" repeatCount="indefinite"/>
     </ellipse>
-    {/* Visor area */}
-    <rect x="120" y="130" width="160" height="100" rx="20" fill="#0a0000" stroke={color} strokeWidth="3">
-      <animate attributeName="y" values="130;128;130" dur="1.8s" repeatCount="indefinite"/>
-    </rect>
-    {/* Visor glow scan line */}
-    <line x1="130" y1="180" x2="270" y2="180" stroke={color} strokeWidth="2" opacity="0.6">
-      <animate attributeName="y1" values="140;220;140" dur="3s" repeatCount="indefinite"/>
-      <animate attributeName="y2" values="140;220;140" dur="3s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.2;0.8;0.2" dur="3s" repeatCount="indefinite"/>
-    </line>
-    {/* Eyes (two glowing dots) */}
-    <circle cx="160" cy="180" r="15" fill={color} filter="url(#glowFilter)">
-      <animate attributeName="r" values="12;18;12" dur="1.2s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.6;1;0.6" dur="1.2s" repeatCount="indefinite"/>
+
+    {/* Cheek highlights */}
+    <ellipse cx="140" cy="220" rx="25" ry="15" fill={color} opacity="0.15">
+      <animate attributeName="opacity" values="0.1;0.25;0.1" dur="1.8s" repeatCount="indefinite"/>
+    </ellipse>
+    <ellipse cx="260" cy="220" rx="25" ry="15" fill={color} opacity="0.15">
+      <animate attributeName="opacity" values="0.1;0.25;0.1" dur="1.8s" begin="0.3s" repeatCount="indefinite"/>
+    </ellipse>
+
+    {/* Eyes (large, feminine with eyelashes) */}
+    {/* Left eye */}
+    <g>
+      <ellipse cx="150" cy="170" rx="30" ry="20" fill="#0a0000" stroke={color} strokeWidth="2"/>
+      <ellipse cx="150" cy="170" rx="18" ry="14" fill="url(#eyeGlow)">
+        <animate attributeName="rx" values="16;20;16" dur="1.2s" repeatCount="indefinite"/>
+        <animate attributeName="ry" values="12;16;12" dur="1.2s" repeatCount="indefinite"/>
+      </ellipse>
+      {/* Eyelashes */}
+      <path d="M120 165 Q115 155 110 160" stroke={color} strokeWidth="2" fill="none" opacity="0.6"/>
+      <path d="M125 160 Q120 150 115 155" stroke={color} strokeWidth="2" fill="none" opacity="0.6"/>
+      <path d="M130 157 Q125 147 120 152" stroke={color} strokeWidth="2" fill="none" opacity="0.6"/>
+    </g>
+
+    {/* Right eye */}
+    <g>
+      <ellipse cx="250" cy="170" rx="30" ry="20" fill="#0a0000" stroke={color} strokeWidth="2"/>
+      <ellipse cx="250" cy="170" rx="18" ry="14" fill="url(#eyeGlow)">
+        <animate attributeName="rx" values="16;20;16" dur="1.2s" begin="0.3s" repeatCount="indefinite"/>
+        <animate attributeName="ry" values="12;16;12" dur="1.2s" begin="0.3s" repeatCount="indefinite"/>
+      </ellipse>
+      <path d="M280 165 Q285 155 290 160" stroke={color} strokeWidth="2" fill="none" opacity="0.6"/>
+      <path d="M275 160 Q280 150 285 155" stroke={color} strokeWidth="2" fill="none" opacity="0.6"/>
+      <path d="M270 157 Q275 147 280 152" stroke={color} strokeWidth="2" fill="none" opacity="0.6"/>
+    </g>
+
+    {/* Eyebrows (arched, feminine) */}
+    <path d="M125 150 Q150 135 175 148" stroke={color} strokeWidth="2.5" fill="none" opacity="0.6">
+      <animate attributeName="d" values="M125 150 Q150 135 175 148;M125 148 Q150 133 175 146;M125 150 Q150 135 175 148" dur="2s" repeatCount="indefinite"/>
+    </path>
+    <path d="M225 148 Q250 133 275 150" stroke={color} strokeWidth="2.5" fill="none" opacity="0.6">
+      <animate attributeName="d" values="M225 148 Q250 133 275 150;M225 146 Q250 131 275 148;M225 148 Q250 133 275 150" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+    </path>
+
+    {/* Nose (subtle) */}
+    <path d="M200 190 L195 215 L205 215 Z" fill="none" stroke={color} strokeWidth="1.5" opacity="0.4"/>
+
+    {/* Lips (glowing cyber lips) */}
+    <path d="M175 240 Q200 255 225 240" stroke={color} strokeWidth="3" fill="none" opacity="0.6">
+      <animate attributeName="opacity" values="0.5;0.8;0.5" dur="1s" repeatCount="indefinite"/>
+    </path>
+    <path d="M180 240 Q200 250 220 240" stroke="#ff6688" strokeWidth="2" fill="none" opacity="0.4">
+      <animate attributeName="opacity" values="0.3;0.6;0.3" dur="1.2s" repeatCount="indefinite"/>
+    </path>
+
+    {/* Cyber headband / visor */}
+    <path d="M120 120 Q200 100 280 120" stroke={color} strokeWidth="4" fill="none" opacity="0.5">
+      <animate attributeName="d" values="M120 120 Q200 100 280 120;M120 118 Q200 98 280 118;M120 120 Q200 100 280 120" dur="3s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.4;0.7;0.4" dur="3s" repeatCount="indefinite"/>
+    </path>
+    <circle cx="200" cy="108" r="8" fill={color} opacity="0.7">
+      <animate attributeName="r" values="6;10;6" dur="1.5s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.5;1;0.5" dur="1.5s" repeatCount="indefinite"/>
     </circle>
-    <circle cx="240" cy="180" r="15" fill={color} filter="url(#glowFilter)">
-      <animate attributeName="r" values="12;18;12" dur="1.2s" begin="0.3s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.6;1;0.6" dur="1.2s" begin="0.3s" repeatCount="indefinite"/>
-    </circle>
-    {/* Mouth / speaker grill */}
-    <rect x="150" y="250" width="100" height="15" rx="5" fill="none" stroke={color} strokeWidth="2" opacity="0.5">
-      <animate attributeName="width" values="100;80;100" dur="0.8s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="160" y="270" width="80" height="8" rx="3" fill="none" stroke={color} strokeWidth="1.5" opacity="0.4">
-      <animate attributeName="width" values="80;60;80" dur="0.9s" repeatCount="indefinite"/>
-    </rect>
-    {/* CYPHER4X text on helmet */}
-    <text x="200" y="340" textAnchor="middle" fill={color} fontSize="20" fontWeight="bold" letterSpacing="4" opacity="0.8">
+
+    {/* Cyber lines on cheeks */}
+    <path d="M130 230 L110 250 L115 260" stroke={color} strokeWidth="1.5" fill="none" opacity="0.3"/>
+    <path d="M270 230 L290 250 L285 260" stroke={color} strokeWidth="1.5" fill="none" opacity="0.3"/>
+
+    {/* Text label */}
+    <text x="200" y="360" textAnchor="middle" fill={color} fontSize="18" fontWeight="bold" letterSpacing="4" opacity="0.8">
       CYPHER4X
       <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite"/>
     </text>
-    {/* Outer rings (like JARVIS) */}
-    <circle cx="200" cy="200" r="180" fill="none" stroke={color} strokeWidth="1" opacity="0.15">
-      <animate attributeName="r" values="170;190;170" dur="4s" repeatCount="indefinite"/>
+
+    {/* Outer rings */}
+    <circle cx="200" cy="200" r="170" fill="none" stroke={color} strokeWidth="1" opacity="0.15">
+      <animate attributeName="r" values="160;180;160" dur="4s" repeatCount="indefinite"/>
       <animate attributeName="opacity" values="0.1;0.25;0.1" dur="4s" repeatCount="indefinite"/>
     </circle>
-    <circle cx="200" cy="200" r="160" fill="none" stroke={color} strokeWidth="1" opacity="0.1" strokeDasharray="10 10">
+    <circle cx="200" cy="200" r="150" fill="none" stroke={color} strokeWidth="1" opacity="0.1" strokeDasharray="10 10">
       <animate attributeName="stroke-dashoffset" values="0;100;0" dur="6s" repeatCount="indefinite"/>
     </circle>
   </svg>
@@ -175,16 +230,15 @@ export default function App() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
 
-  // Additional settings
   const [faceRecognition, setFaceRecognition] = useState(false)
   const [biometricAuth, setBiometricAuth] = useState(false)
+  // Voice gender preference
+  const [voiceGender, setVoiceGender] = useState('female') // 'male' or 'female'
 
   const [stats, setStats] = useState({
     uptime: 0, cpuUsage: 0, cpuTemp: 0, ramUsage: 0,
     storageUsed: 0, storageTotal: 475, networkSpeed: 0, messages: 0
   })
-
-  const [welcomeMessage, setWelcomeMessage] = useState('')
 
   const synthRef = useRef(typeof window !== "undefined" ? window.speechSynthesis : null)
   const recognitionRef = useRef(null)
@@ -242,7 +296,22 @@ export default function App() {
   }, [isCallActive])
 
   // ==================================================
-  // PROCESS USER QUERY (with casual detection & emotional responses)
+  // TEXT-TO-SPEECH (with gender support)
+  // ==================================================
+  const speakText = useCallback((text) => {
+    if (!text || !synthRef.current) return
+    try {
+      synthRef.current.cancel()
+      const utterance = new SpeechSynthesisUtterance(text)
+      utterance.rate = 1
+      utterance.pitch = voiceGender === 'female' ? 1.3 : 1.0
+      utterance.volume = 1
+      synthRef.current.speak(utterance)
+    } catch (e) {}
+  }, [voiceGender])
+
+  // ==================================================
+  // PROCESS USER QUERY (with emotional responses)
   // ==================================================
   const processUserQuery = useCallback(async (query) => {
     if (!query || isProcessing) return
@@ -251,7 +320,6 @@ export default function App() {
     const userMsg = { id: ++msgCounter.current, role: 'user', content: query, time: Date.now() }
     setConversation(prev => [...prev, userMsg])
 
-    // Casual greetings & emotional responses
     const lower = query.toLowerCase()
     const casualPhrases = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'how are you', "what's up", 'sup', 'yo', 'howdy', 'hey there']
     if (casualPhrases.some(phrase => lower.includes(phrase))) {
@@ -266,12 +334,11 @@ export default function App() {
       const reply = casualReplies[Math.floor(Math.random() * casualReplies.length)]
       const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
       setConversation(prev => [...prev, assistantMsg])
-      speakText(reply.replace(/[😊✨🌟💫🤖💖]/g, '')) // speak without emojis
+      speakText(reply.replace(/[😊✨🌟💫🤖💖]/g, ''))
       setIsProcessing(false)
       return
     }
 
-    // If asking about feelings or emotions
     if (lower.includes('how are you') || lower.includes('how do you feel') || lower.includes('feeling')) {
       const emotionalReplies = [
         "I'm feeling fantastic, thank you for asking! 😄 How about you?",
@@ -287,10 +354,8 @@ export default function App() {
       return
     }
 
-    // Normal search flow
     const result = await searchWeb(query)
     let reply = result.error ? `⚠️ Search error: ${result.error}` : (result.answer || "I couldn't find an answer to that.")
-    // Make reply more friendly – add a warm intro if it's a fact
     if (!result.error && reply.length > 10) {
       const intros = [
         "I found this for you: ",
@@ -305,22 +370,7 @@ export default function App() {
     setConversation(prev => [...prev, assistantMsg])
     speakText(reply)
     setIsProcessing(false)
-  }, [isProcessing])
-
-  // ==================================================
-  // TEXT-TO-SPEECH
-  // ==================================================
-  const speakText = useCallback((text) => {
-    if (!text || !synthRef.current) return
-    try {
-      synthRef.current.cancel()
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.rate = 1
-      utterance.pitch = 1
-      utterance.volume = 1
-      synthRef.current.speak(utterance)
-    } catch (e) {}
-  }, [])
+  }, [isProcessing, speakText])
 
   // ==================================================
   // VOICE RECORDING (one‑off)
@@ -371,7 +421,7 @@ export default function App() {
   }, [inputText, isProcessing, processUserQuery])
 
   // ==================================================
-  // CALL TOGGLE (continuous listening)
+  // CALL TOGGLE
   // ==================================================
   const toggleCall = useCallback(() => {
     if (isCallActive) {
@@ -391,7 +441,6 @@ export default function App() {
           recognitionRef.current.start()
           const greeting = "Hello! I'm listening. How can I help you today? 💬"
           speakText(greeting.replace(/[💬]/g, ''))
-          // Also add to conversation
           const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: greeting, time: Date.now() }
           setConversation(prev => [...prev, assistantMsg])
         } catch (e) {
@@ -424,7 +473,7 @@ export default function App() {
   }, [conversation])
 
   // ==================================================
-  // BOOT SEQUENCE (with face loading)
+  // BOOT SEQUENCE
   // ==================================================
   useEffect(() => {
     const bootSteps = [
@@ -442,7 +491,6 @@ export default function App() {
       elapsed += 100
       const progress = Math.min((elapsed / totalDuration) * 100, 100)
       setBootProgress(progress)
-      // Update step index based on progress
       let acc = 0
       for (let i = 0; i < bootSteps.length; i++) {
         acc += bootSteps[i].duration / totalDuration * 100
@@ -455,21 +503,19 @@ export default function App() {
           const savedConv = safeGet("cypher4x_conversation", [])
           const savedFace = safeGet("cypher4x_face_recognition", false)
           const savedBio = safeGet("cypher4x_biometric", false)
+          const savedVoiceGender = safeGet("cypher4x_voice_gender", 'female')
 
           if (savedFace) setFaceRecognition(savedFace)
           if (savedBio) setBiometricAuth(savedBio)
+          setVoiceGender(savedVoiceGender)
 
           if (savedProfile) {
             setProfile(savedProfile)
             if (savedConv.length) setConversation(savedConv)
-            // Welcome message
             const welcome = `Welcome, ${savedProfile.name}! I'm CYPHER4X, your friendly AI assistant. I'm here to help you with anything you need. How can I make your day better today? ✨`
-            setWelcomeMessage(welcome)
-            // Speak after a short delay
             setTimeout(() => {
               speakText(welcome.replace(/[✨]/g, ''))
             }, 500)
-            // Add to conversation
             const welcomeMsg = { id: ++msgCounter.current, role: 'assistant', content: welcome, time: Date.now() }
             setConversation(prev => [...prev, welcomeMsg])
             setIsBooting(false)
@@ -483,11 +529,11 @@ export default function App() {
     return () => clearInterval(interval)
   }, [])
 
-  // Persistence
   useEffect(() => { if (profile) safeSet("cypher4x_profile", profile) }, [profile])
   useEffect(() => { if (conversation.length) safeSet("cypher4x_conversation", conversation) }, [conversation])
   useEffect(() => { safeSet("cypher4x_face_recognition", faceRecognition) }, [faceRecognition])
   useEffect(() => { safeSet("cypher4x_biometric", biometricAuth) }, [biometricAuth])
+  useEffect(() => { safeSet("cypher4x_voice_gender", voiceGender) }, [voiceGender])
 
   // ==================================================
   // PROFILE HANDLERS
@@ -514,15 +560,13 @@ export default function App() {
     setShowProfileSetup(false)
     setEditingProfile(false)
     setIsBooting(false)
-    // Welcome after profile creation
     const welcome = `Welcome, ${newProfile.name}! I'm CYPHER4X, your friendly AI assistant. I'm here to help you with anything you need. How can I make your day better today? ✨`
-    setWelcomeMessage(welcome)
     setTimeout(() => {
       speakText(welcome.replace(/[✨]/g, ''))
     }, 500)
     const welcomeMsg = { id: ++msgCounter.current, role: 'assistant', content: welcome, time: Date.now() }
     setConversation(prev => [...prev, welcomeMsg])
-  }, [profileForm])
+  }, [profileForm, speakText])
 
   const openEditProfile = useCallback(() => {
     setProfileForm({
@@ -542,6 +586,7 @@ export default function App() {
     setConversation([])
     setFaceRecognition(false)
     setBiometricAuth(false)
+    setVoiceGender('female')
     setShowProfileSetup(true)
     setSidebarOpen(false)
   }, [])
@@ -567,7 +612,7 @@ export default function App() {
   const formatTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
   // ============================================================
-  // BOOT SCREEN (with JARVIS face)
+  // BOOT SCREEN (with Cyber Girl Face)
   // ============================================================
   if (isBooting) {
     const bootSteps = [
@@ -582,7 +627,7 @@ export default function App() {
         <div style={styles.bootBackground} />
         <div style={styles.bootContent}>
           <div style={styles.bootFace}>
-            <JarvisFace size={250} />
+            <CyberGirlFace size={250} />
           </div>
           <div style={styles.bootProgressWrapper}>
             <div style={styles.bootProgressBar}>
@@ -700,7 +745,17 @@ export default function App() {
               <h3 style={styles.sectionTitle}><Icon name="settings" size={16} color="#ff003c" /> AI CONFIG</h3>
               <div style={styles.settingRow}><span style={styles.settingLabel}>AI Engine</span><span style={styles.settingValue}>TAVILY</span></div>
               <div style={styles.settingRow}><span style={styles.settingLabel}>Language</span><span style={styles.settingValue}>English</span></div>
-              <div style={styles.settingRow}><span style={styles.settingLabel}>Voice</span><span style={styles.settingValue}>Male</span></div>
+              <div style={styles.settingRow}>
+                <span style={styles.settingLabel}>Voice Gender</span>
+                <select
+                  value={voiceGender}
+                  onChange={(e) => setVoiceGender(e.target.value)}
+                  style={styles.selectInput}
+                >
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+              </div>
               <div style={styles.settingRow}>
                 <span style={styles.settingLabel}>Status</span>
                 <span style={{ color: isCallActive ? '#4f8' : isRecording ? '#ff003c' : '#888', fontWeight: 'bold' }}>
@@ -709,7 +764,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* New Security Settings */}
             <div style={styles.sidebarSection}>
               <h3 style={styles.sectionTitle}><Icon name="face" size={16} color="#ff003c" /> SECURITY</h3>
               <div style={styles.settingRow}>
@@ -797,10 +851,10 @@ export default function App() {
 
       {/* Main Content */}
       <div style={styles.mainContent}>
-        {/* 3D JARVIS Face Background */}
+        {/* 3D Cyber Girl Face */}
         <div style={styles.backgroundFace}>
-          <JarvisFace size={350} />
-          <div style={styles.faceSubtitle}>CYPHER4X • J.A.R.V.I.S Level</div>
+          <CyberGirlFace size={350} />
+          <div style={styles.faceSubtitle}>CYPHER4X • Cyber Girl AI</div>
         </div>
 
         {/* Top Right: Call button */}
@@ -809,7 +863,7 @@ export default function App() {
           <span style={styles.callLabelTop}>{isCallActive ? 'END' : 'CALL'}</span>
         </button>
 
-        {/* Bottom center: Voice button (one‑off recording) */}
+        {/* Bottom center: Voice button */}
         <div style={styles.voiceButtonContainer}>
           <button
             onClick={startRecording}
@@ -847,7 +901,6 @@ const styles = {
     margin: 0,
     padding: 0,
   },
-  // Boot
   bootContainer: {
     backgroundColor: '#000',
     minHeight: '100vh',
@@ -919,7 +972,6 @@ const styles = {
     fontSize: '14px',
     letterSpacing: '2px',
   },
-  // Profile
   profileContainer: {
     backgroundColor: '#000',
     minHeight: '100vh',
@@ -1005,7 +1057,6 @@ const styles = {
     fontSize: '15px',
     cursor: 'pointer'
   },
-  // Sidebar
   sidebarOverlay: {
     position: 'fixed',
     top: 0,
@@ -1057,6 +1108,14 @@ const styles = {
   settingRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' },
   settingLabel: { fontSize: '13px', color: '#ddd' },
   settingValue: { fontSize: '13px', color: '#ff6688' },
+  selectInput: {
+    padding: '4px 8px',
+    backgroundColor: '#000',
+    border: '1px solid #444',
+    color: '#fff',
+    borderRadius: '4px',
+    fontSize: '12px'
+  },
   toggleBtn: {
     padding: '4px 12px',
     borderRadius: '3px',
@@ -1176,8 +1235,6 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
   },
-
-  // Main Content
   mainContent: {
     flex: 1,
     display: 'flex',
