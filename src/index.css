@@ -6,9 +6,8 @@ html, body, #root {
   background-color: #000;
   font-family: 'Segoe UI', 'Courier New', monospace;
 }
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
+
 @keyframes pulseText {
   0%, 100% { opacity: 0.8; transform: scale(1); }
   50% { opacity: 1; transform: scale(1.02); }
@@ -25,7 +24,7 @@ html, body, #root {
   0%, 100% { box-shadow: 0 0 60px rgba(255,0,60,0.4); }
   50% { box-shadow: 0 0 100px rgba(255,0,60,0.8); }
 }
-/* Scrollbar styling */
+
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #111; }
 ::-webkit-scrollbar-thumb { background: #ff003c; border-radius: 3px; }
