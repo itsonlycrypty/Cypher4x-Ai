@@ -11,20 +11,16 @@
   100% { transform: rotate(360deg); }
 }
 @keyframes skullFloat {
-  0%, 100% { transform: perspective(600px) rotateX(10deg) translateY(0); }
-  50% { transform: perspective(600px) rotateX(10deg) translateY(-8px); }
-}
-@keyframes eyeGlow {
-  0%, 100% { box-shadow: inset 0 0 20px #000, 0 0 30px rgba(255,0,60,0.3); }
-  50% { box-shadow: inset 0 0 20px #000, 0 0 50px rgba(255,0,60,0.6); }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 @keyframes jawMove {
-  0% { transform: scaleY(0.8); opacity: 0.8; }
-  100% { transform: scaleY(1.1); opacity: 1; }
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.85); }
 }
 @keyframes glowPulse {
   0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 0.9; transform: scale(1.2); }
+  50% { opacity: 0.9; transform: scale(1.15); }
 }
 @keyframes matrixRain {
   0% { background-position: 0 0; }
@@ -44,4 +40,4 @@
 @keyframes pulseText {
   0%, 100% { opacity: 0.7; transform: scale(1); }
   50% { opacity: 1; transform: scale(1.05); }
-}
+       }
