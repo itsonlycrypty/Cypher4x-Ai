@@ -4,8 +4,8 @@
   100% { transform: translate(-50%, -50%) rotate(360deg) translateX(120px) rotate(-360deg); }
 }
 @keyframes shadowPulse {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.2); }
+  0%, 100% { opacity: 0.3; transform: translateX(-50%) scale(1); }
+  50% { opacity: 0.8; transform: translateX(-50%) scale(1.2); }
 }
 @keyframes spinTrail {
   0% { transform: rotate(0deg); }
@@ -26,7 +26,7 @@
   50% { opacity: 1; transform: scale(1.2); }
 }
 
-/* Existing animations */
+/* Existing */
 @keyframes matrixRain {
   0% { background-position: 0 0; }
   100% { background-position: 0 10px; }
@@ -49,4 +49,4 @@
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
-}
+       }
