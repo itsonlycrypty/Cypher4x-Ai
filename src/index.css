@@ -29,7 +29,25 @@ html, body, #root {
   50% { box-shadow: 0 0 100px rgba(255,0,60,0.8); }
 }
 
+/* Smooth transitions for layout changes */
+* {
+  transition: all 0.2s ease;
+}
+
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #111; }
 ::-webkit-scrollbar-thumb { background: #ff003c; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #ff3366; }
+
+/* Ensure the app scales properly on all screens */
+#root {
+  overflow: hidden;
+}
+
+/* Optional: force landscape on PC view using transform if needed */
+.pc-landscape {
+  transform: rotate(0deg);
+}
+.pc-portrait {
+  transform: rotate(0deg);
+  }
