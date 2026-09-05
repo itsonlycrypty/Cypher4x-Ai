@@ -79,7 +79,7 @@ const searchWeb = async (query) => {
 }
 
 // ==================================================
-// RED BALL COMPONENT (spinning globe with rings)
+// RED BALL COMPONENT
 // ==================================================
 const RedBall = ({ isSpeaking = false }) => (
   <div style={styles.ballContainer}>
@@ -118,7 +118,7 @@ export default function App() {
   const [isRecording, setIsRecording] = useState(false)
   const [isAISpeaking, setIsAISpeaking] = useState(false)
   const [interimTranscript, setInterimTranscript] = useState('')
-  const [recordingMode, setRecordingMode] = useState(false) // true when recording from Tap to Speak
+  const [recordingMode, setRecordingMode] = useState(false)
 
   const [faceRecognition, setFaceRecognition] = useState(false)
   const [biometricAuth, setBiometricAuth] = useState(false)
@@ -140,8 +140,38 @@ export default function App() {
   const msgCounter = useRef(0)
   const fileInputRef = useRef(null)
 
+  // Handle screen orientation for PC view
+  useEffect(() => {
+    const lockOrientation = async () => {
+      try {
+        if (viewMode === 'pc') {
+          // Lock to landscape when in PC view
+          if (screen.orientation && screen.orientation.lock) {
+            await screen.orientation.lock('landscape')
+          }
+        } else {
+          // Unlock when in Android view
+          if (screen.orientation && screen.orientation.unlock) {
+            screen.orientation.unlock()
+          }
+        }
+      } catch (e) {
+        // Orientation lock not supported or permission denied
+        console.log('Orientation lock not available')
+      }
+    }
+    lockOrientation()
+    return () => {
+      try {
+        if (screen.orientation && screen.orientation.unlock) {
+          screen.orientation.unlock()
+        }
+      } catch (e) {}
+    }
+  }, [viewMode])
+
   // ==================================================
-  // SPEECH RECOGNITION (continuous listening)
+  // SPEECH RECOGNITION
   // ==================================================
   const setupSpeechRecognition = useCallback((isOneOff = false) => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -283,7 +313,7 @@ export default function App() {
   }, [isProcessing, speakText])
 
   // ==================================================
-  // TAP TO SPEAK - START RECORDING (with Send/Cancel)
+  // TAP TO SPEAK
   // ==================================================
   const startRecording = useCallback(() => {
     if (isRecording || isProcessing || isCallActive) return
@@ -341,7 +371,7 @@ export default function App() {
   }, [isRecording, isProcessing, isCallActive, processUserQuery])
 
   // ==================================================
-  // SEND INTERIM (from recording)
+  // SEND / CANCEL
   // ==================================================
   const sendInterim = useCallback(() => {
     if (!interimTranscript.trim() || isProcessing) return
@@ -354,9 +384,6 @@ export default function App() {
     processUserQuery(text)
   }, [interimTranscript, isProcessing, processUserQuery])
 
-  // ==================================================
-  // CANCEL RECORDING
-  // ==================================================
   const cancelRecording = useCallback(() => {
     setInterimTranscript('')
     setRecordingMode(false)
@@ -378,7 +405,7 @@ export default function App() {
   }, [inputText, isProcessing, processUserQuery])
 
   // ==================================================
-  // CALL TOGGLE (continuous listening)
+  // CALL TOGGLE
   // ==================================================
   const toggleCall = useCallback(() => {
     if (isCallActive) {
@@ -412,10 +439,12 @@ export default function App() {
   }, [isCallActive, setupSpeechRecognition, speakText])
 
   // ==================================================
-  // VIEW TOGGLE
+  // VIEW TOGGLE (from sidebar)
   // ==================================================
   const toggleView = useCallback(() => {
     setViewMode(prev => prev === 'android' ? 'pc' : 'android')
+    // Close sidebar after switching
+    setSidebarOpen(false)
   }, [])
 
   // ==================================================
@@ -700,7 +729,7 @@ export default function App() {
   if (viewMode === 'android') {
     return (
       <div style={styles.app}>
-        {/* Sidebar */}
+        {/* Sidebar with view toggle */}
         {sidebarOpen && (
           <>
             <div style={styles.sidebarOverlay} onClick={() => setSidebarOpen(false)} />
@@ -709,6 +738,18 @@ export default function App() {
                 <h2 style={styles.sidebarTitle}><Icon name="settings" size={20} color="#ff003c" /> CONTROL PANEL</h2>
                 <button onClick={() => setSidebarOpen(false)} style={styles.closeBtn}><Icon name="x" size={20} color="#888" /></button>
               </div>
+
+              {/* View Toggle in Sidebar */}
+              <div style={styles.sidebarSection}>
+                <h3 style={styles.sectionTitle}><Icon name="desktop" size={16} color="#ff003c" /> VIEW MODE</h3>
+                <div style={styles.settingRow}>
+                  <span style={styles.settingLabel}>Current: {viewMode === 'android' ? '📱 Android' : '🖥️ PC'}</span>
+                  <button onClick={toggleView} style={styles.toggleBtn}>
+                    Switch to {viewMode === 'android' ? 'PC' : 'Android'}
+                  </button>
+                </div>
+              </div>
+
               <div style={styles.sidebarSection}>
                 <h3 style={styles.sectionTitle}><Icon name="chart" size={16} color="#ff003c" /> SYSTEM STATS</h3>
                 <div style={styles.statsCard}>
@@ -766,12 +807,9 @@ export default function App() {
             <div style={styles.faceTitle}>CYPHER4X</div>
           </div>
 
-          {/* Top: View Toggle + Call button */}
+          {/* Top: CALL button only (view toggle in sidebar) */}
           <div style={styles.topBar}>
-            <button onClick={toggleView} style={styles.viewToggleBtn}>
-              <Icon name="desktop" size={18} color="#ff6688" />
-              <span style={styles.viewToggleLabel}>PC View</span>
-            </button>
+            <div style={{ width: '80px' }} /> {/* Spacer */}
             <button onClick={toggleCall} style={styles.callButtonTopRight}>
               <Icon name="phone" size={24} color={isCallActive ? "#4f8" : "#ff003c"} />
               <span style={styles.callLabelTop}>{isCallActive ? 'END' : 'CALL'}</span>
@@ -842,7 +880,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: PC VIEW (Full Dashboard)
+  // RENDER: PC VIEW (Full Dashboard with Voice Button)
   // ============================================================
   return (
     <div style={styles.appPC}>
@@ -851,15 +889,20 @@ export default function App() {
         <div style={styles.headerLeft}>
           <h1 style={styles.titlePC}>CYPHER4X</h1>
           <span style={styles.versionBadgePC}>{VERSION}</span>
-        </div>
-        <div style={styles.headerRight}>
-          <button onClick={toggleView} style={styles.viewToggleBtnPC}>
-            <Icon name="mobile" size={18} color="#ff6688" />
-            <span>Android View</span>
-          </button>
           <button onClick={toggleCall} style={{ ...styles.callBtnPC, ...(isCallActive ? styles.callBtnPCActive : {}) }}>
             <Icon name="phone" size={18} color={isCallActive ? "#4f8" : "#ff003c"} />
             <span>{isCallActive ? 'END CALL' : 'CALL'}</span>
+          </button>
+        </div>
+        <div style={styles.headerRight}>
+          {/* Tap to Speak button in PC view */}
+          <button
+            onClick={startRecording}
+            disabled={isRecording || isProcessing || isCallActive}
+            style={{ ...styles.voiceBtnPC, ...(isRecording ? styles.voiceBtnPCActive : {}) }}
+          >
+            <Icon name="mic" size={20} color={isRecording ? "#fff" : "#ff003c"} />
+            <span>{isRecording ? 'Recording...' : isProcessing ? 'Processing...' : 'Tap to Speak'}</span>
           </button>
           <button onClick={() => setSidebarOpen(true)} style={styles.menuBtnPC}>
             <Icon name="menu" size={24} color="#ff003c" />
@@ -985,7 +1028,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* Sidebar (PC) */}
+      {/* Sidebar (PC) with view toggle */}
       {sidebarOpen && (
         <>
           <div style={styles.sidebarOverlayPC} onClick={() => setSidebarOpen(false)} />
@@ -994,6 +1037,18 @@ export default function App() {
               <h2 style={styles.sidebarTitlePC}><Icon name="settings" size={20} color="#ff003c" /> CONTROL PANEL</h2>
               <button onClick={() => setSidebarOpen(false)} style={styles.closeBtnPC}><Icon name="x" size={20} color="#888" /></button>
             </div>
+
+            {/* View Toggle in Sidebar */}
+            <div style={styles.sidebarSectionPC}>
+              <h3 style={styles.sectionTitlePC}><Icon name="desktop" size={16} color="#ff003c" /> VIEW MODE</h3>
+              <div style={styles.settingRowPC}>
+                <span style={styles.settingLabelPC}>Current: {viewMode === 'android' ? '📱 Android' : '🖥️ PC'}</span>
+                <button onClick={toggleView} style={styles.toggleBtnPC2}>
+                  Switch to {viewMode === 'android' ? 'PC' : 'Android'}
+                </button>
+              </div>
+            </div>
+
             <div style={styles.sidebarSectionPC}>
               <h3 style={styles.sectionTitlePC}><Icon name="user" size={16} color="#ff003c" /> PROFILE</h3>
               <div style={styles.profileCardSidebarPC}>
@@ -1022,7 +1077,7 @@ export default function App() {
 // STYLES (Android + PC)
 // ============================================================
 const styles = {
-  // --- ANDROID STYLES (unchanged from before) ---
+  // --- ANDROID STYLES ---
   app: {
     minHeight: '100vh',
     height: '100vh',
@@ -1286,85 +1341,6 @@ const styles = {
   profileHandle: { color: '#888', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '2px' },
   sidebarBtn: { padding: '6px 12px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' },
   dangerBtn: { padding: '6px 12px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' },
-  dashEvent: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '4px 0',
-    borderBottom: '1px solid #1a1a1a',
-    fontSize: '13px'
-  },
-  eventTime: { color: '#ff6688', fontSize: '12px' },
-  dashEmpty: { color: '#666', fontSize: '13px', textAlign: 'center', padding: '8px 0' },
-  commandActions: { display: 'flex', gap: '8px', marginTop: '8px' },
-  dashBtn: {
-    padding: '4px 12px',
-    backgroundColor: '#222',
-    color: '#fff',
-    border: '1px solid #333',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '12px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '4px'
-  },
-  conversationLog: {
-    maxHeight: '200px',
-    overflowY: 'auto',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-    marginBottom: '8px',
-  },
-  conversationItem: {
-    display: 'flex',
-    flexDirection: 'column',
-    padding: '6px 8px',
-    backgroundColor: '#111',
-    borderRadius: '4px',
-    borderLeft: '2px solid #ff003c',
-  },
-  conversationText: {
-    fontSize: '13px',
-    color: '#ddd',
-    wordBreak: 'break-word',
-    marginTop: '2px',
-  },
-  conversationTime: {
-    fontSize: '10px',
-    color: '#666',
-    alignSelf: 'flex-end',
-    marginTop: '2px',
-  },
-  sidebarInputArea: {
-    display: 'flex',
-    gap: '8px',
-    padding: '8px 0',
-    borderTop: '1px solid #333',
-    marginTop: '4px',
-  },
-  sidebarInput: {
-    flex: 1,
-    padding: '8px 12px',
-    backgroundColor: '#000',
-    border: '1px solid #444',
-    color: '#fff',
-    borderRadius: '4px',
-    fontSize: '14px',
-    outline: 'none',
-  },
-  sidebarSendBtn: {
-    padding: '8px 14px',
-    backgroundColor: '#ff003c',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  // Android main content
   mainContent: {
     flex: 1,
     display: 'flex',
@@ -1484,27 +1460,6 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  viewToggleBtn: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    border: '1px solid #ff003c',
-    borderRadius: '20px',
-    padding: '6px 14px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    cursor: 'pointer',
-    color: '#ff6688',
-    fontSize: '12px',
-    '&:hover': {
-      backgroundColor: 'rgba(255,0,60,0.2)',
-    },
-  },
-  viewToggleLabel: {
-    color: '#fff',
-    fontSize: '11px',
-    fontWeight: 'bold',
-    letterSpacing: '1px',
   },
   callButtonTopRight: {
     backgroundColor: 'rgba(0,0,0,0.6)',
@@ -1676,7 +1631,7 @@ const styles = {
   },
 
   // ============================================================
-  // PC STYLES (Full Dashboard)
+  // PC STYLES (with landscape support)
   // ============================================================
   appPC: {
     minHeight: '100vh',
@@ -1690,82 +1645,90 @@ const styles = {
     padding: 0,
     display: 'flex',
     flexDirection: 'column',
+    width: '100%',
+    maxWidth: '100vw',
   },
   headerPC: {
-    padding: '12px 24px',
+    padding: '10px 20px',
     borderBottom: '1px solid rgba(255,0,60,0.3)',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     flexShrink: 0,
     backgroundColor: '#0a0000',
+    flexWrap: 'wrap',
+    gap: '8px',
   },
-  headerLeft: { display: 'flex', alignItems: 'center', gap: '12px' },
-  titlePC: { color: '#ff003c', margin: 0, fontSize: '22px', fontWeight: 'bold', letterSpacing: '3px' },
-  versionBadgePC: { fontSize: '12px', color: '#ff6688', backgroundColor: '#ff003c20', padding: '2px 10px', borderRadius: '10px' },
-  headerRight: { display: 'flex', alignItems: 'center', gap: '12px' },
-  viewToggleBtnPC: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    border: '1px solid #ff003c',
-    borderRadius: '20px',
-    padding: '6px 14px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    cursor: 'pointer',
-    color: '#ff6688',
-    fontSize: '12px',
-    '&:hover': { backgroundColor: 'rgba(255,0,60,0.2)' },
-  },
+  headerLeft: { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' },
+  titlePC: { color: '#ff003c', margin: 0, fontSize: 'clamp(18px, 3vw, 24px)', fontWeight: 'bold', letterSpacing: '3px' },
+  versionBadgePC: { fontSize: '11px', color: '#ff6688', backgroundColor: '#ff003c20', padding: '2px 10px', borderRadius: '10px' },
+  headerRight: { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' },
   callBtnPC: {
     backgroundColor: 'rgba(0,0,0,0.6)',
     border: '2px solid #ff003c',
     borderRadius: '20px',
-    padding: '6px 16px',
+    padding: '5px 14px',
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
     cursor: 'pointer',
     color: '#ff003c',
-    fontSize: '13px',
+    fontSize: '12px',
     fontWeight: 'bold',
     '&:hover': { backgroundColor: 'rgba(255,0,60,0.2)' },
   },
   callBtnPCActive: { borderColor: '#4f8', color: '#4f8' },
+  voiceBtnPC: {
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    border: '2px solid #ff003c',
+    borderRadius: '20px',
+    padding: '5px 14px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    cursor: 'pointer',
+    color: '#ff003c',
+    fontSize: '12px',
+    fontWeight: 'bold',
+    '&:hover': { backgroundColor: 'rgba(255,0,60,0.2)' },
+    '&:disabled': { opacity: 0.5, cursor: 'not-allowed' },
+  },
+  voiceBtnPCActive: { backgroundColor: '#ff003c', color: '#fff', borderColor: '#ff003c' },
   menuBtnPC: { backgroundColor: 'transparent', border: 'none', cursor: 'pointer', padding: '4px' },
   dashboardPC: {
     flex: 1,
     display: 'flex',
-    gap: '20px',
-    padding: '20px',
+    gap: '16px',
+    padding: '16px',
     overflowY: 'auto',
     backgroundColor: '#050505',
+    flexWrap: 'wrap',
   },
-  dashboardLeftPC: { flex: '1', display: 'flex', flexDirection: 'column', gap: '16px', minWidth: '280px' },
-  dashboardRightPC: { flex: '1.5', display: 'flex', flexDirection: 'column', gap: '16px', minWidth: '320px' },
+  dashboardLeftPC: { flex: '1', display: 'flex', flexDirection: 'column', gap: '12px', minWidth: '240px' },
+  dashboardRightPC: { flex: '1.5', display: 'flex', flexDirection: 'column', gap: '12px', minWidth: '280px' },
   dashCardPC: {
     backgroundColor: '#0a0a0a',
     border: '1px solid #222',
     borderRadius: '10px',
-    padding: '16px 20px',
+    padding: '14px 18px',
     boxShadow: '0 0 30px rgba(0,0,0,0.5)',
   },
   dashTitlePC: {
     color: '#ff003c',
-    fontSize: '15px',
-    margin: '0 0 12px 0',
+    fontSize: '14px',
+    margin: '0 0 10px 0',
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
     borderBottom: '1px solid #222',
-    paddingBottom: '8px',
+    paddingBottom: '6px',
   },
   dashRowPC: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '4px 0',
-    fontSize: '14px',
+    padding: '3px 0',
+    fontSize: '13px',
     color: '#ccc',
   },
   dashEmptyPC: { color: '#666', fontSize: '13px', textAlign: 'center', padding: '8px 0' },
@@ -1790,7 +1753,7 @@ const styles = {
     borderRadius: '3px',
     fontSize: '12px',
   },
-  conversationLogPC: { maxHeight: '150px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '8px' },
+  conversationLogPC: { maxHeight: '120px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '6px' },
   convItemPC: {
     display: 'flex',
     flexDirection: 'column',
@@ -1801,8 +1764,8 @@ const styles = {
   },
   convTextPC: { fontSize: '13px', color: '#ddd', wordBreak: 'break-word', marginTop: '2px' },
   convTimePC: { fontSize: '10px', color: '#666', alignSelf: 'flex-end', marginTop: '2px' },
-  commandActionsPC: { display: 'flex', gap: '8px', marginTop: '4px' },
-  commandHistoryPC: { maxHeight: '100px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '8px' },
+  commandActionsPC: { display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' },
+  commandHistoryPC: { maxHeight: '100px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '6px' },
   cmdItemPC: { display: 'flex', gap: '8px', fontSize: '12px', color: '#aaa', padding: '2px 4px', borderBottom: '1px solid #111' },
   cmdTimePC: { color: '#666', minWidth: '60px', fontSize: '11px' },
   cmdTextPC: { color: '#ddd', wordBreak: 'break-word' },
@@ -1863,6 +1826,19 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '6px'
+  },
+  settingRowPC: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' },
+  settingLabelPC: { fontSize: '13px', color: '#ddd' },
+  toggleBtnPC2: {
+    padding: '4px 12px',
+    borderRadius: '4px',
+    border: '1px solid #ff003c',
+    backgroundColor: 'transparent',
+    color: '#ff003c',
+    cursor: 'pointer',
+    fontSize: '12px',
+    fontWeight: 'bold',
+    '&:hover': { backgroundColor: 'rgba(255,0,60,0.2)' },
   },
   profileCardSidebarPC: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' },
   profileAvatarWrapperPC: { flexShrink: 0 },
