@@ -705,6 +705,7 @@ export default function App() {
       <div style={styles.mainContent}>
         <div style={styles.background}>
           <RedBall isSpeaking={isAISpeaking} />
+          {/* CYPHER4X text – moved higher */}
           <div style={styles.faceTitle}>CYPHER4X</div>
         </div>
 
@@ -1182,17 +1183,20 @@ const styles = {
     border: '1px dashed rgba(255,0,60,0.15)',
     animation: 'spinRing 8s linear infinite',
   },
+  // CYPHER4X text – moved higher
   faceTitle: {
     position: 'absolute',
-    bottom: '10%',
-    fontSize: 'clamp(28px, 4vw, 42px)',
+    bottom: '35%',  // moved higher (was 10%)
+    fontSize: 'clamp(42px, 6vw, 68px)',
     fontWeight: 'bold',
     color: '#ff003c',
-    textShadow: '0 0 30px #ff003c, 0 0 60px #ff003c44',
-    letterSpacing: '8px',
+    textShadow: '0 0 40px #ff003c, 0 0 80px #ff003c66, 0 0 120px #ff003c33',
+    letterSpacing: '10px',
     textAlign: 'center',
     width: '100%',
-    animation: 'pulseText 2s ease-in-out infinite',
+    zIndex: 2,
+    animation: 'pulseText 2.5s ease-in-out infinite',
+    fontFamily: "'Courier New', monospace",
   },
   callButtonTopRight: {
     position: 'absolute',
