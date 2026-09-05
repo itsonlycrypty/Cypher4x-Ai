@@ -110,6 +110,7 @@ export default function App() {
   const [isCallActive, setIsCallActive] = useState(false)
   const [isListening, setIsListening] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
   const [isAISpeaking, setIsAISpeaking] = useState(false)
 
   const [faceRecognition, setFaceRecognition] = useState(false)
@@ -257,6 +258,44 @@ export default function App() {
     speakText(reply)
     setIsProcessing(false)
   }, [isProcessing, speakText])
+
+  // ==================================================
+  // ONE-OFF VOICE RECORDING (Tap to Speak)
+  // ==================================================
+  const startRecording = useCallback(() => {
+    if (isRecording) return
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert("Your browser doesn't support speech recognition.")
+      return
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    const recognition = new SpeechRecognition()
+    recognition.continuous = false
+    recognition.interimResults = false
+    recognition.lang = 'en-US'
+
+    recognition.onstart = () => setIsRecording(true)
+    recognition.onend = () => setIsRecording(false)
+    recognition.onerror = (event) => {
+      setIsRecording(false)
+      if (event.error === 'not-allowed') {
+        alert('Please allow microphone access in your browser settings.')
+      } else {
+        alert('Speech recognition error: ' + event.error)
+      }
+    }
+    recognition.onresult = async (event) => {
+      const transcript = event.results[0][0].transcript.trim()
+      if (transcript) {
+        await processUserQuery(transcript)
+      }
+    }
+    try {
+      recognition.start()
+    } catch (e) {
+      alert('Failed to start recording: ' + e.message)
+    }
+  }, [isRecording, processUserQuery])
 
   // ==================================================
   // SEND TEXT FROM SIDEBAR
@@ -559,7 +598,7 @@ export default function App() {
   }
 
   // ============================================================
-  // MAIN APP – JARVIS CONTINUOUS LISTENING
+  // MAIN APP – JARVIS CONTINUOUS LISTENING + TAP TO SPEAK
   // ============================================================
   return (
     <div style={styles.app}>
@@ -597,8 +636,8 @@ export default function App() {
               </div>
               <div style={styles.settingRow}>
                 <span style={styles.settingLabel}>Status</span>
-                <span style={{ color: isListening ? '#4f8' : '#888', fontWeight: 'bold' }}>
-                  {isListening ? '🎤 Listening' : 'Standby'}
+                <span style={{ color: isListening ? '#4f8' : isRecording ? '#ff003c' : '#888', fontWeight: 'bold' }}>
+                  {isListening ? '🎤 Listening' : isRecording ? '🔴 Recording' : 'Standby'}
                 </span>
               </div>
             </div>
@@ -662,14 +701,14 @@ export default function App() {
         </>
       )}
 
-      {/* Main Content – Spinning Red Ball + Listening Status */}
+      {/* Main Content – Spinning Red Ball + Listening Status + Both Buttons */}
       <div style={styles.mainContent}>
         <div style={styles.background}>
           <RedBall isSpeaking={isAISpeaking} />
           <div style={styles.faceTitle}>CYPHER4X</div>
         </div>
 
-        {/* Listening status (like JARVIS) */}
+        {/* Listening status (JARVIS style) */}
         <div style={styles.listeningContainer}>
           {isListening ? (
             <>
@@ -678,14 +717,30 @@ export default function App() {
             </>
           ) : isProcessing ? (
             <span style={styles.listeningText}>Processing...</span>
+          ) : isRecording ? (
+            <span style={styles.listeningText}>Recording...</span>
           ) : null}
         </div>
 
-        {/* Top Right: Call button */}
+        {/* Top Right: CALL button (continuous listening) */}
         <button onClick={toggleCall} style={styles.callButtonTopRight}>
           <Icon name="phone" size={24} color={isCallActive ? "#4f8" : "#ff003c"} />
           <span style={styles.callLabelTop}>{isCallActive ? 'END' : 'CALL'}</span>
         </button>
+
+        {/* Bottom center: Tap to Speak button (one-off recording) */}
+        <div style={styles.voiceButtonContainer}>
+          <button
+            onClick={startRecording}
+            disabled={isRecording || isProcessing || isCallActive}
+            style={{ ...styles.voiceButton, ...(isRecording ? styles.voiceButtonActive : {}) }}
+          >
+            <Icon name="mic" size={40} color="#fff" />
+            <span style={styles.voiceLabel}>
+              {isRecording ? 'Recording...' : isProcessing ? 'Processing...' : 'Tap to Speak'}
+            </span>
+          </button>
+        </div>
 
         {/* Hamburger menu */}
         <button onClick={() => setSidebarOpen(true)} style={styles.hamburgerBtn}>
@@ -1212,6 +1267,54 @@ const styles = {
     fontWeight: 'bold',
     letterSpacing: '1px',
     color: '#fff',
+  },
+  voiceButtonContainer: {
+    position: 'absolute',
+    bottom: '50px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    zIndex: 10,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '10px',
+  },
+  voiceButton: {
+    width: '90px',
+    height: '90px',
+    borderRadius: '50%',
+    backgroundColor: '#1a1a1a',
+    border: '3px solid #ff003c',
+    cursor: 'pointer',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 0 40px rgba(255,0,60,0.2)',
+    '&:hover': {
+      transform: 'scale(1.05)',
+      boxShadow: '0 0 60px rgba(255,0,60,0.4)',
+    },
+    '&:disabled': {
+      opacity: 0.5,
+      cursor: 'not-allowed',
+      transform: 'none',
+    },
+  },
+  voiceButtonActive: {
+    backgroundColor: '#ff003c',
+    borderColor: '#ff003c',
+    boxShadow: '0 0 80px rgba(255,0,60,0.7)',
+    animation: 'pulseGlow 1s ease-in-out infinite',
+  },
+  voiceLabel: {
+    color: '#fff',
+    fontSize: '12px',
+    fontWeight: 'bold',
+    letterSpacing: '1px',
+    marginTop: '4px',
   },
   hamburgerBtn: {
     position: 'absolute',
