@@ -718,7 +718,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: ANDROID VIEW
+  // RENDER: ANDROID VIEW (unchanged)
   // ============================================================
   if (viewMode === 'android') {
     return (
@@ -865,10 +865,11 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: PC VIEW (Full Dashboard – Landscape)
+  // RENDER: PC VIEW – Persistent Sidebar + Main Area with Red Ball
   // ============================================================
   return (
     <div style={styles.appPC}>
+      {/* Header at top */}
       <header style={styles.headerPC}>
         <div style={styles.headerLeft}>
           <h1 style={styles.titlePC}>CYPHER4X</h1>
@@ -893,30 +894,34 @@ export default function App() {
         </div>
       </header>
 
-      <div style={styles.dashboardPC}>
-        <div style={styles.dashboardLeftPC}>
-          <div style={styles.dashCardPC}>
-            <h3 style={styles.dashTitlePC}><Icon name="chart" size={16} color="#ff003c" /> SYSTEM STATS</h3>
-            <div style={styles.dashRowPC}><span>CPU Usage</span><span style={{ color: stats.cpuUsage > 80 ? '#ff003c' : '#4f8' }}>{stats.cpuUsage}%</span></div>
-            <div style={styles.dashRowPC}><span>CPU Temp</span><span style={{ color: stats.cpuTemp > 80 ? '#ff003c' : '#ff6688' }}>{stats.cpuTemp}°C</span></div>
-            <div style={styles.dashRowPC}><span>RAM Usage</span><span style={{ color: stats.ramUsage > 8 ? '#ff003c' : '#ff6688' }}>{stats.ramUsage.toFixed(1)} GB</span></div>
-            <div style={styles.dashRowPC}><span>Storage</span><span>{stats.storageUsed}/{stats.storageTotal} GB</span></div>
-            <div style={styles.dashRowPC}><span>Network</span><span style={{ color: parseFloat(stats.networkSpeed) < 1 ? '#ff003c' : '#4f8' }}>{stats.networkSpeed} Mbps</span></div>
-            <div style={styles.dashRowPC}><span>Uptime</span><span>{formatUptime(stats.uptime)}</span></div>
+      {/* PC Main Layout: Sidebar + Main Content */}
+      <div style={styles.pcLayout}>
+        {/* Left Sidebar – All dashboard panels */}
+        <div style={styles.pcSidebar}>
+          {/* System Stats */}
+          <div style={styles.pcSidebarSection}>
+            <h3 style={styles.pcSidebarTitle}><Icon name="chart" size={16} color="#ff003c" /> SYSTEM STATS</h3>
+            <div style={styles.pcSidebarRow}><span>CPU Usage</span><span style={{ color: stats.cpuUsage > 80 ? '#ff003c' : '#4f8' }}>{stats.cpuUsage}%</span></div>
+            <div style={styles.pcSidebarRow}><span>CPU Temp</span><span style={{ color: stats.cpuTemp > 80 ? '#ff003c' : '#ff6688' }}>{stats.cpuTemp}°C</span></div>
+            <div style={styles.pcSidebarRow}><span>RAM Usage</span><span style={{ color: stats.ramUsage > 8 ? '#ff003c' : '#ff6688' }}>{stats.ramUsage.toFixed(1)} GB</span></div>
+            <div style={styles.pcSidebarRow}><span>Storage</span><span>{stats.storageUsed}/{stats.storageTotal} GB</span></div>
+            <div style={styles.pcSidebarRow}><span>Network</span><span style={{ color: parseFloat(stats.networkSpeed) < 1 ? '#ff003c' : '#4f8' }}>{stats.networkSpeed} Mbps</span></div>
+            <div style={styles.pcSidebarRow}><span>Uptime</span><span>{formatUptime(stats.uptime)}</span></div>
           </div>
 
-          <div style={styles.dashCardPC}>
-            <h3 style={styles.dashTitlePC}><Icon name="settings" size={16} color="#ff003c" /> AI CONFIGURATION</h3>
-            <div style={styles.dashRowPC}><span>AI Engine</span><span>TAVILY</span></div>
-            <div style={styles.dashRowPC}><span>Language</span><span>English</span></div>
-            <div style={styles.dashRowPC}>
+          {/* AI Configuration */}
+          <div style={styles.pcSidebarSection}>
+            <h3 style={styles.pcSidebarTitle}><Icon name="settings" size={16} color="#ff003c" /> AI CONFIGURATION</h3>
+            <div style={styles.pcSidebarRow}><span>AI Engine</span><span>TAVILY</span></div>
+            <div style={styles.pcSidebarRow}><span>Language</span><span>English</span></div>
+            <div style={styles.pcSidebarRow}>
               <span>Voice</span>
               <select value={voiceGender} onChange={(e) => setVoiceGender(e.target.value)} style={styles.selectInputPC}>
                 <option value="male">Male</option>
                 <option value="female">Female</option>
               </select>
             </div>
-            <div style={styles.dashRowPC}>
+            <div style={styles.pcSidebarRow}>
               <span>Status</span>
               <span style={{ color: isListening ? '#4f8' : isRecording ? '#ff003c' : '#888', fontWeight: 'bold' }}>
                 {isListening ? '🎤 Listening' : isRecording ? '🔴 Recording' : 'Standby'}
@@ -924,16 +929,17 @@ export default function App() {
             </div>
           </div>
 
-          <div style={styles.dashCardPC}>
-            <h3 style={styles.dashTitlePC}><Icon name="faceId" size={16} color="#ff003c" /> SECURITY</h3>
-            <div style={styles.dashRowPC}>
+          {/* Security */}
+          <div style={styles.pcSidebarSection}>
+            <h3 style={styles.pcSidebarTitle}><Icon name="faceId" size={16} color="#ff003c" /> SECURITY</h3>
+            <div style={styles.pcSidebarRow}>
               <span>Face Recognition</span>
               <div style={styles.toggleGroupPC}>
                 <button onClick={() => setFaceRecognition(true)} style={{ ...styles.toggleBtnPC, ...(faceRecognition ? styles.toggleBtnPCO : {}) }}>Enable</button>
                 <button onClick={() => setFaceRecognition(false)} style={{ ...styles.toggleBtnPC, ...(!faceRecognition ? styles.toggleBtnPCF : {}) }}>Disable</button>
               </div>
             </div>
-            <div style={styles.dashRowPC}>
+            <div style={styles.pcSidebarRow}>
               <span>Biometric Auth</span>
               <div style={styles.toggleGroupPC}>
                 <button onClick={() => setBiometricAuth(true)} style={{ ...styles.toggleBtnPC, ...(biometricAuth ? styles.toggleBtnPCO : {}) }}>Enable</button>
@@ -941,25 +947,26 @@ export default function App() {
               </div>
             </div>
           </div>
-        </div>
 
-        <div style={styles.dashboardRightPC}>
-          <div style={styles.dashCardPC}>
-            <h3 style={styles.dashTitlePC}><Icon name="calendar" size={16} color="#ff003c" /> TODAY'S EVENTS</h3>
+          {/* Today's Events */}
+          <div style={styles.pcSidebarSection}>
+            <h3 style={styles.pcSidebarTitle}><Icon name="calendar" size={16} color="#ff003c" /> TODAY'S EVENTS</h3>
             {events.length === 0 ? <p style={styles.dashEmptyPC}>No events scheduled</p> : events.map((evt, i) => (
-              <div key={i} style={styles.dashRowPC}><span>{evt.title}</span><span style={styles.eventTimePC}>{evt.time}</span></div>
+              <div key={i} style={styles.pcSidebarRow}><span>{evt.title}</span><span style={styles.eventTimePC}>{evt.time}</span></div>
             ))}
           </div>
 
-          <div style={styles.dashCardPC}>
-            <h3 style={styles.dashTitlePC}><Icon name="clock" size={16} color="#ff003c" /> REMINDERS</h3>
+          {/* Reminders */}
+          <div style={styles.pcSidebarSection}>
+            <h3 style={styles.pcSidebarTitle}><Icon name="clock" size={16} color="#ff003c" /> REMINDERS</h3>
             {reminders.length === 0 ? <p style={styles.dashEmptyPC}>No reminders set</p> : reminders.map((rem, i) => (
-              <div key={i} style={styles.dashRowPC}><span>{rem.text}</span><span style={styles.eventTimePC}>{rem.time}</span></div>
+              <div key={i} style={styles.pcSidebarRow}><span>{rem.text}</span><span style={styles.eventTimePC}>{rem.time}</span></div>
             ))}
           </div>
 
-          <div style={styles.dashCardPC}>
-            <h3 style={styles.dashTitlePC}><Icon name="chat" size={16} color="#ff003c" /> CONVERSATION</h3>
+          {/* Conversation */}
+          <div style={styles.pcSidebarSection}>
+            <h3 style={styles.pcSidebarTitle}><Icon name="chat" size={16} color="#ff003c" /> CONVERSATION</h3>
             <div style={styles.conversationLogPC}>
               {conversation.length === 0 && <p style={styles.dashEmptyPC}>No conversation yet</p>}
               {conversation.slice(-6).map(msg => (
@@ -978,8 +985,9 @@ export default function App() {
             </div>
           </div>
 
-          <div style={styles.dashCardPC}>
-            <h3 style={styles.dashTitlePC}><Icon name="clock" size={16} color="#ff003c" /> COMMAND HISTORY</h3>
+          {/* Command History */}
+          <div style={styles.pcSidebarSection}>
+            <h3 style={styles.pcSidebarTitle}><Icon name="clock" size={16} color="#ff003c" /> COMMAND HISTORY</h3>
             <div style={styles.commandHistoryPC}>
               {commandHistory.length === 0 && <p style={styles.dashEmptyPC}>No commands yet</p>}
               {commandHistory.slice(-6).reverse().map((cmd, i) => (
@@ -991,10 +999,95 @@ export default function App() {
             </div>
             <button onClick={clearCommands} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear All</button>
           </div>
+
+          {/* View Toggle */}
+          <div style={styles.pcSidebarSection}>
+            <h3 style={styles.pcSidebarTitle}><Icon name="desktop" size={16} color="#ff003c" /> VIEW MODE</h3>
+            <button onClick={toggleView} style={styles.toggleBtnPC2}>Switch to Android</button>
+          </div>
+
+          {/* Profile Edit */}
+          <div style={styles.pcSidebarSection}>
+            <h3 style={styles.pcSidebarTitle}><Icon name="user" size={16} color="#ff003c" /> PROFILE</h3>
+            <div style={styles.profileCardSidebarPC}>
+              <div style={styles.profileAvatarWrapperPC}>
+                {profile?.avatar ? <img src={profile.avatar} alt="Avatar" style={styles.profileAvatarPC} /> : <div style={styles.profileAvatarPlaceholderPC}>{profile?.name?.charAt(0) || "?"}</div>}
+              </div>
+              <div style={styles.profileInfoPC}>
+                <div style={styles.profileNamePC}>{profile?.name || "User"}</div>
+                <div style={styles.profileHandlePC}><Icon name="atSign" size={12} color="#888" />{profile?.username || "anonymous"}</div>
+              </div>
+            </div>
+            <button onClick={openEditProfile} style={styles.sidebarBtnPC}><Icon name="edit" size={14} color="#fff" /> Edit Profile</button>
+          </div>
+
+          {/* Danger Zone */}
+          <div style={styles.pcSidebarSection}>
+            <h3 style={styles.pcSidebarTitle}><Icon name="alertTriangle" size={16} color="#ff003c" /> DANGER ZONE</h3>
+            <button onClick={resetAllData} style={styles.dangerBtnPC}><Icon name="trash" size={14} color="#fff" /> Reset All Data</button>
+          </div>
+        </div>
+
+        {/* Right Main Content – Red Ball + Voice Controls */}
+        <div style={styles.pcMain}>
+          <div style={styles.pcBallContainer}>
+            <RedBall isSpeaking={isAISpeaking} />
+            <div style={styles.pcFaceTitle}>CYPHER4X</div>
+          </div>
+          <div style={styles.pcListeningContainer}>
+            {isListening ? (
+              <>
+                <div style={styles.listeningDot} />
+                <span style={styles.listeningText}>Listening...</span>
+                {interimTranscript && (
+                  <span style={styles.interimText}>"{interimTranscript}"</span>
+                )}
+                {interimTranscript && (
+                  <button onClick={sendInterim} style={styles.sendInterimBtn} disabled={isProcessing}>
+                    <Icon name="send" size={16} color="#fff" />
+                    <span>Send</span>
+                  </button>
+                )}
+              </>
+            ) : isProcessing ? (
+              <span style={styles.listeningText}>Processing...</span>
+            ) : isRecording ? (
+              <>
+                <div style={{ ...styles.listeningDot, backgroundColor: '#ff003c', boxShadow: '0 0 20px #ff003c' }} />
+                <span style={styles.listeningText}>Recording...</span>
+                {interimTranscript && (
+                  <span style={styles.interimText}>"{interimTranscript}"</span>
+                )}
+                {interimTranscript && (
+                  <>
+                    <button onClick={sendInterim} style={styles.sendInterimBtn} disabled={isProcessing}>
+                      <Icon name="send" size={16} color="#fff" />
+                      <span>Send</span>
+                    </button>
+                    <button onClick={cancelRecording} style={styles.cancelInterimBtn}>
+                      <Icon name="close" size={18} color="#ff003c" />
+                    </button>
+                  </>
+                )}
+              </>
+            ) : null}
+          </div>
+          <div style={styles.pcVoiceButtonContainer}>
+            <button
+              onClick={startRecording}
+              disabled={isRecording || isProcessing || isCallActive}
+              style={{ ...styles.voiceButtonPC, ...(isRecording ? styles.voiceButtonPCActive : {}) }}
+            >
+              <Icon name="mic" size={40} color="#fff" />
+              <span style={styles.voiceLabelPC}>
+                {isRecording ? 'Recording...' : isProcessing ? 'Processing...' : 'Tap to Speak'}
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Sidebar (PC) */}
+      {/* Sidebar (hamburger) – for PC (optional) */}
       {sidebarOpen && (
         <>
           <div style={styles.sidebarOverlayPC} onClick={() => setSidebarOpen(false)} />
@@ -1035,7 +1128,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES (updated boot styles to red/black)
+// STYLES (updated for PC layout)
 // ============================================================
 const styles = {
   // ---------- ANDROID ----------
@@ -1081,7 +1174,7 @@ const styles = {
   bootTitle: {
     fontSize: 'clamp(48px, 12vw, 72px)',
     fontWeight: 'bold',
-    color: '#ff003c',  // red
+    color: '#ff003c',
     textShadow: '0 0 40px #ff003c, 0 0 80px #ff003c44',
     letterSpacing: '8px',
     margin: '0 0 10px',
@@ -1089,7 +1182,7 @@ const styles = {
   },
   bootSubtitle: {
     fontSize: 'clamp(14px, 2vw, 20px)',
-    color: '#ff6688', // red tint
+    color: '#ff6688',
     letterSpacing: '4px',
     marginBottom: '40px',
     opacity: 0.8,
@@ -1105,7 +1198,7 @@ const styles = {
   },
   bootProgressFill: {
     height: '100%',
-    backgroundColor: '#ff003c', // red
+    backgroundColor: '#ff003c',
     transition: 'width 0.2s ease',
     boxShadow: '0 0 20px #ff003c',
   },
@@ -1127,7 +1220,7 @@ const styles = {
     width: '10px',
     height: '10px',
     borderRadius: '50%',
-    backgroundColor: '#ff003c', // changed to red
+    backgroundColor: '#ff003c',
     boxShadow: '0 0 20px #ff003c',
     animation: 'pulseText 1s infinite',
   },
@@ -1605,7 +1698,7 @@ const styles = {
     maxWidth: '100vw',
   },
   headerPC: {
-    padding: '10px 20px',
+    padding: '8px 20px',
     borderBottom: '1px solid rgba(255,0,60,0.3)',
     display: 'flex',
     justifyContent: 'space-between',
@@ -1613,7 +1706,8 @@ const styles = {
     flexShrink: 0,
     backgroundColor: '#0a0000',
     flexWrap: 'wrap',
-    gap: '8px',
+    gap: '6px',
+    minHeight: '50px',
   },
   headerLeft: { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' },
   titlePC: { color: '#ff003c', margin: 0, fontSize: 'clamp(18px, 3vw, 24px)', fontWeight: 'bold', letterSpacing: '3px' },
@@ -1651,45 +1745,131 @@ const styles = {
   },
   voiceBtnPCActive: { backgroundColor: '#ff003c', color: '#fff', borderColor: '#ff003c' },
   menuBtnPC: { backgroundColor: 'transparent', border: 'none', cursor: 'pointer', padding: '4px' },
-  dashboardPC: {
+  pcLayout: {
     flex: 1,
     display: 'flex',
-    gap: '16px',
-    padding: '16px',
-    overflowY: 'auto',
-    backgroundColor: '#050505',
-    flexWrap: 'wrap',
-    alignContent: 'flex-start',
+    overflow: 'hidden',
   },
-  dashboardLeftPC: { flex: '1', display: 'flex', flexDirection: 'column', gap: '12px', minWidth: '240px' },
-  dashboardRightPC: { flex: '1.5', display: 'flex', flexDirection: 'column', gap: '12px', minWidth: '280px' },
-  dashCardPC: {
+  pcSidebar: {
+    width: '280px',
+    minWidth: '250px',
     backgroundColor: '#0a0a0a',
-    border: '1px solid #222',
-    borderRadius: '10px',
-    padding: '14px 18px',
-    boxShadow: '0 0 30px rgba(0,0,0,0.5)',
+    borderRight: '1px solid #333',
+    overflowY: 'auto',
+    padding: '12px 16px',
+    flexShrink: 0,
   },
-  dashTitlePC: {
+  pcSidebarSection: {
+    marginBottom: '18px',
+    borderBottom: '1px solid #1a1a1a',
+    paddingBottom: '12px',
+  },
+  pcSidebarTitle: {
     color: '#ff003c',
-    fontSize: '14px',
-    margin: '0 0 10px 0',
+    fontSize: '13px',
+    margin: '0 0 8px 0',
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
-    borderBottom: '1px solid #222',
-    paddingBottom: '6px',
+    gap: '6px',
+    fontWeight: 'bold',
+    letterSpacing: '1px',
   },
-  dashRowPC: {
+  pcSidebarRow: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '3px 0',
-    fontSize: '13px',
+    padding: '2px 0',
+    fontSize: '12px',
     color: '#ccc',
   },
-  dashEmptyPC: { color: '#666', fontSize: '13px', textAlign: 'center', padding: '8px 0' },
-  eventTimePC: { color: '#ff6688', fontSize: '12px' },
+  pcMain: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    backgroundColor: '#050505',
+    overflow: 'hidden',
+  },
+  pcBallContainer: {
+    position: 'relative',
+    width: '300px',
+    height: '300px',
+    pointerEvents: 'none',
+    marginBottom: '20px',
+  },
+  pcFaceTitle: {
+    position: 'absolute',
+    bottom: '-15%',
+    fontSize: 'clamp(36px, 5vw, 56px)',
+    fontWeight: 'bold',
+    color: '#ff003c',
+    textShadow: '0 0 40px #ff003c, 0 0 80px #ff003c66, 0 0 120px #ff003c33',
+    letterSpacing: '8px',
+    textAlign: 'center',
+    width: '100%',
+    animation: 'pulseText 2.5s ease-in-out infinite',
+    fontFamily: "'Courier New', monospace",
+  },
+  pcListeningContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: '6px 16px',
+    borderRadius: '30px',
+    border: '1px solid rgba(255,0,60,0.2)',
+    backdropFilter: 'blur(10px)',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginBottom: '16px',
+  },
+  pcVoiceButtonContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  voiceButtonPC: {
+    width: '80px',
+    height: '80px',
+    borderRadius: '50%',
+    backgroundColor: '#1a1a1a',
+    border: '3px solid #ff003c',
+    cursor: 'pointer',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 0 40px rgba(255,0,60,0.2)',
+    '&:hover': { transform: 'scale(1.05)', boxShadow: '0 0 60px rgba(255,0,60,0.4)' },
+    '&:disabled': { opacity: 0.5, cursor: 'not-allowed', transform: 'none' },
+  },
+  voiceButtonPCActive: {
+    backgroundColor: '#ff003c',
+    borderColor: '#ff003c',
+    boxShadow: '0 0 80px rgba(255,0,60,0.7)',
+    animation: 'pulseGlow 1s ease-in-out infinite',
+  },
+  voiceLabelPC: {
+    color: '#fff',
+    fontSize: '12px',
+    fontWeight: 'bold',
+    letterSpacing: '1px',
+    marginTop: '4px',
+  },
+  // Reuse some Android styles for PC components
+  selectInputPC: {
+    padding: '2px 8px',
+    backgroundColor: '#000',
+    border: '1px solid #444',
+    color: '#fff',
+    borderRadius: '3px',
+    fontSize: '12px',
+  },
   toggleGroupPC: { display: 'flex', gap: '4px' },
   toggleBtnPC: {
     padding: '2px 10px',
@@ -1702,14 +1882,6 @@ const styles = {
   },
   toggleBtnPCO: { borderColor: '#4f8', color: '#4f8', backgroundColor: '#0a2a0a' },
   toggleBtnPCF: { borderColor: '#ff003c', color: '#ff003c', backgroundColor: '#2a0a0a' },
-  selectInputPC: {
-    padding: '2px 8px',
-    backgroundColor: '#000',
-    border: '1px solid #444',
-    color: '#fff',
-    borderRadius: '3px',
-    fontSize: '12px',
-  },
   conversationLogPC: { maxHeight: '120px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '6px' },
   convItemPC: {
     display: 'flex',
@@ -1739,6 +1911,8 @@ const styles = {
     gap: '4px',
     '&:hover': { backgroundColor: '#333' },
   },
+  dashEmptyPC: { color: '#666', fontSize: '13px', textAlign: 'center', padding: '8px 0' },
+  eventTimePC: { color: '#ff6688', fontSize: '12px' },
   sidebarOverlayPC: {
     position: 'fixed',
     top: 0,
