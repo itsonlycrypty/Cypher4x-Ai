@@ -100,7 +100,7 @@ export default function App() {
   const [isBooting, setIsBooting] = useState(true)
   const [bootProgress, setBootProgress] = useState(0)
   const [bootStepIndex, setBootStepIndex] = useState(0)
-  const [viewMode, setViewMode] = useState('android') // 'android' or 'pc'
+  const [viewMode, setViewMode] = useState('android')
 
   const [profile, setProfile] = useState(null)
   const [profileForm, setProfileForm] = useState({ name: "", username: "", avatar: "", bio: "" })
@@ -140,7 +140,7 @@ export default function App() {
   const msgCounter = useRef(0)
   const fileInputRef = useRef(null)
 
-  // Handle screen orientation for PC view
+  // Lock orientation for PC view
   useEffect(() => {
     const lockOrientation = async () => {
       try {
@@ -153,9 +153,7 @@ export default function App() {
             screen.orientation.unlock()
           }
         }
-      } catch (e) {
-        console.log('Orientation lock not available')
-      }
+      } catch (e) {}
     }
     lockOrientation()
     return () => {
@@ -463,20 +461,18 @@ export default function App() {
   }, [conversation])
 
   // ==================================================
-  // BOOT SEQUENCE
+  // BOOT SEQUENCE (CYPHER4X branded)
   // ==================================================
   useEffect(() => {
     const bootSteps = [
-      { label: 'Initializing Neural Networks...', duration: 1200 },
-      { label: 'Loading Personality Matrix...', duration: 1000 },
-      { label: 'Calibrating Voice Recognition...', duration: 800 },
+      { label: 'Initializing Neural Networks...', duration: 1500 },
+      { label: 'Loading Knowledge Base...', duration: 1200 },
       { label: 'Establishing Secure Connection...', duration: 1000 },
-      { label: 'System Ready!', duration: 600 },
+      { label: 'Calibrating Voice Recognition...', duration: 800 },
+      { label: 'System Ready.', duration: 600 },
     ]
+    let totalDuration = bootSteps.reduce((sum, s) => sum + s.duration, 0)
     let elapsed = 0
-    let stepIndex = 0
-    const totalDuration = bootSteps.reduce((sum, s) => sum + s.duration, 0)
-
     const interval = setInterval(() => {
       elapsed += 100
       const progress = Math.min((elapsed / totalDuration) * 100, 100)
@@ -621,20 +617,22 @@ export default function App() {
   const formatTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
   // ============================================================
-  // BOOT SCREEN
+  // BOOT SCREEN – CYPHER4X RED/BLACK
   // ============================================================
   if (isBooting) {
     const bootSteps = [
       'Initializing Neural Networks...',
-      'Loading Personality Matrix...',
-      'Calibrating Voice Recognition...',
+      'Loading Knowledge Base...',
       'Establishing Secure Connection...',
+      'Calibrating Voice Recognition...',
       'System Ready!'
     ]
     return (
       <div style={styles.bootContainer}>
         <div style={styles.bootBackground} />
         <div style={styles.bootContent}>
+          <h1 style={styles.bootTitle}>CYPHER4X</h1>
+          <p style={styles.bootSubtitle}>Advanced AI System</p>
           <div style={styles.bootProgressWrapper}>
             <div style={styles.bootProgressBar}>
               <div style={{ ...styles.bootProgressFill, width: `${bootProgress}%` }} />
@@ -724,8 +722,8 @@ export default function App() {
   // ============================================================
   if (viewMode === 'android') {
     return (
-      <div style={styles.app}>
-        {/* Sidebar */}
+      <div style={styles.appAndroid}>
+        {/* Sidebar with view toggle */}
         {sidebarOpen && (
           <>
             <div style={styles.sidebarOverlay} onClick={() => setSidebarOpen(false)} />
@@ -734,17 +732,13 @@ export default function App() {
                 <h2 style={styles.sidebarTitle}><Icon name="settings" size={20} color="#ff003c" /> CONTROL PANEL</h2>
                 <button onClick={() => setSidebarOpen(false)} style={styles.closeBtn}><Icon name="x" size={20} color="#888" /></button>
               </div>
-
               <div style={styles.sidebarSection}>
                 <h3 style={styles.sectionTitle}><Icon name="desktop" size={16} color="#ff003c" /> VIEW MODE</h3>
                 <div style={styles.settingRow}>
-                  <span style={styles.settingLabel}>Current: {viewMode === 'android' ? '📱 Android' : '🖥️ PC'}</span>
-                  <button onClick={toggleView} style={styles.toggleBtn}>
-                    Switch to {viewMode === 'android' ? 'PC' : 'Android'}
-                  </button>
+                  <span style={styles.settingLabel}>Current: Android</span>
+                  <button onClick={toggleView} style={styles.toggleBtn}>Switch to PC</button>
                 </div>
               </div>
-
               <div style={styles.sidebarSection}>
                 <h3 style={styles.sectionTitle}><Icon name="chart" size={16} color="#ff003c" /> SYSTEM STATS</h3>
                 <div style={styles.statsCard}>
@@ -795,15 +789,14 @@ export default function App() {
           </>
         )}
 
-        {/* Main Content */}
-        <div style={styles.mainContent}>
-          <div style={styles.background}>
+        {/* Android Main */}
+        <div style={styles.mainContentAndroid}>
+          <div style={styles.backgroundAndroid}>
             <RedBall isSpeaking={isAISpeaking} />
-            <div style={styles.faceTitle}>CYPHER4X</div>
+            <div style={styles.faceTitleAndroid}>CYPHER4X</div>
           </div>
 
-          {/* Top Bar */}
-          <div style={styles.topBar}>
+          <div style={styles.topBarAndroid}>
             <div style={{ width: '80px' }} />
             <button onClick={toggleCall} style={styles.callButtonTopRight}>
               <Icon name="phone" size={24} color={isCallActive ? "#4f8" : "#ff003c"} />
@@ -811,7 +804,6 @@ export default function App() {
             </button>
           </div>
 
-          {/* Listening status */}
           <div style={styles.listeningContainer}>
             {isListening ? (
               <>
@@ -851,7 +843,6 @@ export default function App() {
             ) : null}
           </div>
 
-          {/* Tap to Speak button */}
           <div style={styles.voiceButtonContainer}>
             <button
               onClick={startRecording}
@@ -865,7 +856,6 @@ export default function App() {
             </button>
           </div>
 
-          {/* Hamburger menu - FIXED z-index */}
           <button onClick={() => setSidebarOpen(true)} style={{ ...styles.hamburgerBtn, zIndex: 15 }}>
             <Icon name="menu" size={28} color="#ff003c" />
           </button>
@@ -875,7 +865,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: PC VIEW
+  // RENDER: PC VIEW (Full Dashboard – Landscape)
   // ============================================================
   return (
     <div style={styles.appPC}>
@@ -1013,17 +1003,13 @@ export default function App() {
               <h2 style={styles.sidebarTitlePC}><Icon name="settings" size={20} color="#ff003c" /> CONTROL PANEL</h2>
               <button onClick={() => setSidebarOpen(false)} style={styles.closeBtnPC}><Icon name="x" size={20} color="#888" /></button>
             </div>
-
             <div style={styles.sidebarSectionPC}>
               <h3 style={styles.sectionTitlePC}><Icon name="desktop" size={16} color="#ff003c" /> VIEW MODE</h3>
               <div style={styles.settingRowPC}>
-                <span style={styles.settingLabelPC}>Current: {viewMode === 'android' ? '📱 Android' : '🖥️ PC'}</span>
-                <button onClick={toggleView} style={styles.toggleBtnPC2}>
-                  Switch to {viewMode === 'android' ? 'PC' : 'Android'}
-                </button>
+                <span style={styles.settingLabelPC}>Current: PC</span>
+                <button onClick={toggleView} style={styles.toggleBtnPC2}>Switch to Android</button>
               </div>
             </div>
-
             <div style={styles.sidebarSectionPC}>
               <h3 style={styles.sectionTitlePC}><Icon name="user" size={16} color="#ff003c" /> PROFILE</h3>
               <div style={styles.profileCardSidebarPC}>
@@ -1049,11 +1035,11 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES
+// STYLES (updated boot styles to red/black)
 // ============================================================
 const styles = {
-  // Android styles (unchanged except hamburger z-index fix)
-  app: {
+  // ---------- ANDROID ----------
+  appAndroid: {
     minHeight: '100vh',
     height: '100vh',
     backgroundColor: '#000',
@@ -1092,6 +1078,22 @@ const styles = {
     maxWidth: '500px',
     padding: '20px',
   },
+  bootTitle: {
+    fontSize: 'clamp(48px, 12vw, 72px)',
+    fontWeight: 'bold',
+    color: '#ff003c',  // red
+    textShadow: '0 0 40px #ff003c, 0 0 80px #ff003c44',
+    letterSpacing: '8px',
+    margin: '0 0 10px',
+    animation: 'pulseText 1.5s ease-in-out infinite',
+  },
+  bootSubtitle: {
+    fontSize: 'clamp(14px, 2vw, 20px)',
+    color: '#ff6688', // red tint
+    letterSpacing: '4px',
+    marginBottom: '40px',
+    opacity: 0.8,
+  },
   bootProgressWrapper: { margin: '20px 0' },
   bootProgressBar: {
     width: '100%',
@@ -1103,7 +1105,7 @@ const styles = {
   },
   bootProgressFill: {
     height: '100%',
-    backgroundColor: '#ff003c',
+    backgroundColor: '#ff003c', // red
     transition: 'width 0.2s ease',
     boxShadow: '0 0 20px #ff003c',
   },
@@ -1125,12 +1127,12 @@ const styles = {
     width: '10px',
     height: '10px',
     borderRadius: '50%',
-    backgroundColor: '#4f8',
-    boxShadow: '0 0 20px #4f8',
+    backgroundColor: '#ff003c', // changed to red
+    boxShadow: '0 0 20px #ff003c',
     animation: 'pulseText 1s infinite',
   },
   bootStatusText: {
-    color: '#aaa',
+    color: '#ff6688',
     fontSize: '14px',
     letterSpacing: '2px',
   },
@@ -1316,7 +1318,7 @@ const styles = {
   profileHandle: { color: '#888', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '2px' },
   sidebarBtn: { padding: '6px 12px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' },
   dangerBtn: { padding: '6px 12px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' },
-  mainContent: {
+  mainContentAndroid: {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
@@ -1329,7 +1331,7 @@ const styles = {
     margin: 0,
     padding: 0,
   },
-  background: {
+  backgroundAndroid: {
     position: 'absolute',
     top: 0,
     left: 0,
@@ -1412,7 +1414,7 @@ const styles = {
     border: '1px dashed rgba(255,0,60,0.15)',
     animation: 'spinRing 8s linear infinite',
   },
-  faceTitle: {
+  faceTitleAndroid: {
     position: 'absolute',
     bottom: '35%',
     fontSize: 'clamp(42px, 6vw, 68px)',
@@ -1426,7 +1428,7 @@ const styles = {
     animation: 'pulseText 2.5s ease-in-out infinite',
     fontFamily: "'Courier New', monospace",
   },
-  topBar: {
+  topBarAndroid: {
     position: 'absolute',
     top: '20px',
     left: '20px',
@@ -1450,9 +1452,7 @@ const styles = {
     fontWeight: 'bold',
     letterSpacing: '1px',
     transition: 'all 0.3s ease',
-    '&:hover': {
-      backgroundColor: 'rgba(255,0,60,0.2)',
-    },
+    '&:hover': { backgroundColor: 'rgba(255,0,60,0.2)' },
   },
   callLabelTop: {
     fontSize: '12px',
@@ -1516,14 +1516,8 @@ const styles = {
     fontSize: '13px',
     fontWeight: 'bold',
     transition: 'all 0.2s',
-    '&:hover': {
-      backgroundColor: '#ff2255',
-      transform: 'scale(1.05)',
-    },
-    '&:disabled': {
-      opacity: 0.5,
-      cursor: 'not-allowed',
-    },
+    '&:hover': { backgroundColor: '#ff2255', transform: 'scale(1.05)' },
+    '&:disabled': { opacity: 0.5, cursor: 'not-allowed' },
   },
   cancelInterimBtn: {
     backgroundColor: 'transparent',
@@ -1538,9 +1532,7 @@ const styles = {
     fontSize: '13px',
     fontWeight: 'bold',
     transition: 'all 0.2s',
-    '&:hover': {
-      backgroundColor: 'rgba(255,0,60,0.2)',
-    },
+    '&:hover': { backgroundColor: 'rgba(255,0,60,0.2)' },
   },
   voiceButtonContainer: {
     position: 'absolute',
@@ -1567,15 +1559,8 @@ const styles = {
     gap: '4px',
     transition: 'all 0.3s ease',
     boxShadow: '0 0 40px rgba(255,0,60,0.2)',
-    '&:hover': {
-      transform: 'scale(1.05)',
-      boxShadow: '0 0 60px rgba(255,0,60,0.4)',
-    },
-    '&:disabled': {
-      opacity: 0.5,
-      cursor: 'not-allowed',
-      transform: 'none',
-    },
+    '&:hover': { transform: 'scale(1.05)', boxShadow: '0 0 60px rgba(255,0,60,0.4)' },
+    '&:disabled': { opacity: 0.5, cursor: 'not-allowed', transform: 'none' },
   },
   voiceButtonActive: {
     backgroundColor: '#ff003c',
@@ -1597,17 +1582,13 @@ const styles = {
     backgroundColor: 'transparent',
     border: 'none',
     cursor: 'pointer',
-    zIndex: 15, // FIXED: was 5, now above top bar (z-index: 10)
+    zIndex: 15,
     padding: '8px',
     borderRadius: '4px',
-    '&:hover': {
-      backgroundColor: 'rgba(255,0,60,0.1)',
-    },
+    '&:hover': { backgroundColor: 'rgba(255,0,60,0.1)' },
   },
 
-  // ============================================================
-  // PC STYLES
-  // ============================================================
+  // ---------- PC ----------
   appPC: {
     minHeight: '100vh',
     height: '100vh',
@@ -1678,6 +1659,7 @@ const styles = {
     overflowY: 'auto',
     backgroundColor: '#050505',
     flexWrap: 'wrap',
+    alignContent: 'flex-start',
   },
   dashboardLeftPC: { flex: '1', display: 'flex', flexDirection: 'column', gap: '12px', minWidth: '240px' },
   dashboardRightPC: { flex: '1.5', display: 'flex', flexDirection: 'column', gap: '12px', minWidth: '280px' },
