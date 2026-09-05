@@ -22,7 +22,7 @@ html, body, #root {
 }
 @keyframes pulseText {
   0%, 100% { opacity: 0.8; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.02); }
+  50% { opacity: 1; transform: scale(1.05); }
 }
 @keyframes pulseGlow {
   0%, 100% { box-shadow: 0 0 60px rgba(255,0,60,0.4); }
