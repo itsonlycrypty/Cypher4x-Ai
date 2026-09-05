@@ -20,6 +20,9 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     send: 'M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z',
     phone: 'M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.574 2.81.7A2 2 0 0 1 22 16.92z',
     mic: 'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zm-7 9v1a7 7 0 0 0 14 0v-1M12 22v-3',
+    close: 'M18 6L6 18M6 6l12 12',
+    desktop: 'M4 4h16v12H4zM8 20h8M12 16v4',
+    mobile: 'M12 2C8 2 4 4 4 8v12c0 4 4 6 8 6s8-2 8-6V8c0-4-4-6-8-6zm0 4c2 0 4 1 4 3s-2 3-4 3-4-1-4-3 2-3 4-3zm0 14c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2z',
   }
   const path = icons[name]
   if (!path) return null
@@ -97,6 +100,7 @@ export default function App() {
   const [isBooting, setIsBooting] = useState(true)
   const [bootProgress, setBootProgress] = useState(0)
   const [bootStepIndex, setBootStepIndex] = useState(0)
+  const [viewMode, setViewMode] = useState('android') // 'android' or 'pc'
 
   const [profile, setProfile] = useState(null)
   const [profileForm, setProfileForm] = useState({ name: "", username: "", avatar: "", bio: "" })
@@ -106,13 +110,15 @@ export default function App() {
 
   const [conversation, setConversation] = useState([])
   const [inputText, setInputText] = useState("")
+  const [commandHistory, setCommandHistory] = useState([])
 
   const [isCallActive, setIsCallActive] = useState(false)
   const [isListening, setIsListening] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [isAISpeaking, setIsAISpeaking] = useState(false)
-  const [interimTranscript, setInterimTranscript] = useState('')   // new
+  const [interimTranscript, setInterimTranscript] = useState('')
+  const [recordingMode, setRecordingMode] = useState(false) // true when recording from Tap to Speak
 
   const [faceRecognition, setFaceRecognition] = useState(false)
   const [biometricAuth, setBiometricAuth] = useState(false)
@@ -123,6 +129,12 @@ export default function App() {
     storageUsed: 0, storageTotal: 475, networkSpeed: 0, messages: 0
   })
 
+  const [events, setEvents] = useState([
+    { title: "Team Meeting", time: "2:00 PM" },
+    { title: "Meeting my girl", time: "8:00 PM" }
+  ])
+  const [reminders, setReminders] = useState([])
+
   const synthRef = useRef(typeof window !== "undefined" ? window.speechSynthesis : null)
   const recognitionRef = useRef(null)
   const msgCounter = useRef(0)
@@ -131,14 +143,14 @@ export default function App() {
   // ==================================================
   // SPEECH RECOGNITION (continuous listening)
   // ==================================================
-  const setupSpeechRecognition = useCallback(() => {
+  const setupSpeechRecognition = useCallback((isOneOff = false) => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       alert("Your browser doesn't support speech recognition. Please use Chrome or Edge.")
       return null
     }
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
     const recognition = new SpeechRecognition()
-    recognition.continuous = true
+    recognition.continuous = !isOneOff
     recognition.interimResults = true
     recognition.lang = 'en-US'
     recognition.maxAlternatives = 1
@@ -150,8 +162,7 @@ export default function App() {
     recognition.onend = () => {
       setIsListening(false)
       setInterimTranscript('')
-      // If call is still active, restart
-      if (isCallActive) {
+      if (!isOneOff && isCallActive) {
         try { recognition.start() } catch (e) {}
       }
     }
@@ -160,10 +171,11 @@ export default function App() {
       if (event.error === 'not-allowed') {
         alert('Please allow microphone access in your browser settings.')
         setIsCallActive(false)
+        setRecordingMode(false)
         setIsListening(false)
         return
       }
-      if (isCallActive) {
+      if (!isOneOff && isCallActive) {
         setTimeout(() => { try { recognition.start() } catch (e) {} }, 500)
       }
     }
@@ -176,6 +188,7 @@ export default function App() {
       }
       if (final) {
         setInterimTranscript('')
+        setRecordingMode(false)
         await processUserQuery(final)
       } else if (interim) {
         setInterimTranscript(interim)
@@ -210,10 +223,12 @@ export default function App() {
   const processUserQuery = useCallback(async (query) => {
     if (!query || isProcessing) return
     setIsProcessing(true)
-    setInterimTranscript('') // clear
+    setInterimTranscript('')
+    setRecordingMode(false)
 
     const userMsg = { id: ++msgCounter.current, role: 'user', content: query, time: Date.now() }
     setConversation(prev => [...prev, userMsg])
+    setCommandHistory(prev => [...prev, { command: query, timestamp: Date.now() }])
 
     const lower = query.toLowerCase()
     const casualPhrases = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'how are you', "what's up", 'sup', 'yo', 'howdy', 'hey there']
@@ -268,24 +283,33 @@ export default function App() {
   }, [isProcessing, speakText])
 
   // ==================================================
-  // ONE-OFF VOICE RECORDING (Tap to Speak)
+  // TAP TO SPEAK - START RECORDING (with Send/Cancel)
   // ==================================================
   const startRecording = useCallback(() => {
-    if (isRecording) return
+    if (isRecording || isProcessing || isCallActive) return
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       alert("Your browser doesn't support speech recognition.")
       return
     }
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-    const recognition = new SpeechRecognition()
+    setRecordingMode(true)
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)()
     recognition.continuous = false
-    recognition.interimResults = false
+    recognition.interimResults = true
     recognition.lang = 'en-US'
 
-    recognition.onstart = () => setIsRecording(true)
-    recognition.onend = () => setIsRecording(false)
+    recognition.onstart = () => {
+      setIsRecording(true)
+      setIsListening(true)
+      setInterimTranscript('')
+    }
+    recognition.onend = () => {
+      setIsRecording(false)
+      setIsListening(false)
+    }
     recognition.onerror = (event) => {
       setIsRecording(false)
+      setRecordingMode(false)
+      setIsListening(false)
       if (event.error === 'not-allowed') {
         alert('Please allow microphone access in your browser settings.')
       } else {
@@ -293,31 +317,55 @@ export default function App() {
       }
     }
     recognition.onresult = async (event) => {
-      const transcript = event.results[0][0].transcript.trim()
-      if (transcript) {
-        await processUserQuery(transcript)
+      let final = '', interim = ''
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i]
+        if (result.isFinal) final += result[0].transcript
+        else interim += result[0].transcript
+      }
+      if (final) {
+        setInterimTranscript('')
+        setRecordingMode(false)
+        await processUserQuery(final)
+      } else if (interim) {
+        setInterimTranscript(interim)
       }
     }
+    recognitionRef.current = recognition
     try {
       recognition.start()
     } catch (e) {
       alert('Failed to start recording: ' + e.message)
+      setRecordingMode(false)
     }
-  }, [isRecording, processUserQuery])
+  }, [isRecording, isProcessing, isCallActive, processUserQuery])
 
   // ==================================================
-  // SEND INTERIM (manual send)
+  // SEND INTERIM (from recording)
   // ==================================================
   const sendInterim = useCallback(() => {
     if (!interimTranscript.trim() || isProcessing) return
     const text = interimTranscript.trim()
     setInterimTranscript('')
-    // Stop recognition to prevent duplicate processing
+    setRecordingMode(false)
     if (recognitionRef.current) {
       try { recognitionRef.current.stop() } catch (e) {}
     }
     processUserQuery(text)
   }, [interimTranscript, isProcessing, processUserQuery])
+
+  // ==================================================
+  // CANCEL RECORDING
+  // ==================================================
+  const cancelRecording = useCallback(() => {
+    setInterimTranscript('')
+    setRecordingMode(false)
+    setIsRecording(false)
+    setIsListening(false)
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop() } catch (e) {}
+    }
+  }, [])
 
   // ==================================================
   // SEND TEXT FROM SIDEBAR
@@ -344,7 +392,7 @@ export default function App() {
     } else {
       setIsCallActive(true)
       if (!recognitionRef.current) {
-        recognitionRef.current = setupSpeechRecognition()
+        recognitionRef.current = setupSpeechRecognition(false)
       }
       if (recognitionRef.current) {
         try {
@@ -362,6 +410,13 @@ export default function App() {
       }
     }
   }, [isCallActive, setupSpeechRecognition, speakText])
+
+  // ==================================================
+  // VIEW TOGGLE
+  // ==================================================
+  const toggleView = useCallback(() => {
+    setViewMode(prev => prev === 'android' ? 'pc' : 'android')
+  }, [])
 
   // ==================================================
   // STATS
@@ -411,13 +466,24 @@ export default function App() {
         setTimeout(() => {
           const savedProfile = safeGet("cypher4x_profile", null)
           const savedConv = safeGet("cypher4x_conversation", [])
+          const savedCommands = safeGet("cypher4x_commands", [])
+          const savedEvents = safeGet("cypher4x_events", [
+            { title: "Team Meeting", time: "2:00 PM" },
+            { title: "Meeting my girl", time: "8:00 PM" }
+          ])
+          const savedReminders = safeGet("cypher4x_reminders", [])
           const savedFace = safeGet("cypher4x_face_recognition", false)
           const savedBio = safeGet("cypher4x_biometric", false)
           const savedVoiceGender = safeGet("cypher4x_voice_gender", 'female')
+          const savedView = safeGet("cypher4x_view_mode", 'android')
 
           if (savedFace) setFaceRecognition(savedFace)
           if (savedBio) setBiometricAuth(savedBio)
           setVoiceGender(savedVoiceGender)
+          setViewMode(savedView)
+          if (savedCommands) setCommandHistory(savedCommands)
+          if (savedEvents) setEvents(savedEvents)
+          if (savedReminders) setReminders(savedReminders)
 
           if (savedProfile) {
             setProfile(savedProfile)
@@ -441,9 +507,13 @@ export default function App() {
 
   useEffect(() => { if (profile) safeSet("cypher4x_profile", profile) }, [profile])
   useEffect(() => { if (conversation.length) safeSet("cypher4x_conversation", conversation) }, [conversation])
+  useEffect(() => { safeSet("cypher4x_commands", commandHistory) }, [commandHistory])
+  useEffect(() => { safeSet("cypher4x_events", events) }, [events])
+  useEffect(() => { safeSet("cypher4x_reminders", reminders) }, [reminders])
   useEffect(() => { safeSet("cypher4x_face_recognition", faceRecognition) }, [faceRecognition])
   useEffect(() => { safeSet("cypher4x_biometric", biometricAuth) }, [biometricAuth])
   useEffect(() => { safeSet("cypher4x_voice_gender", voiceGender) }, [voiceGender])
+  useEffect(() => { safeSet("cypher4x_view_mode", viewMode) }, [viewMode])
 
   // ==================================================
   // PROFILE HANDLERS
@@ -494,6 +564,9 @@ export default function App() {
     try { localStorage.clear() } catch {}
     setProfile(null)
     setConversation([])
+    setCommandHistory([])
+    setEvents([])
+    setReminders([])
     setFaceRecognition(false)
     setBiometricAuth(false)
     setVoiceGender('female')
@@ -502,16 +575,17 @@ export default function App() {
   }, [])
 
   const clearConversation = useCallback(() => setConversation([]), [])
+  const clearCommands = useCallback(() => setCommandHistory([]), [])
   const exportChat = useCallback(() => {
-    const data = { conversation, profile, exportedAt: new Date().toISOString() }
+    const data = { conversation, commandHistory, events, reminders, profile, exportedAt: new Date().toISOString() }
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `cypher4x_conversation_${Date.now()}.json`
+    a.download = `cypher4x_export_${Date.now()}.json`
     a.click()
     URL.revokeObjectURL(url)
-  }, [conversation, profile])
+  }, [conversation, commandHistory, events, reminders, profile])
 
   const formatUptime = (seconds) => {
     const h = Math.floor(seconds / 3600)
@@ -621,172 +695,334 @@ export default function App() {
   }
 
   // ============================================================
-  // MAIN APP – JARVIS CONTINUOUS LISTENING + TAP TO SPEAK + SEND
+  // RENDER: ANDROID VIEW (minimalist)
+  // ============================================================
+  if (viewMode === 'android') {
+    return (
+      <div style={styles.app}>
+        {/* Sidebar */}
+        {sidebarOpen && (
+          <>
+            <div style={styles.sidebarOverlay} onClick={() => setSidebarOpen(false)} />
+            <div style={styles.sidebar}>
+              <div style={styles.sidebarHeader}>
+                <h2 style={styles.sidebarTitle}><Icon name="settings" size={20} color="#ff003c" /> CONTROL PANEL</h2>
+                <button onClick={() => setSidebarOpen(false)} style={styles.closeBtn}><Icon name="x" size={20} color="#888" /></button>
+              </div>
+              <div style={styles.sidebarSection}>
+                <h3 style={styles.sectionTitle}><Icon name="chart" size={16} color="#ff003c" /> SYSTEM STATS</h3>
+                <div style={styles.statsCard}>
+                  <div style={styles.statRow}><span style={styles.statLabel}><Icon name="hourglass" size={14} color="#888" /> Uptime</span><span style={styles.statValue}>{formatUptime(stats.uptime)}</span></div>
+                  <div style={styles.statRow}><span style={styles.statLabel}><Icon name="cpu" size={14} color="#888" /> CPU Usage</span><span style={styles.statValue}>{stats.cpuUsage}%</span></div>
+                  <div style={styles.statRow}><span style={styles.statLabel}><Icon name="cpu" size={14} color="#888" /> CPU Temp</span><span style={styles.statValue}>{stats.cpuTemp}°C</span></div>
+                  <div style={styles.statRow}><span style={styles.statLabel}><Icon name="memory" size={14} color="#888" /> RAM Usage</span><span style={styles.statValue}>{stats.ramUsage.toFixed(1)} GB</span></div>
+                  <div style={styles.statRow}><span style={styles.statLabel}><Icon name="save" size={14} color="#888" /> Storage</span><span style={styles.statValue}>{stats.storageUsed}/{stats.storageTotal} GB</span></div>
+                  <div style={styles.statRow}><span style={styles.statLabel}><Icon name="network" size={14} color="#888" /> Network</span><span style={styles.statValue}>{stats.networkSpeed} Mbps</span></div>
+                </div>
+              </div>
+              <div style={styles.sidebarSection}>
+                <h3 style={styles.sectionTitle}><Icon name="settings" size={16} color="#ff003c" /> AI CONFIG</h3>
+                <div style={styles.settingRow}><span style={styles.settingLabel}>AI Engine</span><span style={styles.settingValue}>TAVILY</span></div>
+                <div style={styles.settingRow}><span style={styles.settingLabel}>Language</span><span style={styles.settingValue}>English</span></div>
+                <div style={styles.settingRow}>
+                  <span style={styles.settingLabel}>Voice Gender</span>
+                  <select value={voiceGender} onChange={(e) => setVoiceGender(e.target.value)} style={styles.selectInput}>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </select>
+                </div>
+                <div style={styles.settingRow}>
+                  <span style={styles.settingLabel}>Status</span>
+                  <span style={{ color: isListening ? '#4f8' : isRecording ? '#ff003c' : '#888', fontWeight: 'bold' }}>
+                    {isListening ? '🎤 Listening' : isRecording ? '🔴 Recording' : 'Standby'}
+                  </span>
+                </div>
+              </div>
+              <div style={styles.sidebarSection}>
+                <h3 style={styles.sectionTitle}><Icon name="user" size={16} color="#ff003c" /> PROFILE</h3>
+                <div style={styles.profileCardSidebar}>
+                  <div style={styles.profileAvatarWrapper}>
+                    {profile?.avatar ? <img src={profile.avatar} alt="Avatar" style={styles.profileAvatar} /> : <div style={styles.profileAvatarPlaceholder}>{profile?.name?.charAt(0) || "?"}</div>}
+                  </div>
+                  <div style={styles.profileInfo}>
+                    <div style={styles.profileName}>{profile?.name || "User"}</div>
+                    <div style={styles.profileHandle}><Icon name="atSign" size={12} color="#888" />{profile?.username || "anonymous"}</div>
+                  </div>
+                </div>
+                <button onClick={openEditProfile} style={styles.sidebarBtn}><Icon name="edit" size={14} color="#fff" /> Edit Profile</button>
+              </div>
+              <div style={styles.sidebarSection}>
+                <h3 style={styles.sectionTitle}><Icon name="alertTriangle" size={16} color="#ff003c" /> DANGER ZONE</h3>
+                <button onClick={resetAllData} style={styles.dangerBtn}><Icon name="trash" size={14} color="#fff" /> Reset All Data</button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Main Content – Android View */}
+        <div style={styles.mainContent}>
+          <div style={styles.background}>
+            <RedBall isSpeaking={isAISpeaking} />
+            <div style={styles.faceTitle}>CYPHER4X</div>
+          </div>
+
+          {/* Top: View Toggle + Call button */}
+          <div style={styles.topBar}>
+            <button onClick={toggleView} style={styles.viewToggleBtn}>
+              <Icon name="desktop" size={18} color="#ff6688" />
+              <span style={styles.viewToggleLabel}>PC View</span>
+            </button>
+            <button onClick={toggleCall} style={styles.callButtonTopRight}>
+              <Icon name="phone" size={24} color={isCallActive ? "#4f8" : "#ff003c"} />
+              <span style={styles.callLabelTop}>{isCallActive ? 'END' : 'CALL'}</span>
+            </button>
+          </div>
+
+          {/* Listening status */}
+          <div style={styles.listeningContainer}>
+            {isListening ? (
+              <>
+                <div style={styles.listeningDot} />
+                <span style={styles.listeningText}>Listening...</span>
+                {interimTranscript && (
+                  <span style={styles.interimText}>"{interimTranscript}"</span>
+                )}
+                {interimTranscript && (
+                  <button onClick={sendInterim} style={styles.sendInterimBtn} disabled={isProcessing}>
+                    <Icon name="send" size={16} color="#fff" />
+                    <span>Send</span>
+                  </button>
+                )}
+              </>
+            ) : isProcessing ? (
+              <span style={styles.listeningText}>Processing...</span>
+            ) : isRecording ? (
+              <>
+                <div style={styles.listeningDot} style={{ backgroundColor: '#ff003c', boxShadow: '0 0 20px #ff003c' }} />
+                <span style={styles.listeningText}>Recording...</span>
+                {interimTranscript && (
+                  <span style={styles.interimText}>"{interimTranscript}"</span>
+                )}
+                {interimTranscript && (
+                  <>
+                    <button onClick={sendInterim} style={styles.sendInterimBtn} disabled={isProcessing}>
+                      <Icon name="send" size={16} color="#fff" />
+                      <span>Send</span>
+                    </button>
+                    <button onClick={cancelRecording} style={styles.cancelInterimBtn}>
+                      <Icon name="close" size={18} color="#ff003c" />
+                    </button>
+                  </>
+                )}
+              </>
+            ) : null}
+          </div>
+
+          {/* Bottom center: Tap to Speak button */}
+          <div style={styles.voiceButtonContainer}>
+            <button
+              onClick={startRecording}
+              disabled={isRecording || isProcessing || isCallActive}
+              style={{ ...styles.voiceButton, ...(isRecording ? styles.voiceButtonActive : {}) }}
+            >
+              <Icon name="mic" size={40} color="#fff" />
+              <span style={styles.voiceLabel}>
+                {isRecording ? 'Recording...' : isProcessing ? 'Processing...' : 'Tap to Speak'}
+              </span>
+            </button>
+          </div>
+
+          {/* Hamburger menu */}
+          <button onClick={() => setSidebarOpen(true)} style={styles.hamburgerBtn}>
+            <Icon name="menu" size={28} color="#ff003c" />
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ============================================================
+  // RENDER: PC VIEW (Full Dashboard)
   // ============================================================
   return (
-    <div style={styles.app}>
-      {/* Sidebar */}
+    <div style={styles.appPC}>
+      {/* Header */}
+      <header style={styles.headerPC}>
+        <div style={styles.headerLeft}>
+          <h1 style={styles.titlePC}>CYPHER4X</h1>
+          <span style={styles.versionBadgePC}>{VERSION}</span>
+        </div>
+        <div style={styles.headerRight}>
+          <button onClick={toggleView} style={styles.viewToggleBtnPC}>
+            <Icon name="mobile" size={18} color="#ff6688" />
+            <span>Android View</span>
+          </button>
+          <button onClick={toggleCall} style={{ ...styles.callBtnPC, ...(isCallActive ? styles.callBtnPCActive : {}) }}>
+            <Icon name="phone" size={18} color={isCallActive ? "#4f8" : "#ff003c"} />
+            <span>{isCallActive ? 'END CALL' : 'CALL'}</span>
+          </button>
+          <button onClick={() => setSidebarOpen(true)} style={styles.menuBtnPC}>
+            <Icon name="menu" size={24} color="#ff003c" />
+          </button>
+        </div>
+      </header>
+
+      {/* PC Dashboard */}
+      <div style={styles.dashboardPC}>
+        {/* Left Column: System Stats + AI Config */}
+        <div style={styles.dashboardLeftPC}>
+          <div style={styles.dashCardPC}>
+            <h3 style={styles.dashTitlePC}><Icon name="chart" size={16} color="#ff003c" /> SYSTEM STATS</h3>
+            <div style={styles.dashRowPC}><span>CPU Usage</span><span style={{ color: stats.cpuUsage > 80 ? '#ff003c' : '#4f8' }}>{stats.cpuUsage}%</span></div>
+            <div style={styles.dashRowPC}><span>CPU Temp</span><span style={{ color: stats.cpuTemp > 80 ? '#ff003c' : '#ff6688' }}>{stats.cpuTemp}°C</span></div>
+            <div style={styles.dashRowPC}><span>RAM Usage</span><span style={{ color: stats.ramUsage > 8 ? '#ff003c' : '#ff6688' }}>{stats.ramUsage.toFixed(1)} GB</span></div>
+            <div style={styles.dashRowPC}><span>Storage</span><span>{stats.storageUsed}/{stats.storageTotal} GB</span></div>
+            <div style={styles.dashRowPC}><span>Network</span><span style={{ color: parseFloat(stats.networkSpeed) < 1 ? '#ff003c' : '#4f8' }}>{stats.networkSpeed} Mbps</span></div>
+            <div style={styles.dashRowPC}><span>Uptime</span><span>{formatUptime(stats.uptime)}</span></div>
+          </div>
+
+          <div style={styles.dashCardPC}>
+            <h3 style={styles.dashTitlePC}><Icon name="settings" size={16} color="#ff003c" /> AI CONFIGURATION</h3>
+            <div style={styles.dashRowPC}><span>AI Engine</span><span>TAVILY</span></div>
+            <div style={styles.dashRowPC}><span>Language</span><span>English</span></div>
+            <div style={styles.dashRowPC}>
+              <span>Voice</span>
+              <select value={voiceGender} onChange={(e) => setVoiceGender(e.target.value)} style={styles.selectInputPC}>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+            <div style={styles.dashRowPC}>
+              <span>Status</span>
+              <span style={{ color: isListening ? '#4f8' : isRecording ? '#ff003c' : '#888', fontWeight: 'bold' }}>
+                {isListening ? '🎤 Listening' : isRecording ? '🔴 Recording' : 'Standby'}
+              </span>
+            </div>
+          </div>
+
+          <div style={styles.dashCardPC}>
+            <h3 style={styles.dashTitlePC}><Icon name="faceId" size={16} color="#ff003c" /> SECURITY</h3>
+            <div style={styles.dashRowPC}>
+              <span>Face Recognition</span>
+              <div style={styles.toggleGroupPC}>
+                <button onClick={() => setFaceRecognition(true)} style={{ ...styles.toggleBtnPC, ...(faceRecognition ? styles.toggleBtnPCO : {}) }}>Enable</button>
+                <button onClick={() => setFaceRecognition(false)} style={{ ...styles.toggleBtnPC, ...(!faceRecognition ? styles.toggleBtnPCF : {}) }}>Disable</button>
+              </div>
+            </div>
+            <div style={styles.dashRowPC}>
+              <span>Biometric Auth</span>
+              <div style={styles.toggleGroupPC}>
+                <button onClick={() => setBiometricAuth(true)} style={{ ...styles.toggleBtnPC, ...(biometricAuth ? styles.toggleBtnPCO : {}) }}>Enable</button>
+                <button onClick={() => setBiometricAuth(false)} style={{ ...styles.toggleBtnPC, ...(!biometricAuth ? styles.toggleBtnPCF : {}) }}>Disable</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Events, Reminders, Conversation, Commands */}
+        <div style={styles.dashboardRightPC}>
+          <div style={styles.dashCardPC}>
+            <h3 style={styles.dashTitlePC}><Icon name="calendar" size={16} color="#ff003c" /> TODAY'S EVENTS</h3>
+            {events.length === 0 ? (
+              <p style={styles.dashEmptyPC}>No events scheduled</p>
+            ) : (
+              events.map((evt, i) => (
+                <div key={i} style={styles.dashRowPC}>
+                  <span>{evt.title}</span>
+                  <span style={styles.eventTimePC}>{evt.time}</span>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div style={styles.dashCardPC}>
+            <h3 style={styles.dashTitlePC}><Icon name="clock" size={16} color="#ff003c" /> REMINDERS</h3>
+            {reminders.length === 0 ? (
+              <p style={styles.dashEmptyPC}>No reminders set</p>
+            ) : (
+              reminders.map((rem, i) => (
+                <div key={i} style={styles.dashRowPC}>
+                  <span>{rem.text}</span>
+                  <span style={styles.eventTimePC}>{rem.time}</span>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div style={styles.dashCardPC}>
+            <h3 style={styles.dashTitlePC}><Icon name="chat" size={16} color="#ff003c" /> CONVERSATION</h3>
+            <div style={styles.conversationLogPC}>
+              {conversation.length === 0 && <p style={styles.dashEmptyPC}>No conversation yet</p>}
+              {conversation.slice(-6).map(msg => (
+                <div key={msg.id} style={styles.convItemPC}>
+                  <span style={{ fontWeight: msg.role === 'user' ? 'bold' : 'normal', color: msg.role === 'user' ? '#ddd' : '#ff003c' }}>
+                    {msg.role === 'user' ? profile?.name || 'You' : 'CYPHER4X'}
+                  </span>
+                  <span style={styles.convTextPC}>{msg.content}</span>
+                  <span style={styles.convTimePC}>{formatTime(msg.time)}</span>
+                </div>
+              ))}
+            </div>
+            <div style={styles.commandActionsPC}>
+              <button onClick={clearConversation} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear</button>
+              <button onClick={exportChat} style={styles.dashBtnPC}><Icon name="save" size={14} color="#fff" /> Export</button>
+            </div>
+          </div>
+
+          <div style={styles.dashCardPC}>
+            <h3 style={styles.dashTitlePC}><Icon name="clock" size={16} color="#ff003c" /> COMMAND HISTORY</h3>
+            <div style={styles.commandHistoryPC}>
+              {commandHistory.length === 0 && <p style={styles.dashEmptyPC}>No commands yet</p>}
+              {commandHistory.slice(-6).reverse().map((cmd, i) => (
+                <div key={i} style={styles.cmdItemPC}>
+                  <span style={styles.cmdTimePC}>{formatTime(cmd.timestamp)}</span>
+                  <span style={styles.cmdTextPC}>{cmd.command}</span>
+                </div>
+              ))}
+            </div>
+            <button onClick={clearCommands} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear All</button>
+          </div>
+        </div>
+      </div>
+
+      {/* Sidebar (PC) */}
       {sidebarOpen && (
         <>
-          <div style={styles.sidebarOverlay} onClick={() => setSidebarOpen(false)} />
-          <div style={styles.sidebar}>
-            <div style={styles.sidebarHeader}>
-              <h2 style={styles.sidebarTitle}><Icon name="settings" size={20} color="#ff003c" /> CONTROL PANEL</h2>
-              <button onClick={() => setSidebarOpen(false)} style={styles.closeBtn}><Icon name="x" size={20} color="#888" /></button>
+          <div style={styles.sidebarOverlayPC} onClick={() => setSidebarOpen(false)} />
+          <div style={styles.sidebarPC}>
+            <div style={styles.sidebarHeaderPC}>
+              <h2 style={styles.sidebarTitlePC}><Icon name="settings" size={20} color="#ff003c" /> CONTROL PANEL</h2>
+              <button onClick={() => setSidebarOpen(false)} style={styles.closeBtnPC}><Icon name="x" size={20} color="#888" /></button>
             </div>
-            <div style={styles.sidebarSection}>
-              <h3 style={styles.sectionTitle}><Icon name="chart" size={16} color="#ff003c" /> SYSTEM STATS</h3>
-              <div style={styles.statsCard}>
-                <div style={styles.statRow}><span style={styles.statLabel}><Icon name="hourglass" size={14} color="#888" /> Uptime</span><span style={styles.statValue}>{formatUptime(stats.uptime)}</span></div>
-                <div style={styles.statRow}><span style={styles.statLabel}><Icon name="cpu" size={14} color="#888" /> CPU Usage</span><span style={styles.statValue}>{stats.cpuUsage}%</span></div>
-                <div style={styles.statRow}><span style={styles.statLabel}><Icon name="cpu" size={14} color="#888" /> CPU Temp</span><span style={styles.statValue}>{stats.cpuTemp}°C</span></div>
-                <div style={styles.statRow}><span style={styles.statLabel}><Icon name="memory" size={14} color="#888" /> RAM Usage</span><span style={styles.statValue}>{stats.ramUsage.toFixed(1)} GB</span></div>
-                <div style={styles.statRow}><span style={styles.statLabel}><Icon name="save" size={14} color="#888" /> Storage</span><span style={styles.statValue}>{stats.storageUsed}/{stats.storageTotal} GB</span></div>
-                <div style={styles.statRow}><span style={styles.statLabel}><Icon name="network" size={14} color="#888" /> Network</span><span style={styles.statValue}>{stats.networkSpeed} Mbps</span></div>
-                <div style={styles.statRow}><span style={styles.statLabel}><Icon name="chat" size={14} color="#888" /> Messages</span><span style={styles.statValue}>{stats.messages}</span></div>
-              </div>
-            </div>
-            <div style={styles.sidebarSection}>
-              <h3 style={styles.sectionTitle}><Icon name="settings" size={16} color="#ff003c" /> AI CONFIG</h3>
-              <div style={styles.settingRow}><span style={styles.settingLabel}>AI Engine</span><span style={styles.settingValue}>TAVILY</span></div>
-              <div style={styles.settingRow}><span style={styles.settingLabel}>Language</span><span style={styles.settingValue}>English</span></div>
-              <div style={styles.settingRow}>
-                <span style={styles.settingLabel}>Voice Gender</span>
-                <select value={voiceGender} onChange={(e) => setVoiceGender(e.target.value)} style={styles.selectInput}>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                </select>
-              </div>
-              <div style={styles.settingRow}>
-                <span style={styles.settingLabel}>Status</span>
-                <span style={{ color: isListening ? '#4f8' : isRecording ? '#ff003c' : '#888', fontWeight: 'bold' }}>
-                  {isListening ? '🎤 Listening' : isRecording ? '🔴 Recording' : 'Standby'}
-                </span>
-              </div>
-            </div>
-            <div style={styles.sidebarSection}>
-              <h3 style={styles.sectionTitle}><Icon name="face" size={16} color="#ff003c" /> SECURITY</h3>
-              <div style={styles.settingRow}>
-                <span style={styles.settingLabel}>Face Recognition</span>
-                <button onClick={() => setFaceRecognition(!faceRecognition)} style={{ ...styles.toggleBtn, ...(faceRecognition ? styles.toggleOn : styles.toggleOff) }}>{faceRecognition ? 'ON' : 'OFF'}</button>
-              </div>
-              <div style={styles.settingRow}>
-                <span style={styles.settingLabel}>Biometric Auth</span>
-                <button onClick={() => setBiometricAuth(!biometricAuth)} style={{ ...styles.toggleBtn, ...(biometricAuth ? styles.toggleOn : styles.toggleOff) }}>{biometricAuth ? 'ON' : 'OFF'}</button>
-              </div>
-            </div>
-            <div style={styles.sidebarSection}>
-              <h3 style={styles.sectionTitle}><Icon name="user" size={16} color="#ff003c" /> PROFILE</h3>
-              <div style={styles.profileCardSidebar}>
-                <div style={styles.profileAvatarWrapper}>
-                  {profile?.avatar ? <img src={profile.avatar} alt="Avatar" style={styles.profileAvatar} /> : <div style={styles.profileAvatarPlaceholder}>{profile?.name?.charAt(0) || "?"}</div>}
+            <div style={styles.sidebarSectionPC}>
+              <h3 style={styles.sectionTitlePC}><Icon name="user" size={16} color="#ff003c" /> PROFILE</h3>
+              <div style={styles.profileCardSidebarPC}>
+                <div style={styles.profileAvatarWrapperPC}>
+                  {profile?.avatar ? <img src={profile.avatar} alt="Avatar" style={styles.profileAvatarPC} /> : <div style={styles.profileAvatarPlaceholderPC}>{profile?.name?.charAt(0) || "?"}</div>}
                 </div>
-                <div style={styles.profileInfo}>
-                  <div style={styles.profileName}>{profile?.name || "User"}</div>
-                  <div style={styles.profileHandle}><Icon name="atSign" size={12} color="#888" />{profile?.username || "anonymous"}</div>
+                <div style={styles.profileInfoPC}>
+                  <div style={styles.profileNamePC}>{profile?.name || "User"}</div>
+                  <div style={styles.profileHandlePC}><Icon name="atSign" size={12} color="#888" />{profile?.username || "anonymous"}</div>
                 </div>
               </div>
-              <button onClick={openEditProfile} style={styles.sidebarBtn}><Icon name="edit" size={14} color="#fff" /> Edit Profile</button>
+              <button onClick={openEditProfile} style={styles.sidebarBtnPC}><Icon name="edit" size={14} color="#fff" /> Edit Profile</button>
             </div>
-            <div style={styles.sidebarSection}>
-              <h3 style={styles.sectionTitle}><Icon name="calendar" size={16} color="#ff003c" /> TODAY'S EVENTS</h3>
-              <div style={styles.dashEvent}><span>Team Meeting</span><span style={styles.eventTime}>2:00 PM</span></div>
-              <div style={styles.dashEvent}><span>Meeting my girl</span><span style={styles.eventTime}>8:00 PM</span></div>
-            </div>
-            <div style={styles.sidebarSection}>
-              <h3 style={styles.sectionTitle}><Icon name="clock" size={16} color="#ff003c" /> CONVERSATION</h3>
-              <div style={styles.conversationLog}>
-                {conversation.length === 0 && <p style={styles.dashEmpty}>No conversation yet</p>}
-                {conversation.map(msg => (
-                  <div key={msg.id} style={styles.conversationItem}>
-                    <span style={{ fontWeight: msg.role === 'user' ? 'bold' : 'normal', color: msg.role === 'user' ? '#ddd' : '#ff003c' }}>
-                      {msg.role === 'user' ? profile?.name || 'You' : 'CYPHER4X'}
-                    </span>
-                    <span style={styles.conversationText}>{msg.content}</span>
-                    <span style={styles.conversationTime}>{formatTime(msg.time)}</span>
-                  </div>
-                ))}
-              </div>
-              <div style={styles.commandActions}>
-                <button onClick={clearConversation} style={styles.dashBtn}><Icon name="trash" size={14} color="#fff" /> Clear</button>
-                <button onClick={exportChat} style={styles.dashBtn}><Icon name="save" size={14} color="#fff" /> Export</button>
-              </div>
-            </div>
-            <div style={styles.sidebarInputArea}>
-              <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && sendTextMessage()} placeholder="Type a message..." style={styles.sidebarInput} disabled={isProcessing} />
-              <button onClick={sendTextMessage} style={styles.sidebarSendBtn} disabled={isProcessing}><Icon name="send" size={18} color="#fff" /></button>
-            </div>
-            <div style={styles.sidebarSection}>
-              <h3 style={styles.sectionTitle}><Icon name="alertTriangle" size={16} color="#ff003c" /> DANGER ZONE</h3>
-              <button onClick={resetAllData} style={styles.dangerBtn}><Icon name="trash" size={14} color="#fff" /> Reset All Data</button>
+            <div style={styles.sidebarSectionPC}>
+              <h3 style={styles.sectionTitlePC}><Icon name="alertTriangle" size={16} color="#ff003c" /> DANGER ZONE</h3>
+              <button onClick={resetAllData} style={styles.dangerBtnPC}><Icon name="trash" size={14} color="#fff" /> Reset All Data</button>
             </div>
           </div>
         </>
       )}
-
-      {/* Main Content */}
-      <div style={styles.mainContent}>
-        <div style={styles.background}>
-          <RedBall isSpeaking={isAISpeaking} />
-          <div style={styles.faceTitle}>CYPHER4X</div>
-        </div>
-
-        {/* Listening status + interim transcript + Send button */}
-        <div style={styles.listeningContainer}>
-          {isListening ? (
-            <>
-              <div style={styles.listeningDot} />
-              <span style={styles.listeningText}>Listening...</span>
-              {interimTranscript && (
-                <span style={styles.interimText}>"{interimTranscript}"</span>
-              )}
-              {interimTranscript && (
-                <button onClick={sendInterim} style={styles.sendInterimBtn} disabled={isProcessing}>
-                  <Icon name="send" size={16} color="#fff" />
-                  <span>Send</span>
-                </button>
-              )}
-            </>
-          ) : isProcessing ? (
-            <span style={styles.listeningText}>Processing...</span>
-          ) : isRecording ? (
-            <span style={styles.listeningText}>Recording...</span>
-          ) : null}
-        </div>
-
-        {/* Top Right: CALL button */}
-        <button onClick={toggleCall} style={styles.callButtonTopRight}>
-          <Icon name="phone" size={24} color={isCallActive ? "#4f8" : "#ff003c"} />
-          <span style={styles.callLabelTop}>{isCallActive ? 'END' : 'CALL'}</span>
-        </button>
-
-        {/* Bottom center: Tap to Speak button */}
-        <div style={styles.voiceButtonContainer}>
-          <button
-            onClick={startRecording}
-            disabled={isRecording || isProcessing || isCallActive}
-            style={{ ...styles.voiceButton, ...(isRecording ? styles.voiceButtonActive : {}) }}
-          >
-            <Icon name="mic" size={40} color="#fff" />
-            <span style={styles.voiceLabel}>
-              {isRecording ? 'Recording...' : isProcessing ? 'Processing...' : 'Tap to Speak'}
-            </span>
-          </button>
-        </div>
-
-        {/* Hamburger menu */}
-        <button onClick={() => setSidebarOpen(true)} style={styles.hamburgerBtn}>
-          <Icon name="menu" size={28} color="#ff003c" />
-        </button>
-      </div>
     </div>
   )
 }
 
 // ============================================================
-// STYLES (updated with send button)
+// STYLES (Android + PC)
 // ============================================================
 const styles = {
+  // --- ANDROID STYLES (unchanged from before) ---
   app: {
     minHeight: '100vh',
     height: '100vh',
@@ -975,9 +1211,6 @@ const styles = {
     overflowY: 'auto',
     padding: '16px',
     border: 'none',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
   },
   sidebarHeader: {
     display: 'flex',
@@ -1131,7 +1364,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // Main content
+  // Android main content
   mainContent: {
     flex: 1,
     display: 'flex',
@@ -1242,6 +1475,61 @@ const styles = {
     animation: 'pulseText 2.5s ease-in-out infinite',
     fontFamily: "'Courier New', monospace",
   },
+  topBar: {
+    position: 'absolute',
+    top: '20px',
+    left: '20px',
+    right: '20px',
+    zIndex: 10,
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  viewToggleBtn: {
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    border: '1px solid #ff003c',
+    borderRadius: '20px',
+    padding: '6px 14px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    cursor: 'pointer',
+    color: '#ff6688',
+    fontSize: '12px',
+    '&:hover': {
+      backgroundColor: 'rgba(255,0,60,0.2)',
+    },
+  },
+  viewToggleLabel: {
+    color: '#fff',
+    fontSize: '11px',
+    fontWeight: 'bold',
+    letterSpacing: '1px',
+  },
+  callButtonTopRight: {
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    border: '2px solid #ff003c',
+    borderRadius: '30px',
+    padding: '8px 16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    cursor: 'pointer',
+    color: '#ff003c',
+    fontSize: '14px',
+    fontWeight: 'bold',
+    letterSpacing: '1px',
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      backgroundColor: 'rgba(255,0,60,0.2)',
+    },
+  },
+  callLabelTop: {
+    fontSize: '12px',
+    fontWeight: 'bold',
+    letterSpacing: '1px',
+    color: '#fff',
+  },
   listeningContainer: {
     position: 'absolute',
     top: '90px',
@@ -1307,33 +1595,22 @@ const styles = {
       cursor: 'not-allowed',
     },
   },
-  callButtonTopRight: {
-    position: 'absolute',
-    top: '25px',
-    right: '25px',
-    zIndex: 10,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    border: '2px solid #ff003c',
-    borderRadius: '30px',
-    padding: '10px 20px',
+  cancelInterimBtn: {
+    backgroundColor: 'transparent',
+    border: '1px solid #ff003c',
+    borderRadius: '20px',
+    padding: '4px 12px',
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
-    cursor: 'pointer',
+    gap: '4px',
     color: '#ff003c',
-    fontSize: '14px',
+    cursor: 'pointer',
+    fontSize: '13px',
     fontWeight: 'bold',
-    letterSpacing: '1px',
-    transition: 'all 0.3s ease',
+    transition: 'all 0.2s',
     '&:hover': {
       backgroundColor: 'rgba(255,0,60,0.2)',
     },
-  },
-  callLabelTop: {
-    fontSize: '12px',
-    fontWeight: 'bold',
-    letterSpacing: '1px',
-    color: '#fff',
   },
   voiceButtonContainer: {
     position: 'absolute',
@@ -1397,6 +1674,216 @@ const styles = {
       backgroundColor: 'rgba(255,0,60,0.1)',
     },
   },
+
+  // ============================================================
+  // PC STYLES (Full Dashboard)
+  // ============================================================
+  appPC: {
+    minHeight: '100vh',
+    height: '100vh',
+    backgroundColor: '#000',
+    color: '#e0e0e0',
+    fontFamily: "'Segoe UI', 'Courier New', monospace",
+    overflow: 'hidden',
+    border: 'none',
+    margin: 0,
+    padding: 0,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  headerPC: {
+    padding: '12px 24px',
+    borderBottom: '1px solid rgba(255,0,60,0.3)',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexShrink: 0,
+    backgroundColor: '#0a0000',
+  },
+  headerLeft: { display: 'flex', alignItems: 'center', gap: '12px' },
+  titlePC: { color: '#ff003c', margin: 0, fontSize: '22px', fontWeight: 'bold', letterSpacing: '3px' },
+  versionBadgePC: { fontSize: '12px', color: '#ff6688', backgroundColor: '#ff003c20', padding: '2px 10px', borderRadius: '10px' },
+  headerRight: { display: 'flex', alignItems: 'center', gap: '12px' },
+  viewToggleBtnPC: {
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    border: '1px solid #ff003c',
+    borderRadius: '20px',
+    padding: '6px 14px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    cursor: 'pointer',
+    color: '#ff6688',
+    fontSize: '12px',
+    '&:hover': { backgroundColor: 'rgba(255,0,60,0.2)' },
+  },
+  callBtnPC: {
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    border: '2px solid #ff003c',
+    borderRadius: '20px',
+    padding: '6px 16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    cursor: 'pointer',
+    color: '#ff003c',
+    fontSize: '13px',
+    fontWeight: 'bold',
+    '&:hover': { backgroundColor: 'rgba(255,0,60,0.2)' },
+  },
+  callBtnPCActive: { borderColor: '#4f8', color: '#4f8' },
+  menuBtnPC: { backgroundColor: 'transparent', border: 'none', cursor: 'pointer', padding: '4px' },
+  dashboardPC: {
+    flex: 1,
+    display: 'flex',
+    gap: '20px',
+    padding: '20px',
+    overflowY: 'auto',
+    backgroundColor: '#050505',
+  },
+  dashboardLeftPC: { flex: '1', display: 'flex', flexDirection: 'column', gap: '16px', minWidth: '280px' },
+  dashboardRightPC: { flex: '1.5', display: 'flex', flexDirection: 'column', gap: '16px', minWidth: '320px' },
+  dashCardPC: {
+    backgroundColor: '#0a0a0a',
+    border: '1px solid #222',
+    borderRadius: '10px',
+    padding: '16px 20px',
+    boxShadow: '0 0 30px rgba(0,0,0,0.5)',
+  },
+  dashTitlePC: {
+    color: '#ff003c',
+    fontSize: '15px',
+    margin: '0 0 12px 0',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    borderBottom: '1px solid #222',
+    paddingBottom: '8px',
+  },
+  dashRowPC: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '4px 0',
+    fontSize: '14px',
+    color: '#ccc',
+  },
+  dashEmptyPC: { color: '#666', fontSize: '13px', textAlign: 'center', padding: '8px 0' },
+  eventTimePC: { color: '#ff6688', fontSize: '12px' },
+  toggleGroupPC: { display: 'flex', gap: '4px' },
+  toggleBtnPC: {
+    padding: '2px 10px',
+    border: '1px solid #444',
+    borderRadius: '3px',
+    backgroundColor: 'transparent',
+    color: '#888',
+    cursor: 'pointer',
+    fontSize: '11px',
+  },
+  toggleBtnPCO: { borderColor: '#4f8', color: '#4f8', backgroundColor: '#0a2a0a' },
+  toggleBtnPCF: { borderColor: '#ff003c', color: '#ff003c', backgroundColor: '#2a0a0a' },
+  selectInputPC: {
+    padding: '2px 8px',
+    backgroundColor: '#000',
+    border: '1px solid #444',
+    color: '#fff',
+    borderRadius: '3px',
+    fontSize: '12px',
+  },
+  conversationLogPC: { maxHeight: '150px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '8px' },
+  convItemPC: {
+    display: 'flex',
+    flexDirection: 'column',
+    padding: '4px 8px',
+    backgroundColor: '#111',
+    borderRadius: '4px',
+    borderLeft: '2px solid #ff003c',
+  },
+  convTextPC: { fontSize: '13px', color: '#ddd', wordBreak: 'break-word', marginTop: '2px' },
+  convTimePC: { fontSize: '10px', color: '#666', alignSelf: 'flex-end', marginTop: '2px' },
+  commandActionsPC: { display: 'flex', gap: '8px', marginTop: '4px' },
+  commandHistoryPC: { maxHeight: '100px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '8px' },
+  cmdItemPC: { display: 'flex', gap: '8px', fontSize: '12px', color: '#aaa', padding: '2px 4px', borderBottom: '1px solid #111' },
+  cmdTimePC: { color: '#666', minWidth: '60px', fontSize: '11px' },
+  cmdTextPC: { color: '#ddd', wordBreak: 'break-word' },
+  dashBtnPC: {
+    padding: '4px 12px',
+    backgroundColor: '#222',
+    color: '#fff',
+    border: '1px solid #333',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '12px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    '&:hover': { backgroundColor: '#333' },
+  },
+  sidebarOverlayPC: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    zIndex: 998
+  },
+  sidebarPC: {
+    position: 'fixed',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: '340px',
+    maxWidth: '90vw',
+    backgroundColor: '#0a0000',
+    borderLeft: '2px solid #ff003c',
+    zIndex: 999,
+    overflowY: 'auto',
+    padding: '20px',
+    border: 'none',
+  },
+  sidebarHeaderPC: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '20px',
+    paddingBottom: '10px',
+    borderBottom: '1px solid #333'
+  },
+  sidebarTitlePC: { color: '#ff003c', fontSize: '18px', fontWeight: 'bold', margin: 0, fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '8px' },
+  closeBtnPC: { backgroundColor: 'transparent', border: 'none', color: '#888', fontSize: '20px', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' },
+  sidebarSectionPC: { marginBottom: '20px' },
+  sectionTitlePC: {
+    color: '#ff003c',
+    fontSize: '14px',
+    margin: '0 0 10px 0',
+    paddingBottom: '4px',
+    borderBottom: '1px solid #333',
+    fontFamily: 'monospace',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px'
+  },
+  profileCardSidebarPC: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' },
+  profileAvatarWrapperPC: { flexShrink: 0 },
+  profileAvatarPC: { width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #ff003c' },
+  profileAvatarPlaceholderPC: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    backgroundColor: '#ff003c',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#fff',
+    fontSize: '18px',
+    fontWeight: 'bold'
+  },
+  profileInfoPC: { display: 'flex', flexDirection: 'column' },
+  profileNamePC: { color: '#fff', fontWeight: 'bold', fontSize: '14px' },
+  profileHandlePC: { color: '#888', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '2px' },
+  sidebarBtnPC: { padding: '6px 12px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' },
+  dangerBtnPC: { padding: '6px 12px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' },
 }
 
 // ============================================================
