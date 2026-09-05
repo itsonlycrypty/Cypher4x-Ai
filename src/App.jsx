@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
 // ==================================================
-// ICON SYSTEM (unchanged)
+// ICON SYSTEM
 // ==================================================
 const Icon = ({ name, size = 18, color = 'currentColor' }) => {
   const icons = {
@@ -20,8 +20,6 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     send: 'M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z',
     phone: 'M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.574 2.81.7A2 2 0 0 1 22 16.92z',
     mic: 'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zm-7 9v1a7 7 0 0 0 14 0v-1M12 22v-3',
-    face: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z',
-    fingerprint: 'M12 2C8.13 2 5 5.13 5 9v2c0 3.87 3.13 7 7 7s7-3.13 7-7V9c0-3.87-3.13-7-7-7zm1 12h-2m0-4v2m0-4v2M9 9v2m6-2v2',
   }
   const path = icons[name]
   if (!path) return null
@@ -78,189 +76,18 @@ const searchWeb = async (query) => {
 }
 
 // ==================================================
-// CYBER GIRL FACE (with long hair & talking mouth)
+// RED BALL COMPONENT (spinning globe with rings)
 // ==================================================
-const CyberGirlFace = ({ size = 300, color = '#ff003c', isSpeaking = false }) => (
-  <svg width={size} height={size} viewBox="0 0 400 400" style={{ display: 'block' }}>
-    <defs>
-      <radialGradient id="faceGlow" cx="50%" cy="40%" r="50%">
-        <stop offset="0%" stopColor={color} stopOpacity="0.6"/>
-        <stop offset="60%" stopColor={color} stopOpacity="0.2"/>
-        <stop offset="100%" stopColor={color} stopOpacity="0"/>
-      </radialGradient>
-      <radialGradient id="eyeGlow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stopColor="#ff6688" stopOpacity="0.9"/>
-        <stop offset="60%" stopColor={color} stopOpacity="0.5"/>
-        <stop offset="100%" stopColor={color} stopOpacity="0"/>
-      </radialGradient>
-      <linearGradient id="hairGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stopColor="#1a0000" stopOpacity="0.9"/>
-        <stop offset="100%" stopColor="#0a0000" stopOpacity="0.95"/>
-      </linearGradient>
-      <linearGradient id="skinGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stopColor="#2a0a0a"/>
-        <stop offset="50%" stopColor="#1a0a0a"/>
-        <stop offset="100%" stopColor="#0a0000"/>
-      </linearGradient>
-      <filter id="glowFilter">
-        <feGaussianBlur stdDeviation="6" result="blur"/>
-        <feMerge>
-          <feMergeNode in="blur"/>
-          <feMergeNode in="SourceGraphic"/>
-        </feMerge>
-      </filter>
-      <filter id="hairShadow">
-        <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="#000" floodOpacity="0.6"/>
-      </filter>
-    </defs>
-
-    {/* Glow aura */}
-    <ellipse cx="200" cy="200" rx="180" ry="180" fill="url(#faceGlow)" opacity="0.4">
-      <animate attributeName="rx" values="170;190;170" dur="2s" repeatCount="indefinite"/>
-      <animate attributeName="ry" values="170;190;170" dur="2s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.3;0.7;0.3" dur="1.5s" repeatCount="indefinite"/>
-    </ellipse>
-
-    {/* Long flowing hair */}
-    <g opacity="0.8" filter="url(#hairShadow)">
-      <path d="M120 80 Q80 130 70 200 Q60 280 80 340 Q90 360 100 370" stroke="#1a0000" strokeWidth="30" fill="none" strokeLinecap="round">
-        <animate attributeName="d" values="M120 80 Q80 130 70 200 Q60 280 80 340 Q90 360 100 370;M120 80 Q75 130 65 200 Q55 280 75 340 Q85 360 95 370;M120 80 Q80 130 70 200 Q60 280 80 340 Q90 360 100 370" dur="3s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="0.7;0.9;0.7" dur="3s" repeatCount="indefinite"/>
-      </path>
-      <path d="M130 70 Q70 120 60 210 Q50 300 70 370" stroke="#1a0000" strokeWidth="22" fill="none" strokeLinecap="round">
-        <animate attributeName="d" values="M130 70 Q70 120 60 210 Q50 300 70 370;M130 70 Q65 120 55 210 Q45 300 65 370;M130 70 Q70 120 60 210 Q50 300 70 370" dur="3.5s" repeatCount="indefinite"/>
-      </path>
-      <path d="M140 60 Q80 110 70 200 Q60 290 80 360" stroke="#1a0000" strokeWidth="18" fill="none" strokeLinecap="round">
-        <animate attributeName="d" values="M140 60 Q80 110 70 200 Q60 290 80 360;M140 60 Q75 110 65 200 Q55 290 75 360;M140 60 Q80 110 70 200 Q60 290 80 360" dur="4s" repeatCount="indefinite"/>
-      </path>
-      <path d="M280 80 Q320 130 330 200 Q340 280 320 340 Q310 360 300 370" stroke="#1a0000" strokeWidth="30" fill="none" strokeLinecap="round">
-        <animate attributeName="d" values="M280 80 Q320 130 330 200 Q340 280 320 340 Q310 360 300 370;M280 80 Q325 130 335 200 Q345 280 325 340 Q315 360 305 370;M280 80 Q320 130 330 200 Q340 280 320 340 Q310 360 300 370" dur="3.2s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="0.7;0.9;0.7" dur="3.2s" repeatCount="indefinite"/>
-      </path>
-      <path d="M270 70 Q330 120 340 210 Q350 300 330 370" stroke="#1a0000" strokeWidth="22" fill="none" strokeLinecap="round">
-        <animate attributeName="d" values="M270 70 Q330 120 340 210 Q350 300 330 370;M270 70 Q335 120 345 210 Q355 300 335 370;M270 70 Q330 120 340 210 Q350 300 330 370" dur="3.7s" repeatCount="indefinite"/>
-      </path>
-      <path d="M260 60 Q320 110 330 200 Q340 290 320 360" stroke="#1a0000" strokeWidth="18" fill="none" strokeLinecap="round">
-        <animate attributeName="d" values="M260 60 Q320 110 330 200 Q340 290 320 360;M260 60 Q325 110 335 200 Q345 290 325 360;M260 60 Q320 110 330 200 Q340 290 320 360" dur="4.2s" repeatCount="indefinite"/>
-      </path>
-    </g>
-
-    {/* Main face shape */}
-    <ellipse cx="200" cy="195" rx="100" ry="135" fill="url(#skinGrad)" stroke={color} strokeWidth="3">
-      <animate attributeName="ry" values="133;137;133" dur="2s" repeatCount="indefinite"/>
-    </ellipse>
-    <ellipse cx="170" cy="180" rx="50" ry="70" fill={color} opacity="0.05" />
-
-    {/* Cheeks */}
-    <ellipse cx="130" cy="225" rx="30" ry="18" fill={color} opacity="0.15">
-      <animate attributeName="opacity" values="0.1;0.25;0.1" dur="1.8s" repeatCount="indefinite"/>
-    </ellipse>
-    <ellipse cx="270" cy="225" rx="30" ry="18" fill={color} opacity="0.15">
-      <animate attributeName="opacity" values="0.1;0.25;0.1" dur="1.8s" begin="0.3s" repeatCount="indefinite"/>
-    </ellipse>
-
-    {/* Eyes */}
-    <g>
-      <ellipse cx="150" cy="165" rx="32" ry="22" fill="#0a0000" stroke={color} strokeWidth="2"/>
-      <ellipse cx="150" cy="165" rx="20" ry="15" fill="url(#eyeGlow)">
-        <animate attributeName="rx" values="18;22;18" dur="1.2s" repeatCount="indefinite"/>
-        <animate attributeName="ry" values="13;17;13" dur="1.2s" repeatCount="indefinite"/>
-      </ellipse>
-      <circle cx="150" cy="165" r="6" fill="#fff" opacity="0.4">
-        <animate attributeName="r" values="5;7;5" dur="1.5s" repeatCount="indefinite"/>
-      </circle>
-      <path d="M118 160 Q112 150 108 155" stroke={color} strokeWidth="2.5" fill="none" opacity="0.7"/>
-      <path d="M123 154 Q117 144 113 149" stroke={color} strokeWidth="2.5" fill="none" opacity="0.7"/>
-      <path d="M128 151 Q122 141 118 146" stroke={color} strokeWidth="2.5" fill="none" opacity="0.7"/>
-    </g>
-    <g>
-      <ellipse cx="250" cy="165" rx="32" ry="22" fill="#0a0000" stroke={color} strokeWidth="2"/>
-      <ellipse cx="250" cy="165" rx="20" ry="15" fill="url(#eyeGlow)">
-        <animate attributeName="rx" values="18;22;18" dur="1.2s" begin="0.3s" repeatCount="indefinite"/>
-        <animate attributeName="ry" values="13;17;13" dur="1.2s" begin="0.3s" repeatCount="indefinite"/>
-      </ellipse>
-      <circle cx="250" cy="165" r="6" fill="#fff" opacity="0.4">
-        <animate attributeName="r" values="5;7;5" dur="1.5s" begin="0.3s" repeatCount="indefinite"/>
-      </circle>
-      <path d="M282 160 Q288 150 292 155" stroke={color} strokeWidth="2.5" fill="none" opacity="0.7"/>
-      <path d="M277 154 Q283 144 287 149" stroke={color} strokeWidth="2.5" fill="none" opacity="0.7"/>
-      <path d="M272 151 Q278 141 282 146" stroke={color} strokeWidth="2.5" fill="none" opacity="0.7"/>
-    </g>
-
-    {/* Eyebrows */}
-    <path d="M125 145 Q150 128 175 143" stroke={color} strokeWidth="3" fill="none" opacity="0.7">
-      <animate attributeName="d" values="M125 145 Q150 128 175 143;M125 143 Q150 126 175 141;M125 145 Q150 128 175 143" dur="2s" repeatCount="indefinite"/>
-    </path>
-    <path d="M225 143 Q250 126 275 145" stroke={color} strokeWidth="3" fill="none" opacity="0.7">
-      <animate attributeName="d" values="M225 143 Q250 126 275 145;M225 141 Q250 124 275 143;M225 143 Q250 126 275 145" dur="2s" begin="0.5s" repeatCount="indefinite"/>
-    </path>
-
-    {/* Nose */}
-    <path d="M200 185 L194 215 L206 215 Z" fill="none" stroke={color} strokeWidth="2" opacity="0.5"/>
-    <path d="M200 185 L198 200" stroke={color} strokeWidth="1.5" opacity="0.3"/>
-
-    {/* Lips - animated */}
-    <g>
-      <path d="M170 245 Q200 260 230 245" stroke={color} strokeWidth="3" fill="none" opacity="0.8">
-        <animate attributeName="d" 
-          values="M170 245 Q200 260 230 245;M165 248 Q200 265 235 248;M170 245 Q200 260 230 245" 
-          dur={isSpeaking ? "0.4s" : "1.5s"} 
-          repeatCount="indefinite"/>
-      </path>
-      <path d="M175 245 Q200 265 225 245" stroke="#ff6688" strokeWidth="3" fill="none" opacity="0.7">
-        <animate attributeName="d" 
-          values="M175 245 Q200 265 225 245;M170 248 Q200 275 230 248;M175 245 Q200 265 225 245" 
-          dur={isSpeaking ? "0.3s" : "1.5s"} 
-          repeatCount="indefinite"/>
-      </path>
-      {isSpeaking && (
-        <ellipse cx="200" cy="255" rx="30" ry="10" fill={color} opacity="0.15">
-          <animate attributeName="ry" values="8;14;8" dur="0.3s" repeatCount="indefinite"/>
-        </ellipse>
-      )}
-    </g>
-
-    {/* Hair strands in front */}
-    <path d="M140 100 Q120 140 115 180" stroke="#1a0000" strokeWidth="8" fill="none" opacity="0.6">
-      <animate attributeName="d" values="M140 100 Q120 140 115 180;M140 100 Q115 140 110 180;M140 100 Q120 140 115 180" dur="4s" repeatCount="indefinite"/>
-    </path>
-    <path d="M260 100 Q280 140 285 180" stroke="#1a0000" strokeWidth="8" fill="none" opacity="0.6">
-      <animate attributeName="d" values="M260 100 Q280 140 285 180;M260 100 Q285 140 290 180;M260 100 Q280 140 285 180" dur="4.2s" repeatCount="indefinite"/>
-    </path>
-
-    {/* Cyber headband */}
-    <path d="M120 115 Q200 95 280 115" stroke={color} strokeWidth="4" fill="none" opacity="0.6">
-      <animate attributeName="d" values="M120 115 Q200 95 280 115;M120 113 Q200 93 280 113;M120 115 Q200 95 280 115" dur="3s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.5;0.8;0.5" dur="3s" repeatCount="indefinite"/>
-    </path>
-    <circle cx="200" cy="103" r="10" fill={color} opacity="0.8">
-      <animate attributeName="r" values="8;12;8" dur="1.5s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite"/>
-    </circle>
-
-    {/* Cyber lines */}
-    <path d="M125 235 L105 260 L115 270" stroke={color} strokeWidth="2" fill="none" opacity="0.4">
-      <animate attributeName="opacity" values="0.3;0.6;0.3" dur="2s" repeatCount="indefinite"/>
-    </path>
-    <path d="M275 235 L295 260 L285 270" stroke={color} strokeWidth="2" fill="none" opacity="0.4">
-      <animate attributeName="opacity" values="0.3;0.6;0.3" dur="2s" begin="0.5s" repeatCount="indefinite"/>
-    </path>
-
-    {/* Text label */}
-    <text x="200" y="365" textAnchor="middle" fill={color} fontSize="20" fontWeight="bold" letterSpacing="5" opacity="0.9">
-      CYPHER4X
-      <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/>
-    </text>
-
-    {/* Outer rings */}
-    <circle cx="200" cy="200" r="170" fill="none" stroke={color} strokeWidth="1.5" opacity="0.15">
-      <animate attributeName="r" values="160;180;160" dur="4s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.1;0.25;0.1" dur="4s" repeatCount="indefinite"/>
-    </circle>
-    <circle cx="200" cy="200" r="150" fill="none" stroke={color} strokeWidth="1" opacity="0.1" strokeDasharray="10 10">
-      <animate attributeName="stroke-dashoffset" values="0;100;0" dur="6s" repeatCount="indefinite"/>
-    </circle>
-  </svg>
+const RedBall = ({ isSpeaking = false }) => (
+  <div style={styles.ballContainer}>
+    <div style={styles.ball}>
+      <div style={styles.ballGlow} />
+      <div style={styles.ballInner} />
+    </div>
+    <div style={styles.ring1} />
+    <div style={styles.ring2} />
+    <div style={styles.ring3} />
+  </div>
 )
 
 // ==================================================
@@ -301,7 +128,7 @@ export default function App() {
   const fileInputRef = useRef(null)
 
   // ==================================================
-  // SPEECH RECOGNITION (continuous call)
+  // SPEECH RECOGNITION
   // ==================================================
   const setupSpeechRecognition = useCallback(() => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -433,7 +260,7 @@ export default function App() {
   }, [isProcessing, speakText])
 
   // ==================================================
-  // VOICE RECORDING (one‑off)
+  // VOICE RECORDING
   // ==================================================
   const startRecording = useCallback(() => {
     if (isRecording) return
@@ -514,7 +341,7 @@ export default function App() {
   }, [isCallActive, setupSpeechRecognition, speakText])
 
   // ==================================================
-  // SIMULATE STATS
+  // STATS
   // ==================================================
   useEffect(() => {
     const timer = setInterval(() => {
@@ -686,9 +513,6 @@ export default function App() {
       <div style={styles.bootContainer}>
         <div style={styles.bootBackground} />
         <div style={styles.bootContent}>
-          <div style={styles.bootFace}>
-            <CyberGirlFace size={250} isSpeaking={false} />
-          </div>
           <div style={styles.bootProgressWrapper}>
             <div style={styles.bootProgressBar}>
               <div style={{ ...styles.bootProgressFill, width: `${bootProgress}%` }} />
@@ -774,11 +598,11 @@ export default function App() {
   }
 
   // ============================================================
-  // MAIN APP – MINIMALIST LAYOUT (inspired by screenshot)
+  // MAIN APP – SPINNING RED BALL
   // ============================================================
   return (
     <div style={styles.app}>
-      {/* Sidebar (unchanged) */}
+      {/* Sidebar */}
       {sidebarOpen && (
         <>
           <div style={styles.sidebarOverlay} onClick={() => setSidebarOpen(false)} />
@@ -877,11 +701,10 @@ export default function App() {
         </>
       )}
 
-      {/* Main Content – Minimalist like screenshot */}
+      {/* Main Content – Spinning Red Ball */}
       <div style={styles.mainContent}>
-        {/* Background with cyber girl face */}
-        <div style={styles.backgroundFace}>
-          <CyberGirlFace size={380} isSpeaking={isAISpeaking} />
+        <div style={styles.background}>
+          <RedBall isSpeaking={isAISpeaking} />
           <div style={styles.faceTitle}>CYPHER4X</div>
         </div>
 
@@ -915,7 +738,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES – Minimalist & Clean
+// STYLES
 // ============================================================
 const styles = {
   app: {
@@ -957,7 +780,6 @@ const styles = {
     maxWidth: '500px',
     padding: '20px',
   },
-  bootFace: { marginBottom: '30px' },
   bootProgressWrapper: { margin: '20px 0' },
   bootProgressBar: {
     width: '100%',
@@ -1263,6 +1085,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // Main content
   mainContent: {
     flex: 1,
     display: 'flex',
@@ -1276,7 +1099,7 @@ const styles = {
     margin: 0,
     padding: 0,
   },
-  backgroundFace: {
+  background: {
     position: 'absolute',
     top: 0,
     left: 0,
@@ -1289,9 +1112,79 @@ const styles = {
     zIndex: 0,
     background: 'radial-gradient(ellipse at center, #0a0000 0%, #000 100%)',
   },
+  ballContainer: {
+    position: 'relative',
+    width: '300px',
+    height: '300px',
+    pointerEvents: 'none',
+    zIndex: 1,
+  },
+  ball: {
+    width: '180px',
+    height: '180px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle at 35% 35%, #ff6688, #ff003c, #990022)',
+    boxShadow: '0 0 60px rgba(255,0,60,0.8), inset 0 -20px 30px rgba(0,0,0,0.5)',
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    animation: 'rotateGlobe 20s linear infinite',
+    transformStyle: 'preserve-3d',
+  },
+  ballGlow: {
+    position: 'absolute',
+    top: '-20px',
+    left: '-20px',
+    right: '-20px',
+    bottom: '-20px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(255,0,60,0.2) 0%, transparent 70%)',
+    animation: 'glowPulse 2s ease-in-out infinite',
+  },
+  ballInner: {
+    position: 'absolute',
+    top: '20%',
+    left: '20%',
+    width: '60%',
+    height: '60%',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle at 60% 60%, rgba(255,255,255,0.3), transparent 70%)',
+  },
+  ring1: {
+    position: 'absolute',
+    top: '0%',
+    left: '0%',
+    width: '100%',
+    height: '100%',
+    borderRadius: '50%',
+    border: '2px solid rgba(255,0,60,0.25)',
+    animation: 'spinRing 12s linear infinite',
+    boxShadow: '0 0 40px rgba(255,0,60,0.05)',
+  },
+  ring2: {
+    position: 'absolute',
+    top: '-10%',
+    left: '-10%',
+    width: '120%',
+    height: '120%',
+    borderRadius: '50%',
+    border: '1px solid rgba(255,0,60,0.12)',
+    animation: 'spinRing 18s linear infinite reverse',
+  },
+  ring3: {
+    position: 'absolute',
+    top: '5%',
+    left: '5%',
+    width: '90%',
+    height: '90%',
+    borderRadius: '50%',
+    border: '1px dashed rgba(255,0,60,0.15)',
+    animation: 'spinRing 8s linear infinite',
+  },
   faceTitle: {
     position: 'absolute',
-    bottom: '15%',
+    bottom: '10%',
     fontSize: 'clamp(28px, 4vw, 42px)',
     fontWeight: 'bold',
     color: '#ff003c',
