@@ -11,7 +11,7 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     chart: 'M18 20V4M12 20V8M6 20V12',
     hourglass: 'M12 2v4M12 22v-4M4 6h16M4 18h16M8 6v3a4 4 0 0 0 8 0V6H8zm0 12v-3a4 4 0 0 1 8 0v3H8z',
     cpu: 'M4 4h4v4H4zm6 0h10v4H10zM4 10h10v4H4zm12 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z',
-    memory: 'M2 6h20v12H2zM6 10h4v4H6zm6 0h4v4h-4zm6 0h4v4h-4z',
+    memory: 'M2 6h20v12H2zM6 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z',
     network: 'M4 12a8 8 0 0 1 16 0M6 12a6 6 0 0 1 12 0M8 12a4 4 0 0 1 8 0M10 12a2 2 0 0 1 4 0',
     microphone: 'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zm-7 9v1a7 7 0 0 0 14 0v-1M12 22v-3',
     calendar: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
@@ -23,6 +23,7 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     close: 'M18 6L6 18M6 6l12 12',
     desktop: 'M4 4h16v12H4zM8 20h8M12 16v4',
     mobile: 'M12 2C8 2 4 4 4 8v12c0 4 4 6 8 6s8-2 8-6V8c0-4-4-6-8-6zm0 4c2 0 4 1 4 3s-2 3-4 3-4-1-4-3 2-3 4-3zm0 14c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2z',
+    rotate: 'M21 12a9 9 0 1 1-6.219-8.56M15 3h6v6',
   }
   const path = icons[name]
   if (!path) return null
@@ -101,6 +102,7 @@ export default function App() {
   const [bootProgress, setBootProgress] = useState(0)
   const [bootStepIndex, setBootStepIndex] = useState(0)
   const [viewMode, setViewMode] = useState('android')
+  const [isLandscape, setIsLandscape] = useState(true) // NEW: controls PC layout orientation
 
   const [profile, setProfile] = useState(null)
   const [profileForm, setProfileForm] = useState({ name: "", username: "", avatar: "", bio: "" })
@@ -139,31 +141,6 @@ export default function App() {
   const recognitionRef = useRef(null)
   const msgCounter = useRef(0)
   const fileInputRef = useRef(null)
-
-  // Lock orientation for PC view
-  useEffect(() => {
-    const lockOrientation = async () => {
-      try {
-        if (viewMode === 'pc') {
-          if (screen.orientation && screen.orientation.lock) {
-            await screen.orientation.lock('landscape')
-          }
-        } else {
-          if (screen.orientation && screen.orientation.unlock) {
-            screen.orientation.unlock()
-          }
-        }
-      } catch (e) {}
-    }
-    lockOrientation()
-    return () => {
-      try {
-        if (screen.orientation && screen.orientation.unlock) {
-          screen.orientation.unlock()
-        }
-      } catch (e) {}
-    }
-  }, [viewMode])
 
   // ==================================================
   // SPEECH RECOGNITION
@@ -434,11 +411,20 @@ export default function App() {
   }, [isCallActive, setupSpeechRecognition, speakText])
 
   // ==================================================
-  // VIEW TOGGLE
+  // VIEW TOGGLE – auto‑rotate to landscape on PC
   // ==================================================
   const toggleView = useCallback(() => {
-    setViewMode(prev => prev === 'android' ? 'pc' : 'android')
+    setViewMode(prev => {
+      const newMode = prev === 'android' ? 'pc' : 'android'
+      if (newMode === 'pc') setIsLandscape(true) // auto‑rotate to landscape
+      return newMode
+    })
     setSidebarOpen(false)
+  }, [])
+
+  // Manual rotate button handler
+  const toggleLandscape = useCallback(() => {
+    setIsLandscape(prev => !prev)
   }, [])
 
   // ==================================================
@@ -865,15 +851,19 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: PC VIEW – Persistent Sidebar + Main Area with Red Ball
+  // RENDER: PC VIEW – Responsive with rotate toggle
   // ============================================================
   return (
     <div style={styles.appPC}>
-      {/* Header at top */}
       <header style={styles.headerPC}>
         <div style={styles.headerLeft}>
           <h1 style={styles.titlePC}>CYPHER4X</h1>
           <span style={styles.versionBadgePC}>{VERSION}</span>
+          {/* New rotate button */}
+          <button onClick={toggleLandscape} style={styles.rotateBtnPC}>
+            <Icon name="rotate" size={18} color="#ff003c" />
+            <span>{isLandscape ? 'Portrait' : 'Landscape'}</span>
+          </button>
           <button onClick={toggleCall} style={{ ...styles.callBtnPC, ...(isCallActive ? styles.callBtnPCActive : {}) }}>
             <Icon name="phone" size={18} color={isCallActive ? "#4f8" : "#ff003c"} />
             <span>{isCallActive ? 'END CALL' : 'CALL'}</span>
@@ -894,10 +884,19 @@ export default function App() {
         </div>
       </header>
 
-      {/* PC Main Layout: Sidebar + Main Content */}
-      <div style={styles.pcLayout}>
-        {/* Left Sidebar – All dashboard panels */}
-        <div style={styles.pcSidebar}>
+      {/* PC Main Layout: flex-direction controlled by isLandscape */}
+      <div style={{
+        ...styles.pcLayout,
+        flexDirection: isLandscape ? 'row' : 'column',
+      }}>
+        {/* Left Sidebar – responsive */}
+        <div style={{
+          ...styles.pcSidebar,
+          width: isLandscape ? 'clamp(200px, 25%, 300px)' : '100%',
+          maxHeight: isLandscape ? '100%' : '50vh',
+          borderRight: isLandscape ? '1px solid #333' : 'none',
+          borderBottom: isLandscape ? 'none' : '1px solid #333',
+        }}>
           {/* System Stats */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="chart" size={16} color="#ff003c" /> SYSTEM STATS</h3>
@@ -1128,7 +1127,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES (updated for PC layout)
+// STYLES (updated for PC layout with rotate support)
 // ============================================================
 const styles = {
   // ---------- ANDROID ----------
@@ -1681,7 +1680,7 @@ const styles = {
     '&:hover': { backgroundColor: 'rgba(255,0,60,0.1)' },
   },
 
-  // ---------- PC ----------
+  // ---------- PC (modified) ----------
   appPC: {
     minHeight: '100vh',
     height: '100vh',
@@ -1712,6 +1711,20 @@ const styles = {
   headerLeft: { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' },
   titlePC: { color: '#ff003c', margin: 0, fontSize: 'clamp(18px, 3vw, 24px)', fontWeight: 'bold', letterSpacing: '3px' },
   versionBadgePC: { fontSize: '11px', color: '#ff6688', backgroundColor: '#ff003c20', padding: '2px 10px', borderRadius: '10px' },
+  rotateBtnPC: {
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    border: '1px solid #ff003c',
+    borderRadius: '20px',
+    padding: '4px 14px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    cursor: 'pointer',
+    color: '#ff003c',
+    fontSize: '12px',
+    fontWeight: 'bold',
+    '&:hover': { backgroundColor: 'rgba(255,0,60,0.2)' },
+  },
   headerRight: { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' },
   callBtnPC: {
     backgroundColor: 'rgba(0,0,0,0.6)',
@@ -1749,15 +1762,14 @@ const styles = {
     flex: 1,
     display: 'flex',
     overflow: 'hidden',
+    transition: 'flex-direction 0.3s ease',
   },
   pcSidebar: {
-    width: '280px',
-    minWidth: '250px',
     backgroundColor: '#0a0a0a',
-    borderRight: '1px solid #333',
     overflowY: 'auto',
     padding: '12px 16px',
     flexShrink: 0,
+    // width and maxHeight set inline based on isLandscape
   },
   pcSidebarSection: {
     marginBottom: '18px',
@@ -1992,7 +2004,3 @@ const styles = {
   sidebarBtnPC: { padding: '6px 12px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' },
   dangerBtnPC: { padding: '6px 12px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' },
 }
-
-// ============================================================
-// KEYFRAMES (add to index.css)
-// ============================================================
