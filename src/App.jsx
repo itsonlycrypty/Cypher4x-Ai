@@ -110,7 +110,6 @@ export default function App() {
   const [isCallActive, setIsCallActive] = useState(false)
   const [isListening, setIsListening] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [isRecording, setIsRecording] = useState(false)
   const [isAISpeaking, setIsAISpeaking] = useState(false)
 
   const [faceRecognition, setFaceRecognition] = useState(false)
@@ -128,7 +127,7 @@ export default function App() {
   const fileInputRef = useRef(null)
 
   // ==================================================
-  // SPEECH RECOGNITION
+  // SPEECH RECOGNITION (continuous listening)
   // ==================================================
   const setupSpeechRecognition = useCallback(() => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -260,44 +259,6 @@ export default function App() {
   }, [isProcessing, speakText])
 
   // ==================================================
-  // VOICE RECORDING
-  // ==================================================
-  const startRecording = useCallback(() => {
-    if (isRecording) return
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert("Your browser doesn't support speech recognition.")
-      return
-    }
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-    const recognition = new SpeechRecognition()
-    recognition.continuous = false
-    recognition.interimResults = false
-    recognition.lang = 'en-US'
-
-    recognition.onstart = () => setIsRecording(true)
-    recognition.onend = () => setIsRecording(false)
-    recognition.onerror = (event) => {
-      setIsRecording(false)
-      if (event.error === 'not-allowed') {
-        alert('Please allow microphone access in your browser settings.')
-      } else {
-        alert('Speech recognition error: ' + event.error)
-      }
-    }
-    recognition.onresult = async (event) => {
-      const transcript = event.results[0][0].transcript.trim()
-      if (transcript) {
-        await processUserQuery(transcript)
-      }
-    }
-    try {
-      recognition.start()
-    } catch (e) {
-      alert('Failed to start recording: ' + e.message)
-    }
-  }, [processUserQuery])
-
-  // ==================================================
   // SEND TEXT FROM SIDEBAR
   // ==================================================
   const sendTextMessage = useCallback(() => {
@@ -308,7 +269,7 @@ export default function App() {
   }, [inputText, isProcessing, processUserQuery])
 
   // ==================================================
-  // CALL TOGGLE
+  // CALL TOGGLE (continuous listening)
   // ==================================================
   const toggleCall = useCallback(() => {
     if (isCallActive) {
@@ -598,7 +559,7 @@ export default function App() {
   }
 
   // ============================================================
-  // MAIN APP – SPINNING RED BALL
+  // MAIN APP – JARVIS CONTINUOUS LISTENING
   // ============================================================
   return (
     <div style={styles.app}>
@@ -636,8 +597,8 @@ export default function App() {
               </div>
               <div style={styles.settingRow}>
                 <span style={styles.settingLabel}>Status</span>
-                <span style={{ color: isCallActive ? '#4f8' : isRecording ? '#ff003c' : '#888', fontWeight: 'bold' }}>
-                  {isCallActive ? '🎤 Listening' : isRecording ? '🔴 Recording' : 'Standby'}
+                <span style={{ color: isListening ? '#4f8' : '#888', fontWeight: 'bold' }}>
+                  {isListening ? '🎤 Listening' : 'Standby'}
                 </span>
               </div>
             </div>
@@ -701,12 +662,23 @@ export default function App() {
         </>
       )}
 
-      {/* Main Content – Spinning Red Ball */}
+      {/* Main Content – Spinning Red Ball + Listening Status */}
       <div style={styles.mainContent}>
         <div style={styles.background}>
           <RedBall isSpeaking={isAISpeaking} />
-          {/* CYPHER4X text – moved higher */}
           <div style={styles.faceTitle}>CYPHER4X</div>
+        </div>
+
+        {/* Listening status (like JARVIS) */}
+        <div style={styles.listeningContainer}>
+          {isListening ? (
+            <>
+              <div style={styles.listeningDot} />
+              <span style={styles.listeningText}>Listening...</span>
+            </>
+          ) : isProcessing ? (
+            <span style={styles.listeningText}>Processing...</span>
+          ) : null}
         </div>
 
         {/* Top Right: Call button */}
@@ -714,20 +686,6 @@ export default function App() {
           <Icon name="phone" size={24} color={isCallActive ? "#4f8" : "#ff003c"} />
           <span style={styles.callLabelTop}>{isCallActive ? 'END' : 'CALL'}</span>
         </button>
-
-        {/* Bottom center: Tap to Speak button */}
-        <div style={styles.voiceButtonContainer}>
-          <button
-            onClick={startRecording}
-            disabled={isRecording || isProcessing || isCallActive}
-            style={{ ...styles.voiceButton, ...(isRecording ? styles.voiceButtonActive : {}) }}
-          >
-            <Icon name="mic" size={40} color="#fff" />
-            <span style={styles.voiceLabel}>
-              {isRecording ? 'Recording...' : isProcessing ? 'Processing...' : 'Tap to Speak'}
-            </span>
-          </button>
-        </div>
 
         {/* Hamburger menu */}
         <button onClick={() => setSidebarOpen(true)} style={styles.hamburgerBtn}>
@@ -1183,10 +1141,9 @@ const styles = {
     border: '1px dashed rgba(255,0,60,0.15)',
     animation: 'spinRing 8s linear infinite',
   },
-  // CYPHER4X text – moved higher
   faceTitle: {
     position: 'absolute',
-    bottom: '35%',  // moved higher (was 10%)
+    bottom: '35%',
     fontSize: 'clamp(42px, 6vw, 68px)',
     fontWeight: 'bold',
     color: '#ff003c',
@@ -1196,6 +1153,36 @@ const styles = {
     width: '100%',
     zIndex: 2,
     animation: 'pulseText 2.5s ease-in-out infinite',
+    fontFamily: "'Courier New', monospace",
+  },
+  listeningContainer: {
+    position: 'absolute',
+    top: '90px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    zIndex: 10,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: '8px 20px',
+    borderRadius: '30px',
+    border: '1px solid rgba(255,0,60,0.2)',
+    backdropFilter: 'blur(10px)',
+  },
+  listeningDot: {
+    width: '10px',
+    height: '10px',
+    borderRadius: '50%',
+    backgroundColor: '#4f8',
+    boxShadow: '0 0 20px #4f8',
+    animation: 'pulseText 0.8s ease-in-out infinite',
+  },
+  listeningText: {
+    color: '#fff',
+    fontSize: '16px',
+    fontWeight: 'bold',
+    letterSpacing: '2px',
     fontFamily: "'Courier New', monospace",
   },
   callButtonTopRight: {
@@ -1225,54 +1212,6 @@ const styles = {
     fontWeight: 'bold',
     letterSpacing: '1px',
     color: '#fff',
-  },
-  voiceButtonContainer: {
-    position: 'absolute',
-    bottom: '50px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    zIndex: 10,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  voiceButton: {
-    width: '90px',
-    height: '90px',
-    borderRadius: '50%',
-    backgroundColor: '#1a1a1a',
-    border: '3px solid #ff003c',
-    cursor: 'pointer',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '4px',
-    transition: 'all 0.3s ease',
-    boxShadow: '0 0 40px rgba(255,0,60,0.2)',
-    '&:hover': {
-      transform: 'scale(1.05)',
-      boxShadow: '0 0 60px rgba(255,0,60,0.4)',
-    },
-    '&:disabled': {
-      opacity: 0.5,
-      cursor: 'not-allowed',
-      transform: 'none',
-    },
-  },
-  voiceButtonActive: {
-    backgroundColor: '#ff003c',
-    borderColor: '#ff003c',
-    boxShadow: '0 0 80px rgba(255,0,60,0.7)',
-    animation: 'pulseGlow 1s ease-in-out infinite',
-  },
-  voiceLabel: {
-    color: '#fff',
-    fontSize: '12px',
-    fontWeight: 'bold',
-    letterSpacing: '1px',
-    marginTop: '4px',
   },
   hamburgerBtn: {
     position: 'absolute',
