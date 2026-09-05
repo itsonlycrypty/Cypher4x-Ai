@@ -112,6 +112,7 @@ export default function App() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [isAISpeaking, setIsAISpeaking] = useState(false)
+  const [interimTranscript, setInterimTranscript] = useState('')   // new
 
   const [faceRecognition, setFaceRecognition] = useState(false)
   const [biometricAuth, setBiometricAuth] = useState(false)
@@ -142,9 +143,14 @@ export default function App() {
     recognition.lang = 'en-US'
     recognition.maxAlternatives = 1
 
-    recognition.onstart = () => setIsListening(true)
+    recognition.onstart = () => {
+      setIsListening(true)
+      setInterimTranscript('')
+    }
     recognition.onend = () => {
       setIsListening(false)
+      setInterimTranscript('')
+      // If call is still active, restart
       if (isCallActive) {
         try { recognition.start() } catch (e) {}
       }
@@ -154,6 +160,7 @@ export default function App() {
       if (event.error === 'not-allowed') {
         alert('Please allow microphone access in your browser settings.')
         setIsCallActive(false)
+        setIsListening(false)
         return
       }
       if (isCallActive) {
@@ -167,11 +174,11 @@ export default function App() {
         if (result.isFinal) final += result[0].transcript
         else interim += result[0].transcript
       }
-      const fullTranscript = (final || interim).trim()
-      if (fullTranscript) {
-        if (final) {
-          await processUserQuery(fullTranscript)
-        }
+      if (final) {
+        setInterimTranscript('')
+        await processUserQuery(final)
+      } else if (interim) {
+        setInterimTranscript(interim)
       }
     }
     return recognition
@@ -203,6 +210,7 @@ export default function App() {
   const processUserQuery = useCallback(async (query) => {
     if (!query || isProcessing) return
     setIsProcessing(true)
+    setInterimTranscript('') // clear
 
     const userMsg = { id: ++msgCounter.current, role: 'user', content: query, time: Date.now() }
     setConversation(prev => [...prev, userMsg])
@@ -298,6 +306,20 @@ export default function App() {
   }, [isRecording, processUserQuery])
 
   // ==================================================
+  // SEND INTERIM (manual send)
+  // ==================================================
+  const sendInterim = useCallback(() => {
+    if (!interimTranscript.trim() || isProcessing) return
+    const text = interimTranscript.trim()
+    setInterimTranscript('')
+    // Stop recognition to prevent duplicate processing
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop() } catch (e) {}
+    }
+    processUserQuery(text)
+  }, [interimTranscript, isProcessing, processUserQuery])
+
+  // ==================================================
   // SEND TEXT FROM SIDEBAR
   // ==================================================
   const sendTextMessage = useCallback(() => {
@@ -317,6 +339,7 @@ export default function App() {
         try { recognitionRef.current.stop() } catch (e) {}
       }
       setIsListening(false)
+      setInterimTranscript('')
       speakText("Call ended. Have a great day! 🌟")
     } else {
       setIsCallActive(true)
@@ -598,7 +621,7 @@ export default function App() {
   }
 
   // ============================================================
-  // MAIN APP – JARVIS CONTINUOUS LISTENING + TAP TO SPEAK
+  // MAIN APP – JARVIS CONTINUOUS LISTENING + TAP TO SPEAK + SEND
   // ============================================================
   return (
     <div style={styles.app}>
@@ -701,19 +724,28 @@ export default function App() {
         </>
       )}
 
-      {/* Main Content – Spinning Red Ball + Listening Status + Both Buttons */}
+      {/* Main Content */}
       <div style={styles.mainContent}>
         <div style={styles.background}>
           <RedBall isSpeaking={isAISpeaking} />
           <div style={styles.faceTitle}>CYPHER4X</div>
         </div>
 
-        {/* Listening status (JARVIS style) */}
+        {/* Listening status + interim transcript + Send button */}
         <div style={styles.listeningContainer}>
           {isListening ? (
             <>
               <div style={styles.listeningDot} />
               <span style={styles.listeningText}>Listening...</span>
+              {interimTranscript && (
+                <span style={styles.interimText}>"{interimTranscript}"</span>
+              )}
+              {interimTranscript && (
+                <button onClick={sendInterim} style={styles.sendInterimBtn} disabled={isProcessing}>
+                  <Icon name="send" size={16} color="#fff" />
+                  <span>Send</span>
+                </button>
+              )}
             </>
           ) : isProcessing ? (
             <span style={styles.listeningText}>Processing...</span>
@@ -722,13 +754,13 @@ export default function App() {
           ) : null}
         </div>
 
-        {/* Top Right: CALL button (continuous listening) */}
+        {/* Top Right: CALL button */}
         <button onClick={toggleCall} style={styles.callButtonTopRight}>
           <Icon name="phone" size={24} color={isCallActive ? "#4f8" : "#ff003c"} />
           <span style={styles.callLabelTop}>{isCallActive ? 'END' : 'CALL'}</span>
         </button>
 
-        {/* Bottom center: Tap to Speak button (one-off recording) */}
+        {/* Bottom center: Tap to Speak button */}
         <div style={styles.voiceButtonContainer}>
           <button
             onClick={startRecording}
@@ -752,7 +784,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES
+// STYLES (updated with send button)
 // ============================================================
 const styles = {
   app: {
@@ -1224,6 +1256,8 @@ const styles = {
     borderRadius: '30px',
     border: '1px solid rgba(255,0,60,0.2)',
     backdropFilter: 'blur(10px)',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
   },
   listeningDot: {
     width: '10px',
@@ -1239,6 +1273,39 @@ const styles = {
     fontWeight: 'bold',
     letterSpacing: '2px',
     fontFamily: "'Courier New', monospace",
+  },
+  interimText: {
+    color: '#ff6688',
+    fontSize: '14px',
+    fontStyle: 'italic',
+    maxWidth: '200px',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    borderLeft: '1px solid rgba(255,0,60,0.3)',
+    paddingLeft: '12px',
+  },
+  sendInterimBtn: {
+    backgroundColor: '#ff003c',
+    border: 'none',
+    borderRadius: '20px',
+    padding: '4px 14px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    color: '#fff',
+    cursor: 'pointer',
+    fontSize: '13px',
+    fontWeight: 'bold',
+    transition: 'all 0.2s',
+    '&:hover': {
+      backgroundColor: '#ff2255',
+      transform: 'scale(1.05)',
+    },
+    '&:disabled': {
+      opacity: 0.5,
+      cursor: 'not-allowed',
+    },
   },
   callButtonTopRight: {
     position: 'absolute',
