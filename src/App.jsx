@@ -145,18 +145,15 @@ export default function App() {
     const lockOrientation = async () => {
       try {
         if (viewMode === 'pc') {
-          // Lock to landscape when in PC view
           if (screen.orientation && screen.orientation.lock) {
             await screen.orientation.lock('landscape')
           }
         } else {
-          // Unlock when in Android view
           if (screen.orientation && screen.orientation.unlock) {
             screen.orientation.unlock()
           }
         }
       } catch (e) {
-        // Orientation lock not supported or permission denied
         console.log('Orientation lock not available')
       }
     }
@@ -439,11 +436,10 @@ export default function App() {
   }, [isCallActive, setupSpeechRecognition, speakText])
 
   // ==================================================
-  // VIEW TOGGLE (from sidebar)
+  // VIEW TOGGLE
   // ==================================================
   const toggleView = useCallback(() => {
     setViewMode(prev => prev === 'android' ? 'pc' : 'android')
-    // Close sidebar after switching
     setSidebarOpen(false)
   }, [])
 
@@ -724,12 +720,12 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: ANDROID VIEW (minimalist)
+  // RENDER: ANDROID VIEW
   // ============================================================
   if (viewMode === 'android') {
     return (
       <div style={styles.app}>
-        {/* Sidebar with view toggle */}
+        {/* Sidebar */}
         {sidebarOpen && (
           <>
             <div style={styles.sidebarOverlay} onClick={() => setSidebarOpen(false)} />
@@ -739,7 +735,6 @@ export default function App() {
                 <button onClick={() => setSidebarOpen(false)} style={styles.closeBtn}><Icon name="x" size={20} color="#888" /></button>
               </div>
 
-              {/* View Toggle in Sidebar */}
               <div style={styles.sidebarSection}>
                 <h3 style={styles.sectionTitle}><Icon name="desktop" size={16} color="#ff003c" /> VIEW MODE</h3>
                 <div style={styles.settingRow}>
@@ -800,16 +795,16 @@ export default function App() {
           </>
         )}
 
-        {/* Main Content – Android View */}
+        {/* Main Content */}
         <div style={styles.mainContent}>
           <div style={styles.background}>
             <RedBall isSpeaking={isAISpeaking} />
             <div style={styles.faceTitle}>CYPHER4X</div>
           </div>
 
-          {/* Top: CALL button only (view toggle in sidebar) */}
+          {/* Top Bar */}
           <div style={styles.topBar}>
-            <div style={{ width: '80px' }} /> {/* Spacer */}
+            <div style={{ width: '80px' }} />
             <button onClick={toggleCall} style={styles.callButtonTopRight}>
               <Icon name="phone" size={24} color={isCallActive ? "#4f8" : "#ff003c"} />
               <span style={styles.callLabelTop}>{isCallActive ? 'END' : 'CALL'}</span>
@@ -836,7 +831,7 @@ export default function App() {
               <span style={styles.listeningText}>Processing...</span>
             ) : isRecording ? (
               <>
-                <div style={styles.listeningDot} style={{ backgroundColor: '#ff003c', boxShadow: '0 0 20px #ff003c' }} />
+                <div style={{ ...styles.listeningDot, backgroundColor: '#ff003c', boxShadow: '0 0 20px #ff003c' }} />
                 <span style={styles.listeningText}>Recording...</span>
                 {interimTranscript && (
                   <span style={styles.interimText}>"{interimTranscript}"</span>
@@ -856,7 +851,7 @@ export default function App() {
             ) : null}
           </div>
 
-          {/* Bottom center: Tap to Speak button */}
+          {/* Tap to Speak button */}
           <div style={styles.voiceButtonContainer}>
             <button
               onClick={startRecording}
@@ -870,8 +865,8 @@ export default function App() {
             </button>
           </div>
 
-          {/* Hamburger menu */}
-          <button onClick={() => setSidebarOpen(true)} style={styles.hamburgerBtn}>
+          {/* Hamburger menu - FIXED z-index */}
+          <button onClick={() => setSidebarOpen(true)} style={{ ...styles.hamburgerBtn, zIndex: 15 }}>
             <Icon name="menu" size={28} color="#ff003c" />
           </button>
         </div>
@@ -880,11 +875,10 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: PC VIEW (Full Dashboard with Voice Button)
+  // RENDER: PC VIEW
   // ============================================================
   return (
     <div style={styles.appPC}>
-      {/* Header */}
       <header style={styles.headerPC}>
         <div style={styles.headerLeft}>
           <h1 style={styles.titlePC}>CYPHER4X</h1>
@@ -895,7 +889,6 @@ export default function App() {
           </button>
         </div>
         <div style={styles.headerRight}>
-          {/* Tap to Speak button in PC view */}
           <button
             onClick={startRecording}
             disabled={isRecording || isProcessing || isCallActive}
@@ -910,9 +903,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* PC Dashboard */}
       <div style={styles.dashboardPC}>
-        {/* Left Column: System Stats + AI Config */}
         <div style={styles.dashboardLeftPC}>
           <div style={styles.dashCardPC}>
             <h3 style={styles.dashTitlePC}><Icon name="chart" size={16} color="#ff003c" /> SYSTEM STATS</h3>
@@ -962,34 +953,19 @@ export default function App() {
           </div>
         </div>
 
-        {/* Right Column: Events, Reminders, Conversation, Commands */}
         <div style={styles.dashboardRightPC}>
           <div style={styles.dashCardPC}>
             <h3 style={styles.dashTitlePC}><Icon name="calendar" size={16} color="#ff003c" /> TODAY'S EVENTS</h3>
-            {events.length === 0 ? (
-              <p style={styles.dashEmptyPC}>No events scheduled</p>
-            ) : (
-              events.map((evt, i) => (
-                <div key={i} style={styles.dashRowPC}>
-                  <span>{evt.title}</span>
-                  <span style={styles.eventTimePC}>{evt.time}</span>
-                </div>
-              ))
-            )}
+            {events.length === 0 ? <p style={styles.dashEmptyPC}>No events scheduled</p> : events.map((evt, i) => (
+              <div key={i} style={styles.dashRowPC}><span>{evt.title}</span><span style={styles.eventTimePC}>{evt.time}</span></div>
+            ))}
           </div>
 
           <div style={styles.dashCardPC}>
             <h3 style={styles.dashTitlePC}><Icon name="clock" size={16} color="#ff003c" /> REMINDERS</h3>
-            {reminders.length === 0 ? (
-              <p style={styles.dashEmptyPC}>No reminders set</p>
-            ) : (
-              reminders.map((rem, i) => (
-                <div key={i} style={styles.dashRowPC}>
-                  <span>{rem.text}</span>
-                  <span style={styles.eventTimePC}>{rem.time}</span>
-                </div>
-              ))
-            )}
+            {reminders.length === 0 ? <p style={styles.dashEmptyPC}>No reminders set</p> : reminders.map((rem, i) => (
+              <div key={i} style={styles.dashRowPC}><span>{rem.text}</span><span style={styles.eventTimePC}>{rem.time}</span></div>
+            ))}
           </div>
 
           <div style={styles.dashCardPC}>
@@ -1028,7 +1004,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* Sidebar (PC) with view toggle */}
+      {/* Sidebar (PC) */}
       {sidebarOpen && (
         <>
           <div style={styles.sidebarOverlayPC} onClick={() => setSidebarOpen(false)} />
@@ -1038,7 +1014,6 @@ export default function App() {
               <button onClick={() => setSidebarOpen(false)} style={styles.closeBtnPC}><Icon name="x" size={20} color="#888" /></button>
             </div>
 
-            {/* View Toggle in Sidebar */}
             <div style={styles.sidebarSectionPC}>
               <h3 style={styles.sectionTitlePC}><Icon name="desktop" size={16} color="#ff003c" /> VIEW MODE</h3>
               <div style={styles.settingRowPC}>
@@ -1074,10 +1049,10 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES (Android + PC)
+// STYLES
 // ============================================================
 const styles = {
-  // --- ANDROID STYLES ---
+  // Android styles (unchanged except hamburger z-index fix)
   app: {
     minHeight: '100vh',
     height: '100vh',
@@ -1622,7 +1597,7 @@ const styles = {
     backgroundColor: 'transparent',
     border: 'none',
     cursor: 'pointer',
-    zIndex: 5,
+    zIndex: 15, // FIXED: was 5, now above top bar (z-index: 10)
     padding: '8px',
     borderRadius: '4px',
     '&:hover': {
@@ -1631,7 +1606,7 @@ const styles = {
   },
 
   // ============================================================
-  // PC STYLES (with landscape support)
+  // PC STYLES
   // ============================================================
   appPC: {
     minHeight: '100vh',
