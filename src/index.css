@@ -8,6 +8,18 @@ html, body, #root {
 }
 * { box-sizing: border-box; }
 
+@keyframes rotateGlobe {
+  0% { transform: translate(-50%, -50%) rotateX(10deg) rotateY(0deg); }
+  100% { transform: translate(-50%, -50%) rotateX(10deg) rotateY(360deg); }
+}
+@keyframes spinRing {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.15); }
+}
 @keyframes pulseText {
   0%, 100% { opacity: 0.8; transform: scale(1); }
   50% { opacity: 1; transform: scale(1.02); }
@@ -15,10 +27,6 @@ html, body, #root {
 @keyframes pulseGlow {
   0%, 100% { box-shadow: 0 0 60px rgba(255,0,60,0.4); }
   50% { box-shadow: 0 0 100px rgba(255,0,60,0.8); }
-}
-@keyframes spinRing {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
 }
 
 ::-webkit-scrollbar { width: 6px; }
