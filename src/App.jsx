@@ -696,7 +696,7 @@ export default function App() {
   }
 
   // ============================================================
-  // ANDROID VIEW
+  // ANDROID VIEW (sidebar now on the LEFT)
   // ============================================================
   if (viewMode === 'android') {
     return (
@@ -841,7 +841,7 @@ export default function App() {
   }
 
   // ============================================================
-  // PC VIEW
+  // PC VIEW (button repositioned)
   // ============================================================
   return (
     <div style={styles.appPC}>
@@ -1089,7 +1089,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES – full original styles (copied from your first file)
+// STYLES – full with left sidebar & PC button repositioned
 // ============================================================
 const styles = {
   appAndroid: {
@@ -1283,15 +1283,16 @@ const styles = {
     backgroundColor: 'rgba(0,0,0,0.85)',
     zIndex: 998
   },
+  // Sidebar now opens from the LEFT
   sidebar: {
     position: 'fixed',
     top: 0,
-    right: 0,
+    left: 0,
     bottom: 0,
     width: '380px',
     maxWidth: '90vw',
     backgroundColor: '#0a0000',
-    borderLeft: '2px solid #ff003c',
+    borderRight: '2px solid #ff003c',
     zIndex: 999,
     overflowY: 'auto',
     padding: '16px',
@@ -1631,7 +1632,7 @@ const styles = {
     padding: '8px',
     borderRadius: '4px',
   },
-  // PC styles (with responsive fixes)
+  // ---------- PC VIEW (repositioned button) ----------
   appPC: {
     minHeight: '100vh',
     height: '100vh',
@@ -1743,14 +1744,14 @@ const styles = {
     backgroundColor: '#050505',
     overflow: 'hidden',
     height: '100%',
-    padding: '10px',
+    padding: '10px 10px 20px', // extra bottom padding avoids address bar
   },
   pcBallContainer: {
     position: 'relative',
-    width: 'clamp(160px, 30vw, 220px)',
-    height: 'clamp(160px, 30vw, 220px)',
+    width: 'clamp(120px, 20vw, 160px)',
+    height: 'clamp(120px, 20vw, 160px)',
     pointerEvents: 'none',
-    marginBottom: '10px',
+    marginBottom: '6px',
   },
   pcFaceTitle: {
     position: 'absolute',
@@ -1776,18 +1777,19 @@ const styles = {
     backdropFilter: 'blur(10px)',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    marginBottom: '10px',
+    marginBottom: '6px',
     maxWidth: '90%',
   },
   pcVoiceButtonContainer: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '6px',
+    gap: '4px',
+    marginTop: '4px',
   },
   voiceButtonPC: {
-    width: 'clamp(60px, 12vw, 80px)',
-    height: 'clamp(60px, 12vw, 80px)',
+    width: 'clamp(50px, 10vw, 70px)',
+    height: 'clamp(50px, 10vw, 70px)',
     borderRadius: '50%',
     backgroundColor: '#1a1a1a',
     border: '3px solid #ff003c',
@@ -1939,4 +1941,4 @@ const styles = {
   profileHandlePC: { color: '#888', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '2px' },
   sidebarBtnPC: { padding: '5px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '12px' },
   dangerBtnPC: { padding: '5px 10px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '12px' },
-  }
+}
