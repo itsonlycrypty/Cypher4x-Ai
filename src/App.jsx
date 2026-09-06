@@ -144,7 +144,7 @@ export default function App() {
   const fileInputRef = useRef(null)
 
   // ==================================================
-  // SPEECH RECOGNITION (must be defined first)
+  // SPEECH RECOGNITION
   // ==================================================
   const setupSpeechRecognition = useCallback((isOneOff = false) => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -201,7 +201,7 @@ export default function App() {
   }, [isCallActive])
 
   // ==================================================
-  // TEXT-TO-SPEECH (must come BEFORE handleFileShare)
+  // TEXT-TO-SPEECH
   // ==================================================
   const speakText = useCallback((text) => {
     if (!text || !synthRef.current) return
@@ -286,7 +286,7 @@ export default function App() {
   }, [isProcessing, speakText])
 
   // ==================================================
-  // FILE SHARE HANDLER (defined AFTER speakText)
+  // FILE SHARE HANDLER
   // ==================================================
   const handleFileShare = useCallback((e) => {
     const files = e.target.files
@@ -314,14 +314,13 @@ export default function App() {
       setConversation(prev => [...prev, fileData])
       setCommandHistory(prev => [...prev, { command: `📎 ${file.name}`, timestamp: Date.now() }])
 
-      // AI response
       const reply = `I received your file: **${file.name}** (${(file.size / 1024).toFixed(1)} KB). I can't process the content directly, but I'm happy to help if you have questions about it! 🤖`
       const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
       setConversation(prev => [...prev, assistantMsg])
       speakText(reply.replace(/[🤖]/g, ''))
     }
     reader.readAsDataURL(file)
-    e.target.value = '' // reset input
+    e.target.value = ''
   }, [speakText])
 
   // ==================================================
@@ -738,7 +737,7 @@ export default function App() {
   }
 
   // ============================================================
-  // ANDROID VIEW
+  // ANDROID VIEW – enhanced sidebar
   // ============================================================
   if (viewMode === 'android') {
     return (
@@ -787,6 +786,77 @@ export default function App() {
                   </span>
                 </div>
               </div>
+              {/* CONVERSATION SECTION */}
+              <div style={styles.sidebarSection}>
+                <h3 style={styles.sectionTitle}><Icon name="chat" size={16} color="#ff003c" /> CONVERSATION</h3>
+                <div style={styles.conversationLogPC}>
+                  {conversation.length === 0 && <p style={styles.dashEmptyPC}>No conversation yet</p>}
+                  {conversation.slice(-6).map(msg => (
+                    <div key={msg.id} style={styles.convItemPC}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: msg.role === 'user' ? 'bold' : 'normal', color: msg.role === 'user' ? '#ddd' : '#ff003c' }}>
+                          {msg.role === 'user' ? profile?.name || 'You' : 'CYPHER4X'}
+                        </span>
+                        <span style={styles.convTimePC}>{formatTime(msg.time)}</span>
+                      </div>
+                      <span style={styles.convTextPC}>{msg.content}</span>
+                      {msg.file && (
+                        <div style={styles.filePreviewPC}>
+                          {msg.file.type.startsWith('image/') && (
+                            <img src={msg.file.data} alt={msg.file.name} style={{ maxWidth: '100%', maxHeight: '100px', borderRadius: '4px', marginTop: '4px' }} />
+                          )}
+                          {msg.file.type.startsWith('video/') && (
+                            <video controls style={{ maxWidth: '100%', maxHeight: '100px', borderRadius: '4px', marginTop: '4px' }}>
+                              <source src={msg.file.data} type={msg.file.type} />
+                            </video>
+                          )}
+                          {!msg.file.type.startsWith('image/') && !msg.file.type.startsWith('video/') && (
+                            <div style={{ fontSize: '12px', color: '#888', marginTop: '4px' }}>
+                              <Icon name="file" size={14} color="#ff003c" /> {msg.file.name} ({(msg.file.size / 1024).toFixed(1)} KB)
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div style={styles.inputRow}>
+                  <input
+                    type="text"
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && sendTextMessage()}
+                    placeholder="Type a message..."
+                    style={styles.textInputSmall}
+                  />
+                  <button onClick={sendTextMessage} style={styles.sendBtnSmall} disabled={isProcessing}>
+                    <Icon name="send" size={16} color="#fff" />
+                  </button>
+                </div>
+                <div style={styles.commandActionsPC}>
+                  <button onClick={clearConversation} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear</button>
+                  <button onClick={exportChat} style={styles.dashBtnPC}><Icon name="save" size={14} color="#fff" /> Export</button>
+                  <label style={styles.attachBtnPC}>
+                    <Icon name="file" size={14} color="#fff" /> Attach
+                    <input type="file" accept="image/*,video/*,.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx" onChange={handleFileShare} style={{ display: 'none' }} />
+                  </label>
+                </div>
+              </div>
+              {/* COMMAND HISTORY */}
+              <div style={styles.sidebarSection}>
+                <h3 style={styles.sectionTitle}><Icon name="clock" size={16} color="#ff003c" /> COMMAND HISTORY</h3>
+                <div style={styles.commandHistoryPC}>
+                  {commandHistory.length === 0 && <p style={styles.dashEmptyPC}>No commands yet</p>}
+                  {commandHistory.slice(-6).reverse().map((cmd, i) => (
+                    <div key={i} style={styles.cmdItemPC}>
+                      <span style={styles.cmdTimePC}>{formatTime(cmd.timestamp)}</span>
+                      <span style={styles.cmdTextPC}>{cmd.command}</span>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={clearCommands} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear All</button>
+              </div>
+              {/* PROFILE */}
               <div style={styles.sidebarSection}>
                 <h3 style={styles.sectionTitle}><Icon name="user" size={16} color="#ff003c" /> PROFILE</h3>
                 <div style={styles.profileCardSidebar}>
@@ -800,6 +870,7 @@ export default function App() {
                 </div>
                 <button onClick={openEditProfile} style={styles.sidebarBtn}><Icon name="edit" size={14} color="#fff" /> Edit Profile</button>
               </div>
+              {/* DANGER ZONE */}
               <div style={styles.sidebarSection}>
                 <h3 style={styles.sectionTitle}><Icon name="alertTriangle" size={16} color="#ff003c" /> DANGER ZONE</h3>
                 <button onClick={resetAllData} style={styles.dangerBtn}><Icon name="trash" size={14} color="#fff" /> Reset All Data</button>
@@ -883,7 +954,7 @@ export default function App() {
   }
 
   // ============================================================
-  // PC VIEW
+  // PC VIEW – no text under ball
   // ============================================================
   return (
     <div style={styles.appPC}>
@@ -1056,10 +1127,11 @@ export default function App() {
           </div>
         </div>
 
+        {/* PC Main – no text under ball */}
         <div style={styles.pcMain}>
           <div style={styles.pcBallContainer}>
             <RedBall isSpeaking={isAISpeaking} />
-            <div style={styles.pcFaceTitle}>CYPHER4X</div>
+            {/* removed pcFaceTitle */}
           </div>
           <div style={styles.pcListeningContainer}>
             {isListening ? (
@@ -1142,7 +1214,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES (full – includes attach button style)
+// STYLES – Complete
 // ============================================================
 const styles = {
   appAndroid: {
@@ -1805,19 +1877,7 @@ const styles = {
     pointerEvents: 'none',
     marginBottom: '10px',
   },
-  pcFaceTitle: {
-    position: 'absolute',
-    bottom: '-10%',
-    fontSize: 'clamp(24px, 4vw, 36px)',
-    fontWeight: 'bold',
-    color: '#ff003c',
-    textShadow: '0 0 40px #ff003c, 0 0 80px #ff003c66, 0 0 120px #ff003c33',
-    letterSpacing: '4px',
-    textAlign: 'center',
-    width: '100%',
-    animation: 'pulseText 2.5s ease-in-out infinite',
-    fontFamily: "'Courier New', monospace",
-  },
+  // pcFaceTitle removed
   pcListeningContainer: {
     display: 'flex',
     alignItems: 'center',
@@ -1977,4 +2037,31 @@ const styles = {
   profileHandlePC: { color: '#888', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '2px' },
   sidebarBtnPC: { padding: '5px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '12px' },
   dangerBtnPC: { padding: '5px 10px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '12px' },
-    }
+  // Android sidebar extra styles
+  inputRow: {
+    display: 'flex',
+    gap: '6px',
+    marginTop: '4px',
+    marginBottom: '6px',
+  },
+  textInputSmall: {
+    flex: 1,
+    padding: '6px 10px',
+    backgroundColor: '#000',
+    border: '1px solid #333',
+    color: '#fff',
+    borderRadius: '4px',
+    fontSize: '13px',
+    outline: 'none',
+  },
+  sendBtnSmall: {
+    padding: '6px 12px',
+    backgroundColor: '#ff003c',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+}
