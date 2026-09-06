@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
 // ==================================================
-// ICON SYSTEM (unchanged – same as yours)
+// ICON SYSTEM
 // ==================================================
 const Icon = ({ name, size = 18, color = 'currentColor' }) => {
   const icons = {
@@ -34,7 +34,7 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
 }
 
 // ==================================================
-// CONFIG (unchanged)
+// CONFIG
 // ==================================================
 const TAVILY_API_KEY = "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"
 const TAVILY_URL = "https://api.tavily.com/search"
@@ -51,7 +51,7 @@ const safeSet = (key, val) => {
 }
 
 // ==================================================
-// SEARCH FUNCTION (unchanged)
+// SEARCH FUNCTION
 // ==================================================
 const searchWeb = async (query) => {
   if (!TAVILY_API_KEY) return { error: "Tavily API key not configured." }
@@ -79,7 +79,7 @@ const searchWeb = async (query) => {
 }
 
 // ==================================================
-// RED BALL COMPONENT (unchanged)
+// RED BALL COMPONENT
 // ==================================================
 const RedBall = ({ isSpeaking = false }) => (
   <div style={styles.ballContainer}>
@@ -94,7 +94,7 @@ const RedBall = ({ isSpeaking = false }) => (
 )
 
 // ==================================================
-// MAIN APP – with the ORIGINAL boot screen
+// MAIN APP
 // ==================================================
 export default function App() {
   const [isBooting, setIsBooting] = useState(true)
@@ -141,7 +141,7 @@ export default function App() {
   const fileInputRef = useRef(null)
 
   // ==================================================
-  // SPEECH RECOGNITION (unchanged)
+  // SPEECH RECOGNITION
   // ==================================================
   const setupSpeechRecognition = useCallback((isOneOff = false) => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -198,7 +198,7 @@ export default function App() {
   }, [isCallActive])
 
   // ==================================================
-  // TEXT-TO-SPEECH (unchanged)
+  // TEXT-TO-SPEECH
   // ==================================================
   const speakText = useCallback((text) => {
     if (!text || !synthRef.current) return
@@ -218,7 +218,7 @@ export default function App() {
   }, [voiceGender])
 
   // ==================================================
-  // PROCESS USER QUERY (unchanged)
+  // PROCESS USER QUERY
   // ==================================================
   const processUserQuery = useCallback(async (query) => {
     if (!query || isProcessing) return
@@ -283,7 +283,7 @@ export default function App() {
   }, [isProcessing, speakText])
 
   // ==================================================
-  // TAP TO SPEAK (unchanged)
+  // TAP TO SPEAK
   // ==================================================
   const startRecording = useCallback(() => {
     if (isRecording || isProcessing || isCallActive) return
@@ -341,7 +341,7 @@ export default function App() {
   }, [isRecording, isProcessing, isCallActive, processUserQuery])
 
   // ==================================================
-  // SEND / CANCEL (unchanged)
+  // SEND / CANCEL
   // ==================================================
   const sendInterim = useCallback(() => {
     if (!interimTranscript.trim() || isProcessing) return
@@ -365,7 +365,7 @@ export default function App() {
   }, [])
 
   // ==================================================
-  // SEND TEXT (unchanged)
+  // SEND TEXT
   // ==================================================
   const sendTextMessage = useCallback(() => {
     const text = inputText.trim()
@@ -375,7 +375,7 @@ export default function App() {
   }, [inputText, isProcessing, processUserQuery])
 
   // ==================================================
-  // CALL TOGGLE (unchanged)
+  // CALL TOGGLE
   // ==================================================
   const toggleCall = useCallback(() => {
     if (isCallActive) {
@@ -409,7 +409,7 @@ export default function App() {
   }, [isCallActive, setupSpeechRecognition, speakText])
 
   // ==================================================
-  // VIEW TOGGLE (unchanged)
+  // VIEW TOGGLE
   // ==================================================
   const toggleView = useCallback(() => {
     setViewMode(prev => prev === 'android' ? 'pc' : 'android')
@@ -417,7 +417,7 @@ export default function App() {
   }, [])
 
   // ==================================================
-  // STATS (unchanged)
+  // STATS
   // ==================================================
   useEffect(() => {
     const timer = setInterval(() => {
@@ -502,7 +502,7 @@ export default function App() {
   }, [])
 
   // ==================================================
-  // PERSISTENCE (unchanged)
+  // PERSISTENCE
   // ==================================================
   useEffect(() => { if (profile) safeSet("cypher4x_profile", profile) }, [profile])
   useEffect(() => { if (conversation.length) safeSet("cypher4x_conversation", conversation) }, [conversation])
@@ -515,7 +515,7 @@ export default function App() {
   useEffect(() => { safeSet("cypher4x_view_mode", viewMode) }, [viewMode])
 
   // ==================================================
-  // PROFILE HANDLERS (unchanged)
+  // PROFILE HANDLERS
   // ==================================================
   const handleAvatarChange = useCallback((e) => {
     const file = e.target.files[0]
@@ -595,7 +595,7 @@ export default function App() {
   const formatTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
   // ============================================================
-  // BOOT SCREEN – ORIGINAL SIMPLE VERSION
+  // BOOT SCREEN – ORIGINAL
   // ============================================================
   if (isBooting) {
     const bootSteps = [
@@ -629,7 +629,7 @@ export default function App() {
   }
 
   // ============================================================
-  // PROFILE SETUP (unchanged)
+  // PROFILE SETUP
   // ============================================================
   if (showProfileSetup || editingProfile) {
     return (
@@ -696,7 +696,7 @@ export default function App() {
   }
 
   // ============================================================
-  // ANDROID VIEW (unchanged)
+  // ANDROID VIEW
   // ============================================================
   if (viewMode === 'android') {
     return (
@@ -841,7 +841,7 @@ export default function App() {
   }
 
   // ============================================================
-  // PC VIEW (unchanged)
+  // PC VIEW
   // ============================================================
   return (
     <div style={styles.appPC}>
@@ -871,7 +871,6 @@ export default function App() {
 
       <div style={styles.pcLayout}>
         <div style={styles.pcSidebar}>
-          {/* System Stats */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="chart" size={16} color="#ff003c" /> SYSTEM STATS</h3>
             <div style={styles.pcSidebarRow}><span>CPU Usage</span><span style={{ color: stats.cpuUsage > 80 ? '#ff003c' : '#4f8' }}>{stats.cpuUsage}%</span></div>
@@ -882,7 +881,6 @@ export default function App() {
             <div style={styles.pcSidebarRow}><span>Uptime</span><span>{formatUptime(stats.uptime)}</span></div>
           </div>
 
-          {/* AI Configuration */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="settings" size={16} color="#ff003c" /> AI CONFIGURATION</h3>
             <div style={styles.pcSidebarRow}><span>AI Engine</span><span>TAVILY</span></div>
@@ -902,7 +900,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Security */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="faceId" size={16} color="#ff003c" /> SECURITY</h3>
             <div style={styles.pcSidebarRow}>
@@ -921,7 +918,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Today's Events */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="calendar" size={16} color="#ff003c" /> TODAY'S EVENTS</h3>
             {events.length === 0 ? <p style={styles.dashEmptyPC}>No events scheduled</p> : events.map((evt, i) => (
@@ -929,7 +925,6 @@ export default function App() {
             ))}
           </div>
 
-          {/* Reminders */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="clock" size={16} color="#ff003c" /> REMINDERS</h3>
             {reminders.length === 0 ? <p style={styles.dashEmptyPC}>No reminders set</p> : reminders.map((rem, i) => (
@@ -937,7 +932,6 @@ export default function App() {
             ))}
           </div>
 
-          {/* Conversation */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="chat" size={16} color="#ff003c" /> CONVERSATION</h3>
             <div style={styles.conversationLogPC}>
@@ -958,7 +952,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Command History */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="clock" size={16} color="#ff003c" /> COMMAND HISTORY</h3>
             <div style={styles.commandHistoryPC}>
@@ -973,13 +966,11 @@ export default function App() {
             <button onClick={clearCommands} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear All</button>
           </div>
 
-          {/* View Toggle */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="desktop" size={16} color="#ff003c" /> VIEW MODE</h3>
             <button onClick={toggleView} style={styles.toggleBtnPC2}>Switch to Android</button>
           </div>
 
-          {/* Profile Edit */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="user" size={16} color="#ff003c" /> PROFILE</h3>
             <div style={styles.profileCardSidebarPC}>
@@ -994,7 +985,6 @@ export default function App() {
             <button onClick={openEditProfile} style={styles.sidebarBtnPC}><Icon name="edit" size={14} color="#fff" /> Edit Profile</button>
           </div>
 
-          {/* Danger Zone */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="alertTriangle" size={16} color="#ff003c" /> DANGER ZONE</h3>
             <button onClick={resetAllData} style={styles.dangerBtnPC}><Icon name="trash" size={14} color="#fff" /> Reset All Data</button>
@@ -1099,6 +1089,854 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES – keep your original styles block – I've not changed it
+// STYLES – full original styles (copied from your first file)
 // ============================================================
-// (Your original styles go here – they are exactly as you had them)
+const styles = {
+  appAndroid: {
+    minHeight: '100vh',
+    height: '100vh',
+    backgroundColor: '#000',
+    color: '#e0e0e0',
+    fontFamily: "'Segoe UI', 'Courier New', monospace",
+    overflow: 'hidden',
+    border: 'none',
+    margin: 0,
+    padding: 0,
+  },
+  bootContainer: {
+    backgroundColor: '#000',
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+    fontFamily: "'Courier New', monospace",
+    margin: 0,
+    padding: 0,
+  },
+  bootBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    background: 'radial-gradient(ellipse at center, #1a0000 0%, #000 70%)',
+    zIndex: 0,
+  },
+  bootContent: {
+    position: 'relative',
+    zIndex: 1,
+    textAlign: 'center',
+    maxWidth: '500px',
+    padding: '20px',
+  },
+  bootTitle: {
+    fontSize: 'clamp(48px, 12vw, 72px)',
+    fontWeight: 'bold',
+    color: '#ff003c',
+    textShadow: '0 0 40px #ff003c, 0 0 80px #ff003c44',
+    letterSpacing: '8px',
+    margin: '0 0 10px',
+    animation: 'pulseText 1.5s ease-in-out infinite',
+  },
+  bootSubtitle: {
+    fontSize: 'clamp(14px, 2vw, 20px)',
+    color: '#ff6688',
+    letterSpacing: '4px',
+    marginBottom: '40px',
+    opacity: 0.8,
+  },
+  bootProgressWrapper: { margin: '20px 0' },
+  bootProgressBar: {
+    width: '100%',
+    height: '8px',
+    backgroundColor: '#1a1a1a',
+    borderRadius: '4px',
+    overflow: 'hidden',
+    boxShadow: 'inset 0 0 6px #000',
+  },
+  bootProgressFill: {
+    height: '100%',
+    backgroundColor: '#ff003c',
+    transition: 'width 0.2s ease',
+    boxShadow: '0 0 20px #ff003c',
+  },
+  bootProgressText: {
+    color: '#ff6688',
+    fontSize: '14px',
+    marginTop: '8px',
+    display: 'block',
+    letterSpacing: '1px',
+  },
+  bootStatus: {
+    marginTop: '30px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '12px',
+  },
+  bootStatusDot: {
+    width: '10px',
+    height: '10px',
+    borderRadius: '50%',
+    backgroundColor: '#ff003c',
+    boxShadow: '0 0 20px #ff003c',
+    animation: 'pulseText 1s infinite',
+  },
+  bootStatusText: {
+    color: '#ff6688',
+    fontSize: '14px',
+    letterSpacing: '2px',
+  },
+  profileContainer: {
+    backgroundColor: '#000',
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '20px',
+    border: 'none',
+    margin: 0,
+  },
+  profileCard: {
+    width: '100%',
+    maxWidth: '420px',
+    backgroundColor: '#111',
+    border: '2px solid #ff003c',
+    borderRadius: '12px',
+    padding: '28px'
+  },
+  profileTitle: { color: '#ff003c', textAlign: 'center', marginBottom: '24px', fontSize: '22px' },
+  avatarUploadArea: {
+    width: '130px',
+    height: '130px',
+    borderRadius: '50%',
+    border: '3px dashed #ff003c',
+    margin: '0 auto 20px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    backgroundColor: '#1a1a1a'
+  },
+  avatarPreview: { width: '100%', height: '100%', objectFit: 'cover' },
+  avatarIcon: { fontSize: '14px', color: '#ff003c', textAlign: 'center' },
+  inputGroup: { marginBottom: '18px' },
+  label: { color: '#ff003c', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' },
+  textInput: {
+    width: '100%',
+    padding: '14px',
+    backgroundColor: '#000',
+    border: '1px solid #ff003c',
+    color: '#fff',
+    borderRadius: '8px',
+    fontSize: '15px',
+    outline: 'none',
+    boxSizing: 'border-box'
+  },
+  bioInput: {
+    width: '100%',
+    minHeight: '80px',
+    padding: '14px',
+    backgroundColor: '#000',
+    border: '1px solid #ff003c',
+    color: '#fff',
+    borderRadius: '8px',
+    fontSize: '15px',
+    outline: 'none',
+    resize: 'vertical',
+    boxSizing: 'border-box'
+  },
+  profileBtnRow: { display: 'flex', gap: '12px', marginTop: '12px' },
+  createBtn: {
+    flex: 1,
+    padding: '14px',
+    backgroundColor: '#ff003c',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '16px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px'
+  },
+  cancelBtn: {
+    padding: '14px 20px',
+    backgroundColor: '#333',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '15px',
+    cursor: 'pointer'
+  },
+  sidebarOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    zIndex: 998
+  },
+  sidebar: {
+    position: 'fixed',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: '380px',
+    maxWidth: '90vw',
+    backgroundColor: '#0a0000',
+    borderLeft: '2px solid #ff003c',
+    zIndex: 999,
+    overflowY: 'auto',
+    padding: '16px',
+    border: 'none',
+  },
+  sidebarHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '0',
+    paddingBottom: '10px',
+    borderBottom: '1px solid #333'
+  },
+  sidebarTitle: { color: '#ff003c', fontSize: '18px', fontWeight: 'bold', margin: 0, fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '8px' },
+  closeBtn: { backgroundColor: 'transparent', border: 'none', color: '#888', fontSize: '20px', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' },
+  sidebarSection: { marginBottom: '0' },
+  sectionTitle: {
+    color: '#ff003c',
+    fontSize: '14px',
+    margin: '0 0 8px 0',
+    paddingBottom: '4px',
+    borderBottom: '1px solid #333',
+    fontFamily: 'monospace',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px'
+  },
+  settingRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' },
+  settingLabel: { fontSize: '13px', color: '#ddd' },
+  settingValue: { fontSize: '13px', color: '#ff6688' },
+  selectInput: {
+    padding: '4px 8px',
+    backgroundColor: '#000',
+    border: '1px solid #444',
+    color: '#fff',
+    borderRadius: '4px',
+    fontSize: '12px'
+  },
+  toggleBtn: {
+    padding: '4px 12px',
+    borderRadius: '3px',
+    border: 'none',
+    fontSize: '11px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    backgroundColor: '#333',
+    color: '#fff'
+  },
+  statsCard: {
+    border: '1px solid #ff003c40',
+    borderRadius: '6px',
+    padding: '10px 12px',
+    backgroundColor: '#0a0a0a'
+  },
+  statRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 0', fontSize: '12px' },
+  statLabel: { color: '#aaa', display: 'flex', alignItems: 'center', gap: '4px' },
+  statValue: { color: '#ff6688', fontWeight: '500' },
+  profileCardSidebar: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' },
+  profileAvatarWrapper: { flexShrink: 0 },
+  profileAvatar: { width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #ff003c' },
+  profileAvatarPlaceholder: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    backgroundColor: '#ff003c',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#fff',
+    fontSize: '18px',
+    fontWeight: 'bold'
+  },
+  profileInfo: { display: 'flex', flexDirection: 'column' },
+  profileName: { color: '#fff', fontWeight: 'bold', fontSize: '14px' },
+  profileHandle: { color: '#888', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '2px' },
+  sidebarBtn: { padding: '6px 12px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' },
+  dangerBtn: { padding: '6px 12px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' },
+  mainContentAndroid: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+    height: '100vh',
+    border: 'none',
+    margin: 0,
+    padding: 0,
+  },
+  backgroundAndroid: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 0,
+    background: 'radial-gradient(ellipse at center, #0a0000 0%, #000 100%)',
+  },
+  ballContainer: {
+    position: 'relative',
+    width: '300px',
+    height: '300px',
+    pointerEvents: 'none',
+    zIndex: 1,
+  },
+  ball: {
+    width: '180px',
+    height: '180px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle at 35% 35%, #ff6688, #ff003c, #990022)',
+    boxShadow: '0 0 60px rgba(255,0,60,0.8), inset 0 -20px 30px rgba(0,0,0,0.5)',
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    animation: 'rotateGlobe 20s linear infinite',
+    transformStyle: 'preserve-3d',
+  },
+  ballGlow: {
+    position: 'absolute',
+    top: '-20px',
+    left: '-20px',
+    right: '-20px',
+    bottom: '-20px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(255,0,60,0.2) 0%, transparent 70%)',
+    animation: 'glowPulse 2s ease-in-out infinite',
+  },
+  ballInner: {
+    position: 'absolute',
+    top: '20%',
+    left: '20%',
+    width: '60%',
+    height: '60%',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle at 60% 60%, rgba(255,255,255,0.3), transparent 70%)',
+  },
+  ring1: {
+    position: 'absolute',
+    top: '0%',
+    left: '0%',
+    width: '100%',
+    height: '100%',
+    borderRadius: '50%',
+    border: '2px solid rgba(255,0,60,0.25)',
+    animation: 'spinRing 12s linear infinite',
+    boxShadow: '0 0 40px rgba(255,0,60,0.05)',
+  },
+  ring2: {
+    position: 'absolute',
+    top: '-10%',
+    left: '-10%',
+    width: '120%',
+    height: '120%',
+    borderRadius: '50%',
+    border: '1px solid rgba(255,0,60,0.12)',
+    animation: 'spinRing 18s linear infinite reverse',
+  },
+  ring3: {
+    position: 'absolute',
+    top: '5%',
+    left: '5%',
+    width: '90%',
+    height: '90%',
+    borderRadius: '50%',
+    border: '1px dashed rgba(255,0,60,0.15)',
+    animation: 'spinRing 8s linear infinite',
+  },
+  faceTitleAndroid: {
+    position: 'absolute',
+    bottom: '35%',
+    fontSize: 'clamp(42px, 6vw, 68px)',
+    fontWeight: 'bold',
+    color: '#ff003c',
+    textShadow: '0 0 40px #ff003c, 0 0 80px #ff003c66, 0 0 120px #ff003c33',
+    letterSpacing: '10px',
+    textAlign: 'center',
+    width: '100%',
+    zIndex: 2,
+    animation: 'pulseText 2.5s ease-in-out infinite',
+    fontFamily: "'Courier New', monospace",
+  },
+  topBarAndroid: {
+    position: 'absolute',
+    top: '20px',
+    left: '20px',
+    right: '20px',
+    zIndex: 10,
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  callButtonTopRight: {
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    border: '2px solid #ff003c',
+    borderRadius: '30px',
+    padding: '8px 16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    cursor: 'pointer',
+    color: '#ff003c',
+    fontSize: '14px',
+    fontWeight: 'bold',
+    letterSpacing: '1px',
+    transition: 'all 0.3s ease',
+  },
+  callLabelTop: {
+    fontSize: '12px',
+    fontWeight: 'bold',
+    letterSpacing: '1px',
+    color: '#fff',
+  },
+  listeningContainer: {
+    position: 'absolute',
+    top: '90px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    zIndex: 10,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: '8px 20px',
+    borderRadius: '30px',
+    border: '1px solid rgba(255,0,60,0.2)',
+    backdropFilter: 'blur(10px)',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  listeningDot: {
+    width: '10px',
+    height: '10px',
+    borderRadius: '50%',
+    backgroundColor: '#4f8',
+    boxShadow: '0 0 20px #4f8',
+    animation: 'pulseText 0.8s ease-in-out infinite',
+  },
+  listeningText: {
+    color: '#fff',
+    fontSize: '16px',
+    fontWeight: 'bold',
+    letterSpacing: '2px',
+    fontFamily: "'Courier New', monospace",
+  },
+  interimText: {
+    color: '#ff6688',
+    fontSize: '14px',
+    fontStyle: 'italic',
+    maxWidth: '200px',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    borderLeft: '1px solid rgba(255,0,60,0.3)',
+    paddingLeft: '12px',
+  },
+  sendInterimBtn: {
+    backgroundColor: '#ff003c',
+    border: 'none',
+    borderRadius: '20px',
+    padding: '4px 14px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    color: '#fff',
+    cursor: 'pointer',
+    fontSize: '13px',
+    fontWeight: 'bold',
+    transition: 'all 0.2s',
+  },
+  cancelInterimBtn: {
+    backgroundColor: 'transparent',
+    border: '1px solid #ff003c',
+    borderRadius: '20px',
+    padding: '4px 12px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    color: '#ff003c',
+    cursor: 'pointer',
+    fontSize: '13px',
+    fontWeight: 'bold',
+    transition: 'all 0.2s',
+  },
+  voiceButtonContainer: {
+    position: 'absolute',
+    bottom: '50px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    zIndex: 10,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '10px',
+  },
+  voiceButton: {
+    width: '90px',
+    height: '90px',
+    borderRadius: '50%',
+    backgroundColor: '#1a1a1a',
+    border: '3px solid #ff003c',
+    cursor: 'pointer',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 0 40px rgba(255,0,60,0.2)',
+  },
+  voiceButtonActive: {
+    backgroundColor: '#ff003c',
+    borderColor: '#ff003c',
+    boxShadow: '0 0 80px rgba(255,0,60,0.7)',
+    animation: 'pulseGlow 1s ease-in-out infinite',
+  },
+  voiceLabel: {
+    color: '#fff',
+    fontSize: '12px',
+    fontWeight: 'bold',
+    letterSpacing: '1px',
+    marginTop: '4px',
+  },
+  hamburgerBtn: {
+    position: 'absolute',
+    top: '25px',
+    left: '25px',
+    backgroundColor: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    zIndex: 15,
+    padding: '8px',
+    borderRadius: '4px',
+  },
+  // PC styles (with responsive fixes)
+  appPC: {
+    minHeight: '100vh',
+    height: '100vh',
+    backgroundColor: '#000',
+    color: '#e0e0e0',
+    fontFamily: "'Segoe UI', 'Courier New', monospace",
+    overflow: 'hidden',
+    border: 'none',
+    margin: 0,
+    padding: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    width: '100%',
+    maxWidth: '100vw',
+  },
+  headerPC: {
+    padding: '6px 12px',
+    borderBottom: '1px solid rgba(255,0,60,0.3)',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexShrink: 0,
+    backgroundColor: '#0a0000',
+    flexWrap: 'wrap',
+    gap: '4px',
+    minHeight: '44px',
+  },
+  headerLeft: { display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' },
+  titlePC: { color: '#ff003c', margin: 0, fontSize: 'clamp(16px, 4vw, 22px)', fontWeight: 'bold', letterSpacing: '2px' },
+  versionBadgePC: { fontSize: '10px', color: '#ff6688', backgroundColor: '#ff003c20', padding: '2px 8px', borderRadius: '10px' },
+  headerRight: { display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' },
+  callBtnPC: {
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    border: '1px solid #ff003c',
+    borderRadius: '16px',
+    padding: '3px 10px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    cursor: 'pointer',
+    color: '#ff003c',
+    fontSize: '11px',
+    fontWeight: 'bold',
+  },
+  callBtnPCActive: { borderColor: '#4f8', color: '#4f8' },
+  voiceBtnPC: {
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    border: '1px solid #ff003c',
+    borderRadius: '16px',
+    padding: '3px 10px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    cursor: 'pointer',
+    color: '#ff003c',
+    fontSize: '11px',
+    fontWeight: 'bold',
+  },
+  voiceBtnPCActive: { backgroundColor: '#ff003c', color: '#fff', borderColor: '#ff003c' },
+  menuBtnPC: { backgroundColor: 'transparent', border: 'none', cursor: 'pointer', padding: '2px' },
+  pcLayout: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'row',
+    overflow: 'hidden',
+    width: '100%',
+    height: '100%',
+  },
+  pcSidebar: {
+    width: 'clamp(180px, 30%, 280px)',
+    backgroundColor: '#0a0a0a',
+    overflowY: 'auto',
+    padding: '8px 10px',
+    flexShrink: 0,
+    borderRight: '1px solid #333',
+    height: '100%',
+    boxSizing: 'border-box',
+  },
+  pcSidebarSection: {
+    marginBottom: '12px',
+    borderBottom: '1px solid #1a1a1a',
+    paddingBottom: '8px',
+  },
+  pcSidebarTitle: {
+    color: '#ff003c',
+    fontSize: '12px',
+    margin: '0 0 6px 0',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    fontWeight: 'bold',
+    letterSpacing: '0.5px',
+  },
+  pcSidebarRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '2px 0',
+    fontSize: '11px',
+    color: '#ccc',
+  },
+  pcMain: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    backgroundColor: '#050505',
+    overflow: 'hidden',
+    height: '100%',
+    padding: '10px',
+  },
+  pcBallContainer: {
+    position: 'relative',
+    width: 'clamp(160px, 30vw, 220px)',
+    height: 'clamp(160px, 30vw, 220px)',
+    pointerEvents: 'none',
+    marginBottom: '10px',
+  },
+  pcFaceTitle: {
+    position: 'absolute',
+    bottom: '-10%',
+    fontSize: 'clamp(24px, 4vw, 36px)',
+    fontWeight: 'bold',
+    color: '#ff003c',
+    textShadow: '0 0 40px #ff003c, 0 0 80px #ff003c66, 0 0 120px #ff003c33',
+    letterSpacing: '4px',
+    textAlign: 'center',
+    width: '100%',
+    animation: 'pulseText 2.5s ease-in-out infinite',
+    fontFamily: "'Courier New', monospace",
+  },
+  pcListeningContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: '4px 12px',
+    borderRadius: '30px',
+    border: '1px solid rgba(255,0,60,0.2)',
+    backdropFilter: 'blur(10px)',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginBottom: '10px',
+    maxWidth: '90%',
+  },
+  pcVoiceButtonContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '6px',
+  },
+  voiceButtonPC: {
+    width: 'clamp(60px, 12vw, 80px)',
+    height: 'clamp(60px, 12vw, 80px)',
+    borderRadius: '50%',
+    backgroundColor: '#1a1a1a',
+    border: '3px solid #ff003c',
+    cursor: 'pointer',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 0 40px rgba(255,0,60,0.2)',
+  },
+  voiceButtonPCActive: {
+    backgroundColor: '#ff003c',
+    borderColor: '#ff003c',
+    boxShadow: '0 0 80px rgba(255,0,60,0.7)',
+    animation: 'pulseGlow 1s ease-in-out infinite',
+  },
+  voiceLabelPC: {
+    color: '#fff',
+    fontSize: '10px',
+    fontWeight: 'bold',
+    letterSpacing: '1px',
+    marginTop: '2px',
+  },
+  selectInputPC: {
+    padding: '2px 6px',
+    backgroundColor: '#000',
+    border: '1px solid #444',
+    color: '#fff',
+    borderRadius: '3px',
+    fontSize: '11px',
+  },
+  toggleGroupPC: { display: 'flex', gap: '4px' },
+  toggleBtnPC: {
+    padding: '2px 8px',
+    border: '1px solid #444',
+    borderRadius: '3px',
+    backgroundColor: 'transparent',
+    color: '#888',
+    cursor: 'pointer',
+    fontSize: '10px',
+  },
+  toggleBtnPCO: { borderColor: '#4f8', color: '#4f8', backgroundColor: '#0a2a0a' },
+  toggleBtnPCF: { borderColor: '#ff003c', color: '#ff003c', backgroundColor: '#2a0a0a' },
+  conversationLogPC: { maxHeight: '100px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '6px' },
+  convItemPC: {
+    display: 'flex',
+    flexDirection: 'column',
+    padding: '3px 6px',
+    backgroundColor: '#111',
+    borderRadius: '4px',
+    borderLeft: '2px solid #ff003c',
+  },
+  convTextPC: { fontSize: '12px', color: '#ddd', wordBreak: 'break-word', marginTop: '2px' },
+  convTimePC: { fontSize: '9px', color: '#666', alignSelf: 'flex-end', marginTop: '2px' },
+  commandActionsPC: { display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' },
+  commandHistoryPC: { maxHeight: '80px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '6px' },
+  cmdItemPC: { display: 'flex', gap: '6px', fontSize: '11px', color: '#aaa', padding: '2px 4px', borderBottom: '1px solid #111' },
+  cmdTimePC: { color: '#666', minWidth: '50px', fontSize: '10px' },
+  cmdTextPC: { color: '#ddd', wordBreak: 'break-word' },
+  dashBtnPC: {
+    padding: '3px 10px',
+    backgroundColor: '#222',
+    color: '#fff',
+    border: '1px solid #333',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '11px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+  },
+  dashEmptyPC: { color: '#666', fontSize: '12px', textAlign: 'center', padding: '6px 0' },
+  eventTimePC: { color: '#ff6688', fontSize: '11px' },
+  sidebarOverlayPC: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    zIndex: 998
+  },
+  sidebarPC: {
+    position: 'fixed',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: '280px',
+    maxWidth: '85vw',
+    backgroundColor: '#0a0000',
+    borderLeft: '2px solid #ff003c',
+    zIndex: 999,
+    overflowY: 'auto',
+    padding: '16px',
+  },
+  sidebarHeaderPC: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '16px',
+    paddingBottom: '8px',
+    borderBottom: '1px solid #333'
+  },
+  sidebarTitlePC: { color: '#ff003c', fontSize: '16px', fontWeight: 'bold', margin: 0, fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '6px' },
+  closeBtnPC: { backgroundColor: 'transparent', border: 'none', color: '#888', fontSize: '20px', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' },
+  sidebarSectionPC: { marginBottom: '16px' },
+  sectionTitlePC: {
+    color: '#ff003c',
+    fontSize: '13px',
+    margin: '0 0 8px 0',
+    paddingBottom: '4px',
+    borderBottom: '1px solid #333',
+    fontFamily: 'monospace',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px'
+  },
+  settingRowPC: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' },
+  settingLabelPC: { fontSize: '12px', color: '#ddd' },
+  toggleBtnPC2: {
+    padding: '4px 10px',
+    borderRadius: '4px',
+    border: '1px solid #ff003c',
+    backgroundColor: 'transparent',
+    color: '#ff003c',
+    cursor: 'pointer',
+    fontSize: '11px',
+    fontWeight: 'bold',
+  },
+  profileCardSidebarPC: { display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' },
+  profileAvatarWrapperPC: { flexShrink: 0 },
+  profileAvatarPC: { width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #ff003c' },
+  profileAvatarPlaceholderPC: {
+    width: '32px',
+    height: '32px',
+    borderRadius: '50%',
+    backgroundColor: '#ff003c',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#fff',
+    fontSize: '14px',
+    fontWeight: 'bold'
+  },
+  profileInfoPC: { display: 'flex', flexDirection: 'column' },
+  profileNamePC: { color: '#fff', fontWeight: 'bold', fontSize: '13px' },
+  profileHandlePC: { color: '#888', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '2px' },
+  sidebarBtnPC: { padding: '5px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '12px' },
+  dangerBtnPC: { padding: '5px 10px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '12px' },
+  }
