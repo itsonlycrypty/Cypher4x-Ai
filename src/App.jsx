@@ -144,46 +144,7 @@ export default function App() {
   const fileInputRef = useRef(null)
 
   // ==================================================
-  // FILE SHARING HANDLER
-  // ==================================================
-  const handleFileShare = useCallback((e) => {
-    const files = e.target.files
-    if (!files || files.length === 0) return
-    const file = files[0]
-    const maxSize = 20 * 1024 * 1024 // 20MB
-    if (file.size > maxSize) {
-      alert("File too large! Max 20MB.")
-      return
-    }
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      const fileData = {
-        id: ++msgCounter.current,
-        role: 'user',
-        content: `📎 ${file.name}`,
-        time: Date.now(),
-        file: {
-          name: file.name,
-          type: file.type,
-          data: reader.result,
-          size: file.size
-        }
-      }
-      setConversation(prev => [...prev, fileData])
-      setCommandHistory(prev => [...prev, { command: `📎 ${file.name}`, timestamp: Date.now() }])
-
-      // AI response
-      const reply = `I received your file: **${file.name}** (${(file.size / 1024).toFixed(1)} KB). I can't process the content directly, but I'm happy to help if you have questions about it! 🤖`
-      const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
-      setConversation(prev => [...prev, assistantMsg])
-      speakText(reply.replace(/[🤖]/g, ''))
-    }
-    reader.readAsDataURL(file)
-    e.target.value = '' // reset input
-  }, [speakText])
-
-  // ==================================================
-  // SPEECH RECOGNITION
+  // SPEECH RECOGNITION (must be defined first)
   // ==================================================
   const setupSpeechRecognition = useCallback((isOneOff = false) => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -240,7 +201,7 @@ export default function App() {
   }, [isCallActive])
 
   // ==================================================
-  // TEXT-TO-SPEECH
+  // TEXT-TO-SPEECH (must come BEFORE handleFileShare)
   // ==================================================
   const speakText = useCallback((text) => {
     if (!text || !synthRef.current) return
@@ -323,6 +284,45 @@ export default function App() {
     speakText(reply)
     setIsProcessing(false)
   }, [isProcessing, speakText])
+
+  // ==================================================
+  // FILE SHARE HANDLER (defined AFTER speakText)
+  // ==================================================
+  const handleFileShare = useCallback((e) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    const file = files[0]
+    const maxSize = 20 * 1024 * 1024 // 20MB
+    if (file.size > maxSize) {
+      alert("File too large! Max 20MB.")
+      return
+    }
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const fileData = {
+        id: ++msgCounter.current,
+        role: 'user',
+        content: `📎 ${file.name}`,
+        time: Date.now(),
+        file: {
+          name: file.name,
+          type: file.type,
+          data: reader.result,
+          size: file.size
+        }
+      }
+      setConversation(prev => [...prev, fileData])
+      setCommandHistory(prev => [...prev, { command: `📎 ${file.name}`, timestamp: Date.now() }])
+
+      // AI response
+      const reply = `I received your file: **${file.name}** (${(file.size / 1024).toFixed(1)} KB). I can't process the content directly, but I'm happy to help if you have questions about it! 🤖`
+      const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
+      setConversation(prev => [...prev, assistantMsg])
+      speakText(reply.replace(/[🤖]/g, ''))
+    }
+    reader.readAsDataURL(file)
+    e.target.value = '' // reset input
+  }, [speakText])
 
   // ==================================================
   // TAP TO SPEAK
@@ -913,7 +913,6 @@ export default function App() {
 
       <div style={styles.pcLayout}>
         <div style={styles.pcSidebar}>
-          {/* SYSTEM STATS */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="chart" size={16} color="#ff003c" /> SYSTEM STATS</h3>
             <div style={styles.pcSidebarRow}><span>CPU Usage</span><span style={{ color: stats.cpuUsage > 80 ? '#ff003c' : '#4f8' }}>{stats.cpuUsage}%</span></div>
@@ -924,7 +923,6 @@ export default function App() {
             <div style={styles.pcSidebarRow}><span>Uptime</span><span>{formatUptime(stats.uptime)}</span></div>
           </div>
 
-          {/* AI CONFIG */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="settings" size={16} color="#ff003c" /> AI CONFIGURATION</h3>
             <div style={styles.pcSidebarRow}><span>AI Engine</span><span>TAVILY</span></div>
@@ -944,7 +942,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* SECURITY */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="faceId" size={16} color="#ff003c" /> SECURITY</h3>
             <div style={styles.pcSidebarRow}>
@@ -963,7 +960,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* EVENTS */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="calendar" size={16} color="#ff003c" /> TODAY'S EVENTS</h3>
             {events.length === 0 ? <p style={styles.dashEmptyPC}>No events scheduled</p> : events.map((evt, i) => (
@@ -971,7 +967,6 @@ export default function App() {
             ))}
           </div>
 
-          {/* REMINDERS */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="clock" size={16} color="#ff003c" /> REMINDERS</h3>
             {reminders.length === 0 ? <p style={styles.dashEmptyPC}>No reminders set</p> : reminders.map((rem, i) => (
@@ -979,7 +974,6 @@ export default function App() {
             ))}
           </div>
 
-          {/* CONVERSATION + FILE SHARE */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="chat" size={16} color="#ff003c" /> CONVERSATION</h3>
             <div style={styles.conversationLogPC}>
@@ -1016,7 +1010,6 @@ export default function App() {
             <div style={styles.commandActionsPC}>
               <button onClick={clearConversation} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear</button>
               <button onClick={exportChat} style={styles.dashBtnPC}><Icon name="save" size={14} color="#fff" /> Export</button>
-              {/* New Attach File button */}
               <label style={styles.attachBtnPC}>
                 <Icon name="file" size={14} color="#fff" /> Attach
                 <input type="file" accept="image/*,video/*,.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx" onChange={handleFileShare} style={{ display: 'none' }} />
@@ -1024,7 +1017,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* COMMAND HISTORY */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="clock" size={16} color="#ff003c" /> COMMAND HISTORY</h3>
             <div style={styles.commandHistoryPC}>
@@ -1039,13 +1031,11 @@ export default function App() {
             <button onClick={clearCommands} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear All</button>
           </div>
 
-          {/* VIEW TOGGLE */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="desktop" size={16} color="#ff003c" /> VIEW MODE</h3>
             <button onClick={toggleView} style={styles.toggleBtnPC2}>Switch to Android</button>
           </div>
 
-          {/* PROFILE */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="user" size={16} color="#ff003c" /> PROFILE</h3>
             <div style={styles.profileCardSidebarPC}>
@@ -1060,14 +1050,12 @@ export default function App() {
             <button onClick={openEditProfile} style={styles.sidebarBtnPC}><Icon name="edit" size={14} color="#fff" /> Edit Profile</button>
           </div>
 
-          {/* DANGER ZONE */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="alertTriangle" size={16} color="#ff003c" /> DANGER ZONE</h3>
             <button onClick={resetAllData} style={styles.dangerBtnPC}><Icon name="trash" size={14} color="#fff" /> Reset All Data</button>
           </div>
         </div>
 
-        {/* PC MAIN – Red Ball only (no mic button) */}
         <div style={styles.pcMain}>
           <div style={styles.pcBallContainer}>
             <RedBall isSpeaking={isAISpeaking} />
@@ -1114,7 +1102,6 @@ export default function App() {
         </div>
       </div>
 
-      {/* Sidebar overlay (hamburger) */}
       {sidebarOpen && (
         <>
           <div style={styles.sidebarOverlayPC} onClick={() => setSidebarOpen(false)} />
@@ -1155,7 +1142,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES (full – includes all fixes + new attach button style)
+// STYLES (full – includes attach button style)
 // ============================================================
 const styles = {
   appAndroid: {
@@ -1844,7 +1831,6 @@ const styles = {
     justifyContent: 'center',
     maxWidth: '90%',
   },
-  // Reused Android styles for PC
   selectInputPC: {
     padding: '2px 6px',
     backgroundColor: '#000',
@@ -1991,4 +1977,4 @@ const styles = {
   profileHandlePC: { color: '#888', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '2px' },
   sidebarBtnPC: { padding: '5px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '12px' },
   dangerBtnPC: { padding: '5px 10px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '12px' },
-      }
+    }
