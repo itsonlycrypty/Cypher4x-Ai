@@ -23,6 +23,9 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     close: 'M18 6L6 18M6 6l12 12',
     desktop: 'M4 4h16v12H4zM8 20h8M12 16v4',
     mobile: 'M12 2C8 2 4 4 4 8v12c0 4 4 6 8 6s8-2 8-6V8c0-4-4-6-8-6zm0 4c2 0 4 1 4 3s-2 3-4 3-4-1-4-3 2-3 4-3zm0 14c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2z',
+    file: 'M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM13 2v7h7',
+    image: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l3-3 3 3 3-3 3 3',
+    video: 'M23 7l-5 5 5 5V7zM1 5h15v14H1z',
   }
   const path = icons[name]
   if (!path) return null
@@ -139,6 +142,45 @@ export default function App() {
   const recognitionRef = useRef(null)
   const msgCounter = useRef(0)
   const fileInputRef = useRef(null)
+
+  // ==================================================
+  // FILE SHARING HANDLER
+  // ==================================================
+  const handleFileShare = useCallback((e) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    const file = files[0]
+    const maxSize = 20 * 1024 * 1024 // 20MB
+    if (file.size > maxSize) {
+      alert("File too large! Max 20MB.")
+      return
+    }
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const fileData = {
+        id: ++msgCounter.current,
+        role: 'user',
+        content: `📎 ${file.name}`,
+        time: Date.now(),
+        file: {
+          name: file.name,
+          type: file.type,
+          data: reader.result,
+          size: file.size
+        }
+      }
+      setConversation(prev => [...prev, fileData])
+      setCommandHistory(prev => [...prev, { command: `📎 ${file.name}`, timestamp: Date.now() }])
+
+      // AI response
+      const reply = `I received your file: **${file.name}** (${(file.size / 1024).toFixed(1)} KB). I can't process the content directly, but I'm happy to help if you have questions about it! 🤖`
+      const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
+      setConversation(prev => [...prev, assistantMsg])
+      speakText(reply.replace(/[🤖]/g, ''))
+    }
+    reader.readAsDataURL(file)
+    e.target.value = '' // reset input
+  }, [speakText])
 
   // ==================================================
   // SPEECH RECOGNITION
@@ -436,7 +478,7 @@ export default function App() {
   }, [conversation])
 
   // ==================================================
-  // BOOT SEQUENCE – ORIGINAL SIMPLE BOOT
+  // BOOT SEQUENCE
   // ==================================================
   useEffect(() => {
     const bootSteps = [
@@ -595,7 +637,7 @@ export default function App() {
   const formatTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
   // ============================================================
-  // BOOT SCREEN – ORIGINAL
+  // BOOT SCREEN
   // ============================================================
   if (isBooting) {
     const bootSteps = [
@@ -696,7 +738,7 @@ export default function App() {
   }
 
   // ============================================================
-  // ANDROID VIEW (sidebar now on the LEFT)
+  // ANDROID VIEW
   // ============================================================
   if (viewMode === 'android') {
     return (
@@ -841,7 +883,7 @@ export default function App() {
   }
 
   // ============================================================
-  // PC VIEW (button repositioned)
+  // PC VIEW
   // ============================================================
   return (
     <div style={styles.appPC}>
@@ -871,6 +913,7 @@ export default function App() {
 
       <div style={styles.pcLayout}>
         <div style={styles.pcSidebar}>
+          {/* SYSTEM STATS */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="chart" size={16} color="#ff003c" /> SYSTEM STATS</h3>
             <div style={styles.pcSidebarRow}><span>CPU Usage</span><span style={{ color: stats.cpuUsage > 80 ? '#ff003c' : '#4f8' }}>{stats.cpuUsage}%</span></div>
@@ -881,6 +924,7 @@ export default function App() {
             <div style={styles.pcSidebarRow}><span>Uptime</span><span>{formatUptime(stats.uptime)}</span></div>
           </div>
 
+          {/* AI CONFIG */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="settings" size={16} color="#ff003c" /> AI CONFIGURATION</h3>
             <div style={styles.pcSidebarRow}><span>AI Engine</span><span>TAVILY</span></div>
@@ -900,6 +944,7 @@ export default function App() {
             </div>
           </div>
 
+          {/* SECURITY */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="faceId" size={16} color="#ff003c" /> SECURITY</h3>
             <div style={styles.pcSidebarRow}>
@@ -918,6 +963,7 @@ export default function App() {
             </div>
           </div>
 
+          {/* EVENTS */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="calendar" size={16} color="#ff003c" /> TODAY'S EVENTS</h3>
             {events.length === 0 ? <p style={styles.dashEmptyPC}>No events scheduled</p> : events.map((evt, i) => (
@@ -925,6 +971,7 @@ export default function App() {
             ))}
           </div>
 
+          {/* REMINDERS */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="clock" size={16} color="#ff003c" /> REMINDERS</h3>
             {reminders.length === 0 ? <p style={styles.dashEmptyPC}>No reminders set</p> : reminders.map((rem, i) => (
@@ -932,26 +979,52 @@ export default function App() {
             ))}
           </div>
 
+          {/* CONVERSATION + FILE SHARE */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="chat" size={16} color="#ff003c" /> CONVERSATION</h3>
             <div style={styles.conversationLogPC}>
               {conversation.length === 0 && <p style={styles.dashEmptyPC}>No conversation yet</p>}
               {conversation.slice(-6).map(msg => (
                 <div key={msg.id} style={styles.convItemPC}>
-                  <span style={{ fontWeight: msg.role === 'user' ? 'bold' : 'normal', color: msg.role === 'user' ? '#ddd' : '#ff003c' }}>
-                    {msg.role === 'user' ? profile?.name || 'You' : 'CYPHER4X'}
-                  </span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: msg.role === 'user' ? 'bold' : 'normal', color: msg.role === 'user' ? '#ddd' : '#ff003c' }}>
+                      {msg.role === 'user' ? profile?.name || 'You' : 'CYPHER4X'}
+                    </span>
+                    <span style={styles.convTimePC}>{formatTime(msg.time)}</span>
+                  </div>
                   <span style={styles.convTextPC}>{msg.content}</span>
-                  <span style={styles.convTimePC}>{formatTime(msg.time)}</span>
+                  {msg.file && (
+                    <div style={styles.filePreviewPC}>
+                      {msg.file.type.startsWith('image/') && (
+                        <img src={msg.file.data} alt={msg.file.name} style={{ maxWidth: '100%', maxHeight: '100px', borderRadius: '4px', marginTop: '4px' }} />
+                      )}
+                      {msg.file.type.startsWith('video/') && (
+                        <video controls style={{ maxWidth: '100%', maxHeight: '100px', borderRadius: '4px', marginTop: '4px' }}>
+                          <source src={msg.file.data} type={msg.file.type} />
+                        </video>
+                      )}
+                      {!msg.file.type.startsWith('image/') && !msg.file.type.startsWith('video/') && (
+                        <div style={{ fontSize: '12px', color: '#888', marginTop: '4px' }}>
+                          <Icon name="file" size={14} color="#ff003c" /> {msg.file.name} ({(msg.file.size / 1024).toFixed(1)} KB)
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
             <div style={styles.commandActionsPC}>
               <button onClick={clearConversation} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear</button>
               <button onClick={exportChat} style={styles.dashBtnPC}><Icon name="save" size={14} color="#fff" /> Export</button>
+              {/* New Attach File button */}
+              <label style={styles.attachBtnPC}>
+                <Icon name="file" size={14} color="#fff" /> Attach
+                <input type="file" accept="image/*,video/*,.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx" onChange={handleFileShare} style={{ display: 'none' }} />
+              </label>
             </div>
           </div>
 
+          {/* COMMAND HISTORY */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="clock" size={16} color="#ff003c" /> COMMAND HISTORY</h3>
             <div style={styles.commandHistoryPC}>
@@ -966,11 +1039,13 @@ export default function App() {
             <button onClick={clearCommands} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear All</button>
           </div>
 
+          {/* VIEW TOGGLE */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="desktop" size={16} color="#ff003c" /> VIEW MODE</h3>
             <button onClick={toggleView} style={styles.toggleBtnPC2}>Switch to Android</button>
           </div>
 
+          {/* PROFILE */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="user" size={16} color="#ff003c" /> PROFILE</h3>
             <div style={styles.profileCardSidebarPC}>
@@ -985,12 +1060,14 @@ export default function App() {
             <button onClick={openEditProfile} style={styles.sidebarBtnPC}><Icon name="edit" size={14} color="#fff" /> Edit Profile</button>
           </div>
 
+          {/* DANGER ZONE */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="alertTriangle" size={16} color="#ff003c" /> DANGER ZONE</h3>
             <button onClick={resetAllData} style={styles.dangerBtnPC}><Icon name="trash" size={14} color="#fff" /> Reset All Data</button>
           </div>
         </div>
 
+        {/* PC MAIN – Red Ball only (no mic button) */}
         <div style={styles.pcMain}>
           <div style={styles.pcBallContainer}>
             <RedBall isSpeaking={isAISpeaking} />
@@ -1034,21 +1111,10 @@ export default function App() {
               </>
             ) : null}
           </div>
-          <div style={styles.pcVoiceButtonContainer}>
-            <button
-              onClick={startRecording}
-              disabled={isRecording || isProcessing || isCallActive}
-              style={{ ...styles.voiceButtonPC, ...(isRecording ? styles.voiceButtonPCActive : {}) }}
-            >
-              <Icon name="mic" size={40} color="#fff" />
-              <span style={styles.voiceLabelPC}>
-                {isRecording ? 'Recording...' : isProcessing ? 'Processing...' : 'Tap to Speak'}
-              </span>
-            </button>
-          </div>
         </div>
       </div>
 
+      {/* Sidebar overlay (hamburger) */}
       {sidebarOpen && (
         <>
           <div style={styles.sidebarOverlayPC} onClick={() => setSidebarOpen(false)} />
@@ -1089,7 +1155,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES – full with left sidebar & PC button repositioned
+// STYLES (full – includes all fixes + new attach button style)
 // ============================================================
 const styles = {
   appAndroid: {
@@ -1283,7 +1349,6 @@ const styles = {
     backgroundColor: 'rgba(0,0,0,0.85)',
     zIndex: 998
   },
-  // Sidebar now opens from the LEFT
   sidebar: {
     position: 'fixed',
     top: 0,
@@ -1632,7 +1697,7 @@ const styles = {
     padding: '8px',
     borderRadius: '4px',
   },
-  // ---------- PC VIEW (repositioned button) ----------
+  // PC styles
   appPC: {
     minHeight: '100vh',
     height: '100vh',
@@ -1744,14 +1809,14 @@ const styles = {
     backgroundColor: '#050505',
     overflow: 'hidden',
     height: '100%',
-    padding: '10px 10px 20px', // extra bottom padding avoids address bar
+    padding: '10px',
   },
   pcBallContainer: {
     position: 'relative',
-    width: 'clamp(120px, 20vw, 160px)',
-    height: 'clamp(120px, 20vw, 160px)',
+    width: 'clamp(150px, 25vw, 220px)',
+    height: 'clamp(150px, 25vw, 220px)',
     pointerEvents: 'none',
-    marginBottom: '6px',
+    marginBottom: '10px',
   },
   pcFaceTitle: {
     position: 'absolute',
@@ -1771,50 +1836,15 @@ const styles = {
     alignItems: 'center',
     gap: '8px',
     backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: '4px 12px',
+    padding: '4px 16px',
     borderRadius: '30px',
     border: '1px solid rgba(255,0,60,0.2)',
     backdropFilter: 'blur(10px)',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    marginBottom: '6px',
     maxWidth: '90%',
   },
-  pcVoiceButtonContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '4px',
-    marginTop: '4px',
-  },
-  voiceButtonPC: {
-    width: 'clamp(50px, 10vw, 70px)',
-    height: 'clamp(50px, 10vw, 70px)',
-    borderRadius: '50%',
-    backgroundColor: '#1a1a1a',
-    border: '3px solid #ff003c',
-    cursor: 'pointer',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '4px',
-    transition: 'all 0.3s ease',
-    boxShadow: '0 0 40px rgba(255,0,60,0.2)',
-  },
-  voiceButtonPCActive: {
-    backgroundColor: '#ff003c',
-    borderColor: '#ff003c',
-    boxShadow: '0 0 80px rgba(255,0,60,0.7)',
-    animation: 'pulseGlow 1s ease-in-out infinite',
-  },
-  voiceLabelPC: {
-    color: '#fff',
-    fontSize: '10px',
-    fontWeight: 'bold',
-    letterSpacing: '1px',
-    marginTop: '2px',
-  },
+  // Reused Android styles for PC
   selectInputPC: {
     padding: '2px 6px',
     backgroundColor: '#000',
@@ -1835,18 +1865,38 @@ const styles = {
   },
   toggleBtnPCO: { borderColor: '#4f8', color: '#4f8', backgroundColor: '#0a2a0a' },
   toggleBtnPCF: { borderColor: '#ff003c', color: '#ff003c', backgroundColor: '#2a0a0a' },
-  conversationLogPC: { maxHeight: '100px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '6px' },
+  conversationLogPC: {
+    maxHeight: '120px',
+    overflowY: 'auto',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+    marginBottom: '6px',
+  },
   convItemPC: {
     display: 'flex',
     flexDirection: 'column',
-    padding: '3px 6px',
+    padding: '4px 8px',
     backgroundColor: '#111',
     borderRadius: '4px',
     borderLeft: '2px solid #ff003c',
   },
   convTextPC: { fontSize: '12px', color: '#ddd', wordBreak: 'break-word', marginTop: '2px' },
   convTimePC: { fontSize: '9px', color: '#666', alignSelf: 'flex-end', marginTop: '2px' },
+  filePreviewPC: { marginTop: '4px' },
   commandActionsPC: { display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' },
+  attachBtnPC: {
+    padding: '3px 10px',
+    backgroundColor: '#1a3a3a',
+    color: '#fff',
+    border: '1px solid #2a5a5a',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '11px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+  },
   commandHistoryPC: { maxHeight: '80px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '6px' },
   cmdItemPC: { display: 'flex', gap: '6px', fontSize: '11px', color: '#aaa', padding: '2px 4px', borderBottom: '1px solid #111' },
   cmdTimePC: { color: '#666', minWidth: '50px', fontSize: '10px' },
@@ -1941,4 +1991,4 @@ const styles = {
   profileHandlePC: { color: '#888', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '2px' },
   sidebarBtnPC: { padding: '5px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '12px' },
   dangerBtnPC: { padding: '5px 10px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '12px' },
-}
+      }
