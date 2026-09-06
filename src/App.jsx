@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
 // ==================================================
-// ICON SYSTEM (exactly as you had)
+// ICON SYSTEM (unchanged – same as yours)
 // ==================================================
 const Icon = ({ name, size = 18, color = 'currentColor' }) => {
   const icons = {
@@ -34,7 +34,7 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
 }
 
 // ==================================================
-// CONFIG (exactly as you had)
+// CONFIG (unchanged)
 // ==================================================
 const TAVILY_API_KEY = "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"
 const TAVILY_URL = "https://api.tavily.com/search"
@@ -51,7 +51,7 @@ const safeSet = (key, val) => {
 }
 
 // ==================================================
-// SEARCH FUNCTION (exactly as you had)
+// SEARCH FUNCTION (unchanged)
 // ==================================================
 const searchWeb = async (query) => {
   if (!TAVILY_API_KEY) return { error: "Tavily API key not configured." }
@@ -79,7 +79,7 @@ const searchWeb = async (query) => {
 }
 
 // ==================================================
-// RED BALL COMPONENT (exactly as you had)
+// RED BALL COMPONENT (unchanged)
 // ==================================================
 const RedBall = ({ isSpeaking = false }) => (
   <div style={styles.ballContainer}>
@@ -94,133 +94,7 @@ const RedBall = ({ isSpeaking = false }) => (
 )
 
 // ==================================================
-// NEW BOOT SCREEN – only this is new
-// ==================================================
-const BootScreen = ({ progress, stepIndex }) => {
-  const canvasRef = useRef(null)
-  const [particles, setParticles] = useState([])
-  const [stats, setStats] = useState({ cpu: 0, ram: 0, temp: 0 })
-  const bootSteps = [
-    'Initializing Neural Networks...',
-    'Loading Knowledge Base...',
-    'Establishing Secure Connection...',
-    'Calibrating Voice Recognition...',
-    'System Ready.'
-  ]
-
-  // Particle system (unchanged)
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    const width = canvas.parentElement.clientWidth
-    const height = canvas.parentElement.clientHeight
-    canvas.width = width
-    canvas.height = height
-
-    const count = 80
-    const newParticles = []
-    for (let i = 0; i < count; i++) {
-      newParticles.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.8,
-        vy: (Math.random() - 0.5) * 0.8,
-        radius: Math.random() * 2 + 1,
-        alpha: Math.random() * 0.6 + 0.2,
-      })
-    }
-    setParticles(newParticles)
-
-    let animId
-    const animate = () => {
-      ctx.clearRect(0, 0, width, height)
-      ctx.strokeStyle = 'rgba(255,0,60,0.08)'
-      ctx.lineWidth = 0.5
-      for (let i = 0; i < newParticles.length; i++) {
-        for (let j = i + 1; j < newParticles.length; j++) {
-          const dx = newParticles[i].x - newParticles[j].x
-          const dy = newParticles[i].y - newParticles[j].y
-          const dist = Math.sqrt(dx*dx + dy*dy)
-          if (dist < 150) {
-            ctx.beginPath()
-            ctx.moveTo(newParticles[i].x, newParticles[i].y)
-            ctx.lineTo(newParticles[j].x, newParticles[j].y)
-            ctx.stroke()
-          }
-        }
-      }
-      newParticles.forEach(p => {
-        p.x += p.vx
-        p.y += p.vy
-        if (p.x < 0 || p.x > width) p.vx *= -1
-        if (p.y < 0 || p.y > height) p.vy *= -1
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(255, 0, 60, ${p.alpha * (0.5 + progress/100)})`
-        ctx.fill()
-      })
-      animId = requestAnimationFrame(animate)
-    }
-    animate()
-    return () => cancelAnimationFrame(animId)
-  }, [progress])
-
-  // Live stats simulation
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setStats({
-        cpu: Math.floor(Math.random() * 40) + 10,
-        ram: (Math.random() * 4 + 2).toFixed(1),
-        temp: Math.floor(Math.random() * 20) + 55,
-      })
-    }, 1500)
-    return () => clearInterval(interval)
-  }, [])
-
-  return (
-    <div style={styles.bootContainer}>
-      <canvas ref={canvasRef} style={styles.bootCanvas} />
-      <div style={styles.bootContent}>
-        <div style={styles.bootGlowRing} />
-        <h1 style={styles.bootTitle}>CYPHER4X</h1>
-        <p style={styles.bootSubtitle}>Advanced AI System</p>
-
-        <div style={styles.bootProgressWrapper}>
-          <div style={styles.bootProgressBar}>
-            <div style={{ ...styles.bootProgressFill, width: `${progress}%` }} />
-          </div>
-          <span style={styles.bootProgressText}>
-            {bootSteps[Math.min(stepIndex, bootSteps.length-1)]} {Math.round(progress)}%
-          </span>
-        </div>
-
-        <div style={styles.bootStats}>
-          <div style={styles.bootStatItem}>
-            <span>CPU</span>
-            <span style={{ color: stats.cpu > 70 ? '#ff003c' : '#4f8' }}>{stats.cpu}%</span>
-          </div>
-          <div style={styles.bootStatItem}>
-            <span>RAM</span>
-            <span>{stats.ram} GB</span>
-          </div>
-          <div style={styles.bootStatItem}>
-            <span>TEMP</span>
-            <span style={{ color: stats.temp > 75 ? '#ff003c' : '#ff6688' }}>{stats.temp}°C</span>
-          </div>
-        </div>
-
-        <div style={styles.bootStatus}>
-          <span style={styles.bootStatusDot} />
-          <span style={styles.bootStatusText}>SYSTEM BOOTING</span>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ==================================================
-// MAIN APP – everything else is exactly as you had
+// MAIN APP – with the ORIGINAL boot screen
 // ==================================================
 export default function App() {
   const [isBooting, setIsBooting] = useState(true)
@@ -267,7 +141,7 @@ export default function App() {
   const fileInputRef = useRef(null)
 
   // ==================================================
-  // SPEECH RECOGNITION (exactly as you had)
+  // SPEECH RECOGNITION (unchanged)
   // ==================================================
   const setupSpeechRecognition = useCallback((isOneOff = false) => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -324,7 +198,7 @@ export default function App() {
   }, [isCallActive])
 
   // ==================================================
-  // TEXT-TO-SPEECH (exactly as you had)
+  // TEXT-TO-SPEECH (unchanged)
   // ==================================================
   const speakText = useCallback((text) => {
     if (!text || !synthRef.current) return
@@ -344,7 +218,7 @@ export default function App() {
   }, [voiceGender])
 
   // ==================================================
-  // PROCESS USER QUERY (exactly as you had)
+  // PROCESS USER QUERY (unchanged)
   // ==================================================
   const processUserQuery = useCallback(async (query) => {
     if (!query || isProcessing) return
@@ -409,7 +283,7 @@ export default function App() {
   }, [isProcessing, speakText])
 
   // ==================================================
-  // TAP TO SPEAK (exactly as you had)
+  // TAP TO SPEAK (unchanged)
   // ==================================================
   const startRecording = useCallback(() => {
     if (isRecording || isProcessing || isCallActive) return
@@ -467,7 +341,7 @@ export default function App() {
   }, [isRecording, isProcessing, isCallActive, processUserQuery])
 
   // ==================================================
-  // SEND / CANCEL (exactly as you had)
+  // SEND / CANCEL (unchanged)
   // ==================================================
   const sendInterim = useCallback(() => {
     if (!interimTranscript.trim() || isProcessing) return
@@ -491,7 +365,7 @@ export default function App() {
   }, [])
 
   // ==================================================
-  // SEND TEXT (exactly as you had)
+  // SEND TEXT (unchanged)
   // ==================================================
   const sendTextMessage = useCallback(() => {
     const text = inputText.trim()
@@ -501,7 +375,7 @@ export default function App() {
   }, [inputText, isProcessing, processUserQuery])
 
   // ==================================================
-  // CALL TOGGLE (exactly as you had)
+  // CALL TOGGLE (unchanged)
   // ==================================================
   const toggleCall = useCallback(() => {
     if (isCallActive) {
@@ -535,7 +409,7 @@ export default function App() {
   }, [isCallActive, setupSpeechRecognition, speakText])
 
   // ==================================================
-  // VIEW TOGGLE (exactly as you had – no rotate)
+  // VIEW TOGGLE (unchanged)
   // ==================================================
   const toggleView = useCallback(() => {
     setViewMode(prev => prev === 'android' ? 'pc' : 'android')
@@ -543,7 +417,7 @@ export default function App() {
   }, [])
 
   // ==================================================
-  // STATS (exactly as you had)
+  // STATS (unchanged)
   // ==================================================
   useEffect(() => {
     const timer = setInterval(() => {
@@ -562,7 +436,7 @@ export default function App() {
   }, [conversation])
 
   // ==================================================
-  // BOOT SEQUENCE – only this part changed to use the new BootScreen
+  // BOOT SEQUENCE – ORIGINAL SIMPLE BOOT
   // ==================================================
   useEffect(() => {
     const bootSteps = [
@@ -628,7 +502,7 @@ export default function App() {
   }, [])
 
   // ==================================================
-  // PERSISTENCE (exactly as you had)
+  // PERSISTENCE (unchanged)
   // ==================================================
   useEffect(() => { if (profile) safeSet("cypher4x_profile", profile) }, [profile])
   useEffect(() => { if (conversation.length) safeSet("cypher4x_conversation", conversation) }, [conversation])
@@ -641,7 +515,7 @@ export default function App() {
   useEffect(() => { safeSet("cypher4x_view_mode", viewMode) }, [viewMode])
 
   // ==================================================
-  // PROFILE HANDLERS (exactly as you had)
+  // PROFILE HANDLERS (unchanged)
   // ==================================================
   const handleAvatarChange = useCallback((e) => {
     const file = e.target.files[0]
@@ -721,14 +595,41 @@ export default function App() {
   const formatTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
   // ============================================================
-  // RENDER: BOOT SCREEN
+  // BOOT SCREEN – ORIGINAL SIMPLE VERSION
   // ============================================================
   if (isBooting) {
-    return <BootScreen progress={bootProgress} stepIndex={bootStepIndex} />
+    const bootSteps = [
+      'Initializing Neural Networks...',
+      'Loading Knowledge Base...',
+      'Establishing Secure Connection...',
+      'Calibrating Voice Recognition...',
+      'System Ready!'
+    ]
+    return (
+      <div style={styles.bootContainer}>
+        <div style={styles.bootBackground} />
+        <div style={styles.bootContent}>
+          <h1 style={styles.bootTitle}>CYPHER4X</h1>
+          <p style={styles.bootSubtitle}>Advanced AI System</p>
+          <div style={styles.bootProgressWrapper}>
+            <div style={styles.bootProgressBar}>
+              <div style={{ ...styles.bootProgressFill, width: `${bootProgress}%` }} />
+            </div>
+            <span style={styles.bootProgressText}>
+              {bootSteps[Math.min(bootStepIndex, bootSteps.length-1)]} {Math.round(bootProgress)}%
+            </span>
+          </div>
+          <div style={styles.bootStatus}>
+            <span style={styles.bootStatusDot} />
+            <span style={styles.bootStatusText}>CYPHER4X LOADING...</span>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   // ============================================================
-  // PROFILE SETUP (exactly as you had)
+  // PROFILE SETUP (unchanged)
   // ============================================================
   if (showProfileSetup || editingProfile) {
     return (
@@ -795,7 +696,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: ANDROID VIEW (exactly as you had – no changes)
+  // ANDROID VIEW (unchanged)
   // ============================================================
   if (viewMode === 'android') {
     return (
@@ -940,7 +841,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: PC VIEW (exactly as you had – no changes)
+  // PC VIEW (unchanged)
   // ============================================================
   return (
     <div style={styles.appPC}>
@@ -1198,7 +1099,6 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES – exactly as you had them (I'm keeping them unchanged)
+// STYLES – keep your original styles block – I've not changed it
 // ============================================================
-// (I'm omitting the styles for brevity – they are 100% identical to your original)
-// Please keep your original styles block – I haven't touched it.
+// (Your original styles go here – they are exactly as you had them)
