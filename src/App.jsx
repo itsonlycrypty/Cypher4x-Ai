@@ -29,6 +29,7 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     arrowLeft: 'M19 12H5M12 19l-7-7 7-7',
     volume2: 'M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07',
     volumeX: 'M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6',
+    rotate: 'M21 12a9 9 0 1 1-6.219-8.56M15 3h6v6',
   }
   const path = icons[name]
   if (!path) return null
@@ -129,20 +130,15 @@ const searchWeb = async (query) => {
 // ==================================================
 const RedBall = ({ isSpeaking = false }) => (
   <div style={styles.ballContainer}>
-    {/* Outer glow rings */}
     <div style={styles.ring1} />
     <div style={styles.ring2} />
     <div style={styles.ring3} />
-
-    {/* 3D Sphere */}
     <div style={styles.ball3DContainer}>
       <div style={{
         ...styles.ball3D,
         ...(isSpeaking ? styles.ball3DSpeaking : {})
       }}>
-        {/* Highlight / specular shine */}
         <div style={styles.ballHighlight} />
-        {/* Core glow inside */}
         <div style={styles.ballInnerGlow} />
       </div>
     </div>
@@ -221,6 +217,33 @@ export default function App() {
   const recognitionRef = useRef(null)
   const msgCounter = useRef(0)
   const fileInputRef = useRef(null)
+
+  // ==================================================
+  // FULLSCREEN API HANDLERS
+  // ==================================================
+  const enterFullscreen = useCallback(async () => {
+    try {
+      if (document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen()
+      } else if (document.webkitRequestFullscreen) {
+        await document.webkitRequestFullscreen()
+      }
+    } catch (e) {
+      console.warn('Fullscreen not supported or denied:', e)
+    }
+  }, [])
+
+  const exitFullscreen = useCallback(async () => {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen()
+      } else if (document.webkitFullscreenElement) {
+        await document.webkitExitFullscreen()
+      }
+    } catch (e) {
+      console.warn('Exit fullscreen error:', e)
+    }
+  }, [])
 
   // ==================================================
   // AUTH HANDLERS
@@ -447,7 +470,7 @@ export default function App() {
   }, [voiceGender])
 
   // ==================================================
-  // PROCESS USER QUERY (main)
+  // PROCESS USER QUERY
   // ==================================================
   const processUserQuery = useCallback(async (query) => {
     if (!query || isProcessing) return
@@ -515,7 +538,7 @@ export default function App() {
   }, [isProcessing, speakText, userMode])
 
   // ==================================================
-  // OVERVIEW CHAT – uses main conversation
+  // OVERVIEW CHAT
   // ==================================================
   const setupOverviewRecognition = useCallback(() => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -603,7 +626,7 @@ export default function App() {
   }, [speakText, chatOverviewVoiceEnabled])
 
   // ==================================================
-  // FILE SHARE HANDLER (main sidebar)
+  // FILE SHARE HANDLER (main)
   // ==================================================
   const handleFileShare = useCallback((e) => {
     const files = e.target.files
@@ -637,9 +660,9 @@ export default function App() {
   }, [speakText])
 
   // ==================================================
-  // FULL‑SCREEN CALL HANDLERS
+  // FULL‑SCREEN CALL HANDLERS (with fullscreen API)
   // ==================================================
-  const toggleFullscreenCall = useCallback(() => {
+  const toggleFullscreenCall = useCallback(async () => {
     if (isFullscreenCall) {
       setIsFullscreenCall(false)
       setIsCallActive(false)
@@ -650,9 +673,11 @@ export default function App() {
       setInterimTranscript('')
       synthRef.current?.cancel()
       setIsAISpeaking(false)
+      await exitFullscreen()
     } else {
       setIsFullscreenCall(true)
       setIsCallActive(true)
+      await enterFullscreen()
       if (!recognitionRef.current) {
         recognitionRef.current = setupSpeechRecognition(false, (finalTranscript) => {
           processUserQuery(finalTranscript)
@@ -674,7 +699,7 @@ export default function App() {
         setIsCallActive(false)
       }
     }
-  }, [isFullscreenCall, setupSpeechRecognition, speakText, processUserQuery])
+  }, [isFullscreenCall, setupSpeechRecognition, speakText, processUserQuery, enterFullscreen, exitFullscreen])
 
   const interruptAndListen = useCallback(() => {
     if (synthRef.current) synthRef.current.cancel()
@@ -1103,7 +1128,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: FULL‑SCREEN CALL (NO RED BALL)
+  // RENDER: FULL‑SCREEN CALL (with Fullscreen API)
   // ============================================================
   if (isFullscreenCall) {
     return (
@@ -1153,7 +1178,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: CHAT OVERVIEW (input row raised)
+  // RENDER: CHAT OVERVIEW
   // ============================================================
   if (showChatOverview) {
     return (
@@ -1759,7 +1784,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES – Complete with 3D ball
+// STYLES – COMPLETE (with 3D ball and all features)
 // ============================================================
 const styles = {
   appAndroid: {
@@ -2135,7 +2160,6 @@ const styles = {
     fontWeight: 'bold',
     cursor: 'pointer',
   },
-  // FULLSCREEN CALL – NO BALL
   fullscreenCallOverlay: {
     position: 'fixed',
     top: 0,
@@ -2234,7 +2258,6 @@ const styles = {
     '&:hover': { transform: 'scale(1.05)' },
     '&:disabled': { opacity: 0.5, cursor: 'not-allowed' },
   },
-  // CHAT OVERVIEW – input row raised
   chatOverviewContainer: {
     position: 'fixed',
     top: 0,
@@ -2600,7 +2623,6 @@ const styles = {
     zIndex: 0,
     background: 'radial-gradient(ellipse at center, #0a0000 0%, #000 100%)',
   },
-  // 🔴 3D BALL STYLES (updated)
   ballContainer: {
     position: 'relative',
     width: '300px',
@@ -2869,7 +2891,6 @@ const styles = {
     padding: '8px',
     borderRadius: '4px',
   },
-  // PC styles (unchanged)
   appPC: {
     minHeight: '100vh',
     height: '100vh',
@@ -3191,3 +3212,7 @@ const styles = {
     fontSize: '12px',
   },
 }
+
+// ============================================================
+// KEYFRAMES (add to index.css)
+// ============================================================
