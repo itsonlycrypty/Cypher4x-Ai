@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
 // ==================================================
-// ICON SYSTEM (unchanged)
+// ICON SYSTEM
 // ==================================================
 const Icon = ({ name, size = 18, color = 'currentColor' }) => {
   const icons = {
@@ -29,7 +29,6 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     arrowLeft: 'M19 12H5M12 19l-7-7 7-7',
     volume2: 'M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07',
     volumeX: 'M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6',
-    rotate: 'M21 12a9 9 0 1 1-6.219-8.56M15 3h6v6',
   }
   const path = icons[name]
   if (!path) return null
@@ -41,7 +40,7 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
 }
 
 // ==================================================
-// CONFIG (unchanged)
+// CONFIG
 // ==================================================
 const TAVILY_API_KEY = "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"
 const TAVILY_URL = "https://api.tavily.com/search"
@@ -49,7 +48,7 @@ const VERSION = "Version 20.0.0"
 const APP_START_TIME = Date.now()
 
 // ==================================================
-// STORAGE HELPERS (unchanged)
+// STORAGE HELPERS
 // ==================================================
 const getStorageKey = (email, pin) => `cypher4x_${email}_${pin}`
 const saveUserData = (email, pin, data) => {
@@ -98,7 +97,7 @@ const setLastWelcomeDate = (date) => {
 }
 
 // ==================================================
-// SEARCH FUNCTION (unchanged)
+// SEARCH FUNCTION
 // ==================================================
 const searchWeb = async (query) => {
   if (!TAVILY_API_KEY) return { error: "Tavily API key not configured." }
@@ -126,7 +125,7 @@ const searchWeb = async (query) => {
 }
 
 // ==================================================
-// 🔴 RED BALL — 3D GLOWING SPHERE (unchanged)
+// 🔴 RED BALL — 3D GLOWING SPHERE
 // ==================================================
 const RedBall = ({ isSpeaking = false }) => (
   <div style={styles.ballContainer}>
@@ -219,7 +218,7 @@ export default function App() {
   const fileInputRef = useRef(null)
 
   // ==================================================
-  // FULLSCREEN ON FIRST INTERACTION
+  // FULLSCREEN ON FIRST INTERACTION (covers all white UI)
   // ==================================================
   const requestFullscreen = useCallback(async () => {
     try {
@@ -231,11 +230,11 @@ export default function App() {
         }
       }
     } catch (e) {
-      // ignore if blocked
+      // ignore – some browsers block it
     }
   }, [])
 
-  // Attach one-time click listener to request fullscreen on first user interaction
+  // Attach one‑time click listener to the whole document
   useEffect(() => {
     const handleFirstClick = () => {
       requestFullscreen()
@@ -346,7 +345,7 @@ export default function App() {
   }, [profile, conversation, commandHistory, events, reminders, faceRecognition, biometricAuth, voiceGender, viewMode])
 
   // ==================================================
-  // LOGOUT (unchanged)
+  // LOGOUT
   // ==================================================
   const handleLogout = () => {
     if (!confirm("Logout from this account?")) return
@@ -369,7 +368,7 @@ export default function App() {
   }
 
   // ==================================================
-  // GUEST MESSAGE LIMIT (unchanged)
+  // GUEST MESSAGE LIMIT
   // ==================================================
   const incrementGuestMessage = () => {
     if (userMode !== 'guest') return
@@ -381,7 +380,7 @@ export default function App() {
   }
 
   // ==================================================
-  // SPEECH RECOGNITION (unchanged)
+  // SPEECH RECOGNITION
   // ==================================================
   const setupSpeechRecognition = useCallback((isOneOff = false, onFinal = null) => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -443,7 +442,7 @@ export default function App() {
   }, [isFullscreenCall])
 
   // ==================================================
-  // TEXT-TO-SPEECH (unchanged)
+  // TEXT-TO-SPEECH
   // ==================================================
   const speakText = useCallback((text, onEnd = null) => {
     if (!text || !synthRef.current) return
@@ -470,7 +469,7 @@ export default function App() {
   }, [voiceGender])
 
   // ==================================================
-  // PROCESS USER QUERY (unchanged)
+  // PROCESS USER QUERY
   // ==================================================
   const processUserQuery = useCallback(async (query) => {
     if (!query || isProcessing) return
@@ -538,7 +537,7 @@ export default function App() {
   }, [isProcessing, speakText, userMode])
 
   // ==================================================
-  // OVERVIEW CHAT (unchanged)
+  // OVERVIEW CHAT
   // ==================================================
   const setupOverviewRecognition = useCallback(() => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -626,7 +625,7 @@ export default function App() {
   }, [speakText, chatOverviewVoiceEnabled])
 
   // ==================================================
-  // FILE SHARE HANDLER (main) (unchanged)
+  // FILE SHARE HANDLER (main)
   // ==================================================
   const handleFileShare = useCallback((e) => {
     const files = e.target.files
@@ -660,7 +659,7 @@ export default function App() {
   }, [speakText])
 
   // ==================================================
-  // FULL‑SCREEN CALL HANDLERS (unchanged – still uses fullscreen)
+  // FULL‑SCREEN CALL HANDLERS
   // ==================================================
   const toggleFullscreenCall = useCallback(async () => {
     if (isFullscreenCall) {
@@ -721,7 +720,7 @@ export default function App() {
   }, [])
 
   // ==================================================
-  // TAP TO SPEAK (main) (unchanged)
+  // TAP TO SPEAK (main)
   // ==================================================
   const startRecording = useCallback(() => {
     if (isRecording || isProcessing || isFullscreenCall) return
@@ -779,7 +778,7 @@ export default function App() {
   }, [isRecording, isProcessing, isFullscreenCall, processUserQuery])
 
   // ==================================================
-  // SEND / CANCEL (unchanged)
+  // SEND / CANCEL
   // ==================================================
   const sendInterim = useCallback(() => {
     if (!interimTranscript.trim() || isProcessing) return
@@ -803,7 +802,7 @@ export default function App() {
   }, [])
 
   // ==================================================
-  // SEND TEXT (main) (unchanged)
+  // SEND TEXT (main)
   // ==================================================
   const sendTextMessage = useCallback(() => {
     const text = inputText.trim()
@@ -813,7 +812,7 @@ export default function App() {
   }, [inputText, isProcessing, processUserQuery])
 
   // ==================================================
-  // WELCOME OVERLAY (unchanged)
+  // WELCOME OVERLAY
   // ==================================================
   const handleWelcomeDecision = useCallback((choice) => {
     setWelcomeStep('decision')
@@ -832,7 +831,7 @@ export default function App() {
   }, [speakText])
 
   // ==================================================
-  // VIEW TOGGLE (with rotate overlay) (unchanged)
+  // VIEW TOGGLE (with rotate overlay)
   // ==================================================
   const toggleView = useCallback(() => {
     setViewMode(prev => {
@@ -846,7 +845,7 @@ export default function App() {
   }, [])
 
   // ==================================================
-  // STATS (unchanged)
+  // STATS
   // ==================================================
   useEffect(() => {
     const timer = setInterval(() => {
@@ -865,7 +864,7 @@ export default function App() {
   }, [conversation])
 
   // ==================================================
-  // BOOT SEQUENCE + AUTO-LOGIN + GUEST WELCOME (unchanged)
+  // BOOT SEQUENCE + AUTO-LOGIN + GUEST WELCOME
   // ==================================================
   useEffect(() => {
     const bootSteps = [
@@ -916,7 +915,7 @@ export default function App() {
   }, [])
 
   // ==================================================
-  // PROFILE HANDLERS (unchanged)
+  // PROFILE HANDLERS
   // ==================================================
   const handleAvatarChange = useCallback((e) => {
     const file = e.target.files[0]
@@ -1002,7 +1001,7 @@ export default function App() {
   const formatTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
   // ============================================================
-  // RENDER: BOOT SCREEN (with fullscreen on click)
+  // RENDER: BOOT SCREEN
   // ============================================================
   if (isBooting) {
     const bootSteps = [
@@ -1013,7 +1012,7 @@ export default function App() {
       'System Ready!'
     ]
     return (
-      <div style={styles.bootContainer} onClick={requestFullscreen}>
+      <div style={styles.bootContainer}>
         <div style={styles.bootBackground} />
         <div style={styles.bootContent}>
           <h1 style={styles.bootTitle}>CYPHER4X</h1>
@@ -1039,7 +1038,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: GUEST LIMIT OVERLAY (unchanged)
+  // RENDER: GUEST LIMIT OVERLAY
   // ============================================================
   if (showGuestLimit) {
     return (
@@ -1063,7 +1062,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: WELCOME OVERLAY (unchanged)
+  // RENDER: WELCOME OVERLAY
   // ============================================================
   if (showWelcomeOverlay) {
     return (
@@ -1092,7 +1091,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: AUTH MODAL (unchanged)
+  // RENDER: AUTH MODAL
   // ============================================================
   if (showAuthModal) {
     return (
@@ -1139,7 +1138,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: FULL‑SCREEN CALL (unchanged)
+  // RENDER: FULL‑SCREEN CALL
   // ============================================================
   if (isFullscreenCall) {
     return (
@@ -1174,7 +1173,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: ROTATE OVERLAY (PC view) (unchanged)
+  // RENDER: ROTATE OVERLAY (PC view)
   // ============================================================
   if (showRotateOverlay) {
     return (
@@ -1189,7 +1188,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: CHAT OVERVIEW (input raised) (unchanged)
+  // RENDER: CHAT OVERVIEW
   // ============================================================
   if (showChatOverview) {
     return (
@@ -1263,7 +1262,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: PROFILE EDIT (unchanged)
+  // RENDER: PROFILE EDIT
   // ============================================================
   if (editingProfile) {
     return (
@@ -1319,12 +1318,12 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: ANDROID VIEW (fullscreen toggle removed)
+  // RENDER: ANDROID VIEW (clean full‑screen – no toggle)
   // ============================================================
   if (viewMode === 'android') {
     return (
       <div style={styles.appAndroid}>
-        {/* No fullscreen toggle button */}
+        {/* No fullscreen toggle */}
 
         {sidebarOpen && (
           <>
@@ -1489,7 +1488,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: PC VIEW (fullscreen toggle removed)
+  // RENDER: PC VIEW
   // ============================================================
   return (
     <div style={styles.appPC}>
@@ -1497,7 +1496,6 @@ export default function App() {
         <div style={styles.headerLeft}>
           <h1 style={styles.titlePC}>CYPHER4X</h1>
           <span style={styles.versionBadgePC}>{VERSION}</span>
-          {/* No fullscreen toggle button here */}
           <button onClick={toggleFullscreenCall} style={{ ...styles.callBtnPC, ...(isFullscreenCall ? styles.callBtnPCActive : {}) }}>
             <Icon name="phone" size={18} color={isFullscreenCall ? "#4f8" : "#ff003c"} />
             <span>{isFullscreenCall ? 'ACTIVE' : 'CALL'}</span>
@@ -1751,7 +1749,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES – Complete (with fullscreen toggle removed)
+// STYLES – Complete (all styles included)
 // ============================================================
 const styles = {
   appAndroid: {
@@ -1863,7 +1861,6 @@ const styles = {
     borderTop: '1px solid rgba(255,0,60,0.2)',
     paddingTop: '16px',
   },
-  // No fullscreen toggle button style
   callButtonCentered: {
     position: 'absolute',
     bottom: '18%',
@@ -2765,64 +2762,6 @@ const styles = {
     width: '100%',
     zIndex: 2,
     animation: 'pulseText 2.5s ease-in-out infinite',
-    fontFamily: "'Courier New', monospace",
-  },
-  topBarAndroid: {
-    position: 'absolute',
-    top: '20px',
-    right: '20px',
-    zIndex: 10,
-    display: 'flex',
-    justifyContent: 'flex-end',
-    width: '100%',
-    padding: '0 20px',
-  },
-  hamburgerBtn: {
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    border: '1px solid rgba(255,255,255,0.15)',
-    borderRadius: '30px',
-    padding: '8px 12px',
-    color: '#fff',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    backdropFilter: 'blur(10px)',
-    '&:hover': { backgroundColor: 'rgba(255,255,255,0.05)' },
-  },
-  callButtonCentered: {
-    position: 'absolute',
-    bottom: '18%',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    backgroundColor: '#ff003c',
-    border: 'none',
-    borderRadius: '60px',
-    padding: '14px 32px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    cursor: 'pointer',
-    boxShadow: '0 0 50px rgba(255,0,60,0.5)',
-    transition: 'all 0.3s ease',
-    zIndex: 5,
-    '&:hover': { transform: 'translateX(-50%) scale(1.05)', boxShadow: '0 0 70px rgba(255,0,60,0.7)' },
-  },
-  callButtonLabel: {
-    color: '#fff',
-    fontSize: '20px',
-    fontWeight: 'bold',
-    letterSpacing: '2px',
-  },
-  tapToConnect: {
-    position: 'absolute',
-    bottom: '12%',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    color: 'rgba(255,255,255,0.4)',
-    fontSize: '14px',
-    letterSpacing: '2px',
-    zIndex: 5,
     fontFamily: "'Courier New', monospace",
   },
   appPC: {
