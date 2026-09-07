@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
 // ==================================================
-// ICON SYSTEM (unchanged – abbreviated)
+// ICON SYSTEM
 // ==================================================
 const Icon = ({ name, size = 18, color = 'currentColor' }) => {
   const icons = {
@@ -48,7 +48,7 @@ const VERSION = "Version 20.0.0"
 const APP_START_TIME = Date.now()
 
 // ==================================================
-// STORAGE HELPERS (unchanged)
+// STORAGE HELPERS
 // ==================================================
 const getStorageKey = (email, pin) => `cypher4x_${email}_${pin}`
 const saveUserData = (email, pin, data) => {
@@ -125,17 +125,27 @@ const searchWeb = async (query) => {
 }
 
 // ==================================================
-// RED BALL COMPONENT (kept for other views, but not used in call)
+// 🔴 RED BALL — GENUINE 3D GLOWING SPHERE
 // ==================================================
 const RedBall = ({ isSpeaking = false }) => (
   <div style={styles.ballContainer}>
-    <div style={styles.ball}>
-      <div style={styles.ballGlow} />
-      <div style={styles.ballInner} />
-    </div>
+    {/* Outer glow rings */}
     <div style={styles.ring1} />
     <div style={styles.ring2} />
     <div style={styles.ring3} />
+
+    {/* 3D Sphere */}
+    <div style={styles.ball3DContainer}>
+      <div style={{
+        ...styles.ball3D,
+        ...(isSpeaking ? styles.ball3DSpeaking : {})
+      }}>
+        {/* Highlight / specular shine */}
+        <div style={styles.ballHighlight} />
+        {/* Core glow inside */}
+        <div style={styles.ballInnerGlow} />
+      </div>
+    </div>
   </div>
 )
 
@@ -213,7 +223,7 @@ export default function App() {
   const fileInputRef = useRef(null)
 
   // ==================================================
-  // AUTH HANDLERS (unchanged)
+  // AUTH HANDLERS
   // ==================================================
   const handleAuthSubmit = () => {
     if (!email || !pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
@@ -1143,7 +1153,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: CHAT OVERVIEW (input row raised higher)
+  // RENDER: CHAT OVERVIEW (input row raised)
   // ============================================================
   if (showChatOverview) {
     return (
@@ -1749,7 +1759,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES – Updated: no ball in call, input row raised
+// STYLES – Complete with 3D ball
 // ============================================================
 const styles = {
   appAndroid: {
@@ -2224,7 +2234,7 @@ const styles = {
     '&:hover': { transform: 'scale(1.05)' },
     '&:disabled': { opacity: 0.5, cursor: 'not-allowed' },
   },
-  // CHAT OVERVIEW – input row raised higher
+  // CHAT OVERVIEW – input row raised
   chatOverviewContainer: {
     position: 'fixed',
     top: 0,
@@ -2276,7 +2286,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '8px',
-    maxHeight: 'calc(100vh - 160px)', // leave room for input
+    maxHeight: 'calc(100vh - 160px)',
   },
   chatOverviewEmpty: {
     color: '#666',
@@ -2302,7 +2312,6 @@ const styles = {
     color: '#888',
     alignSelf: 'flex-end',
   },
-  // RAISED INPUT ROW
   chatOverviewInputRowRaised: {
     display: 'flex',
     gap: '8px',
@@ -2591,72 +2600,105 @@ const styles = {
     zIndex: 0,
     background: 'radial-gradient(ellipse at center, #0a0000 0%, #000 100%)',
   },
+  // 🔴 3D BALL STYLES (updated)
   ballContainer: {
     position: 'relative',
     width: '300px',
     height: '300px',
     pointerEvents: 'none',
     zIndex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  ball: {
+  ball3DContainer: {
+    perspective: '800px',
+    transformStyle: 'preserve-3d',
+  },
+  ball3D: {
     width: '180px',
     height: '180px',
     borderRadius: '50%',
-    background: 'radial-gradient(circle at 35% 35%, #ff6688, #ff003c, #990022)',
-    boxShadow: '0 0 60px rgba(255,0,60,0.8), inset 0 -20px 30px rgba(0,0,0,0.5)',
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    animation: 'rotateGlobe 20s linear infinite',
+    position: 'relative',
     transformStyle: 'preserve-3d',
+    background: `
+      radial-gradient(circle at 30% 25%, rgba(255, 200, 220, 0.9) 0%, transparent 45%),
+      radial-gradient(circle at 40% 35%, #ff6688 0%, #ff3355 25%, #ff003c 50%, #990022 75%, #550011 100%)
+    `,
+    boxShadow: `
+      inset -20px -20px 40px rgba(80, 0, 20, 0.8),
+      inset 15px 15px 30px rgba(255, 180, 200, 0.4),
+      0 0 50px rgba(255, 0, 60, 0.5),
+      0 0 100px rgba(255, 0, 60, 0.3),
+      0 0 150px rgba(255, 0, 60, 0.15)
+    `,
+    animation: 'rotateGlobe 25s linear infinite',
+    transition: 'all 0.3s ease',
   },
-  ballGlow: {
-    position: 'absolute',
-    top: '-20px',
-    left: '-20px',
-    right: '-20px',
-    bottom: '-20px',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(255,0,60,0.2) 0%, transparent 70%)',
-    animation: 'glowPulse 2s ease-in-out infinite',
+  ball3DSpeaking: {
+    boxShadow: `
+      inset -20px -20px 40px rgba(80, 0, 20, 0.8),
+      inset 15px 15px 30px rgba(255, 180, 200, 0.5),
+      0 0 80px rgba(255, 0, 60, 0.8),
+      0 0 150px rgba(255, 0, 60, 0.5),
+      0 0 220px rgba(255, 0, 60, 0.25)
+    `,
+    animation: 'rotateGlobe 25s linear infinite, ballPulse 1.2s ease-in-out infinite',
   },
-  ballInner: {
+  ballHighlight: {
     position: 'absolute',
-    top: '20%',
-    left: '20%',
-    width: '60%',
-    height: '60%',
+    top: '18%',
+    left: '22%',
+    width: '35%',
+    height: '25%',
     borderRadius: '50%',
-    background: 'radial-gradient(circle at 60% 60%, rgba(255,255,255,0.3), transparent 70%)',
+    background: 'radial-gradient(ellipse, rgba(255,255,255,0.6) 0%, transparent 70%)',
+    filter: 'blur(4px)',
+    pointerEvents: 'none',
+  },
+  ballInnerGlow: {
+    position: 'absolute',
+    top: '15%',
+    left: '15%',
+    width: '70%',
+    height: '70%',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(255,100,140,0.2) 0%, transparent 60%)',
+    pointerEvents: 'none',
   },
   ring1: {
     position: 'absolute',
-    top: '0%',
-    left: '0%',
-    width: '100%',
-    height: '100%',
+    top: '50%',
+    left: '50%',
+    width: '240px',
+    height: '240px',
+    marginLeft: '-120px',
+    marginTop: '-120px',
     borderRadius: '50%',
     border: '2px solid rgba(255,0,60,0.25)',
     animation: 'spinRing 12s linear infinite',
-    boxShadow: '0 0 40px rgba(255,0,60,0.05)',
+    boxShadow: '0 0 30px rgba(255,0,60,0.05)',
   },
   ring2: {
     position: 'absolute',
-    top: '-10%',
-    left: '-10%',
-    width: '120%',
-    height: '120%',
+    top: '50%',
+    left: '50%',
+    width: '280px',
+    height: '280px',
+    marginLeft: '-140px',
+    marginTop: '-140px',
     borderRadius: '50%',
     border: '1px solid rgba(255,0,60,0.12)',
     animation: 'spinRing 18s linear infinite reverse',
   },
   ring3: {
     position: 'absolute',
-    top: '5%',
-    left: '5%',
-    width: '90%',
-    height: '90%',
+    top: '50%',
+    left: '50%',
+    width: '200px',
+    height: '200px',
+    marginLeft: '-100px',
+    marginTop: '-100px',
     borderRadius: '50%',
     border: '1px dashed rgba(255,0,60,0.15)',
     animation: 'spinRing 8s linear infinite',
@@ -2827,6 +2869,7 @@ const styles = {
     padding: '8px',
     borderRadius: '4px',
   },
+  // PC styles (unchanged)
   appPC: {
     minHeight: '100vh',
     height: '100vh',
@@ -3148,7 +3191,3 @@ const styles = {
     fontSize: '12px',
   },
 }
-
-// ============================================================
-// KEYFRAMES (add to index.css)
-// ============================================================
