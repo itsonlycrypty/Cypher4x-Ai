@@ -1335,12 +1335,11 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: ANDROID VIEW — CORRECT LAYOUT (ball center, call top right, speak bottom)
+  // RENDER: ANDROID VIEW — EXACT MATCH TO SECOND IMAGE
   // ============================================================
   if (viewMode === 'android') {
     return (
       <div style={styles.appAndroid}>
-        {/* Sidebar */}
         {sidebarOpen && (
           <>
             <div style={styles.sidebarOverlay} onClick={() => setSidebarOpen(false)} />
@@ -1482,26 +1481,29 @@ export default function App() {
           </>
         )}
 
-        {/* Main Content — CORRECT LAYOUT */}
+        {/* MAIN CONTENT — MATCHES SECOND IMAGE */}
         <div style={styles.mainContentAndroid}>
           <div style={styles.backgroundAndroid}>
-            {/* Top Left: Menu button */}
+            {/* Top-left: Menu */}
             <button onClick={() => setSidebarOpen(true)} style={styles.menuBtnTopLeft}>
               <Icon name="menu" size={28} color="#ff003c" />
             </button>
 
-            {/* Top Right: CALL button */}
+            {/* Top-right: CALL button */}
             <button onClick={toggleFullscreenCall} style={styles.callBtnTopRight}>
               <Icon name="phone" size={22} color={isFullscreenCall ? "#4f8" : "#ff003c"} />
               <span style={styles.callBtnTopRightLabel}>{isFullscreenCall ? 'ACTIVE' : 'CALL'}</span>
             </button>
 
-            {/* Center: 3D Red Ball */}
-            <div style={styles.centerBallWrapper}>
-              <RedBall isSpeaking={isAISpeaking} />
+            {/* Center: Title + Ball */}
+            <div style={styles.centerContent}>
+              <div style={styles.homeTitle}>CYPHER 4X</div>
+              <div style={styles.centerBallWrapper}>
+                <RedBall isSpeaking={isAISpeaking} />
+              </div>
             </div>
 
-            {/* Bottom: Tap to Speak / Mic button */}
+            {/* Bottom: Speak button */}
             <div style={styles.speakButtonContainer}>
               <button
                 onClick={startRecording}
@@ -1510,7 +1512,7 @@ export default function App() {
               >
                 <Icon name="mic" size={36} color="#fff" />
                 <span style={styles.speakButtonLabel}>
-                  {isRecording ? 'Recording...' : isProcessing ? 'Processing...' : 'Tap to Speak'}
+                  {isRecording ? 'Recording...' : isProcessing ? 'Processing...' : 'Speak'}
                 </span>
               </button>
             </div>
@@ -1551,7 +1553,7 @@ export default function App() {
 
       <div style={styles.pcLayout}>
         <div style={styles.pcSidebar}>
-          {/* ... sidebar content unchanged ... */}
+          {/* ... (same sidebar content as before) ... */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="chart" size={16} color="#ff003c" /> SYSTEM STATS</h3>
             <div style={styles.pcSidebarRow}><span>CPU Usage</span><span style={{ color: stats.cpuUsage > 80 ? '#ff003c' : '#4f8' }}>{stats.cpuUsage}%</span></div>
@@ -1608,7 +1610,6 @@ export default function App() {
               <div key={i} style={styles.pcSidebarRow}><span>{rem.text}</span><span style={styles.eventTimePC}>{rem.time}</span></div>
             ))}
           </div>
-          {/* CONVERSATION with Overview button */}
           <div style={styles.pcSidebarSection}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
               <h3 style={styles.pcSidebarTitle}><Icon name="chat" size={16} color="#ff003c" /> CONVERSATION</h3>
@@ -1783,7 +1784,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES — Complete (with correct layout)
+// STYLES — UPDATED TO MATCH SECOND IMAGE
 // ============================================================
 const styles = {
   appAndroid: {
@@ -1895,7 +1896,8 @@ const styles = {
     borderTop: '1px solid rgba(255,0,60,0.2)',
     paddingTop: '16px',
   },
-  // ─── MAIN ANDROID LAYOUT (correct) ───
+
+  // ---- ANDROID MAIN LAYOUT (exact match to second image) ----
   mainContentAndroid: {
     flex: 1,
     display: 'flex',
@@ -1922,7 +1924,8 @@ const styles = {
     zIndex: 0,
     background: 'radial-gradient(ellipse at center, #0a0000 0%, #000 100%)',
   },
-  // Top Left: Menu button
+
+  // Top-left: menu
   menuBtnTopLeft: {
     position: 'absolute',
     top: '20px',
@@ -1938,7 +1941,8 @@ const styles = {
     justifyContent: 'center',
     backdropFilter: 'blur(10px)',
   },
-  // Top Right: CALL button
+
+  // Top-right: CALL
   callBtnTopRight: {
     position: 'absolute',
     top: '20px',
@@ -1961,15 +1965,34 @@ const styles = {
     fontWeight: 'bold',
     letterSpacing: '1px',
   },
-  // Center: Red Ball
+
+  // Center: title + ball
+  centerContent: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
+    gap: '10px',
+  },
+  homeTitle: {
+    fontSize: 'clamp(32px, 8vw, 52px)',
+    fontWeight: 'bold',
+    color: '#ff003c',
+    textShadow: '0 0 40px #ff003c, 0 0 80px #ff003c66, 0 0 120px #ff003c33',
+    letterSpacing: '6px',
+    fontFamily: "'Courier New', monospace",
+    animation: 'pulseText 2.5s ease-in-out infinite',
+    textAlign: 'center',
+  },
   centerBallWrapper: {
     position: 'relative',
-    width: 'clamp(160px, 35vw, 220px)',
-    height: 'clamp(160px, 35vw, 220px)',
+    width: 'clamp(140px, 30vw, 200px)',
+    height: 'clamp(140px, 30vw, 200px)',
     zIndex: 2,
-    marginBottom: '20px',
   },
-  // Bottom: Speak button
+
+  // Bottom: Speak
   speakButtonContainer: {
     position: 'absolute',
     bottom: '15%',
@@ -2009,7 +2032,8 @@ const styles = {
     letterSpacing: '1px',
     marginTop: '2px',
   },
-  // ─── BALL STYLES (3D) ───
+
+  // ---- 3D BALL STYLES (same) ----
   ballContainer: {
     position: 'relative',
     width: '100%',
@@ -2114,7 +2138,8 @@ const styles = {
     animation: 'spinRing 8s linear infinite',
     pointerEvents: 'none',
   },
-  // ─── SIDEBAR (unchanged) ───
+
+  // ---- SIDEBAR (unchanged) ----
   sidebarOverlay: {
     position: 'fixed',
     top: 0,
@@ -2225,7 +2250,8 @@ const styles = {
     gap: '4px',
     fontSize: '13px',
   },
-  // ─── AUTH / MODAL STYLES (unchanged) ───
+
+  // ---- AUTH / MODALS (unchanged) ----
   authModalOverlay: {
     position: 'fixed',
     top: 0,
@@ -2819,7 +2845,7 @@ const styles = {
     fontSize: '15px',
     cursor: 'pointer'
   },
-  // ─── PC STYLES ───
+  // ---- PC STYLES (unchanged) ----
   appPC: {
     minHeight: '100vh',
     height: '100vh',
