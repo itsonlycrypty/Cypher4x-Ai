@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
 // ==================================================
-// ICON SYSTEM (unchanged)
+// ICON SYSTEM (unchanged – same as before)
 // ==================================================
 const Icon = ({ name, size = 18, color = 'currentColor' }) => {
   const icons = {
@@ -48,7 +48,7 @@ const VERSION = "Version 20.0.0"
 const APP_START_TIME = Date.now()
 
 // ==================================================
-// STORAGE HELPERS
+// STORAGE HELPERS (unchanged)
 // ==================================================
 const getStorageKey = (email, pin) => `cypher4x_${email}_${pin}`
 const saveUserData = (email, pin, data) => {
@@ -170,21 +170,19 @@ export default function App() {
   const [welcomeStep, setWelcomeStep] = useState('greeting')
   const [welcomeMessage, setWelcomeMessage] = useState('')
 
-  // ------ CHAT OVERVIEW ------
+  // ------ CHAT OVERVIEW (now uses main conversation) ------
   const [showChatOverview, setShowChatOverview] = useState(false)
   const [chatOverviewInput, setChatOverviewInput] = useState('')
-  const [chatOverviewMessages, setChatOverviewMessages] = useState([])
   const [chatOverviewListening, setChatOverviewListening] = useState(false)
   const [chatOverviewInterim, setChatOverviewInterim] = useState('')
   const [chatOverviewProcessing, setChatOverviewProcessing] = useState(false)
   const [chatOverviewVoiceEnabled, setChatOverviewVoiceEnabled] = useState(true)
-  const chatOverviewMsgCounter = useRef(0)
   const chatOverviewRecognitionRef = useRef(null)
 
   // ------ PC ROTATE OVERLAY ------
   const [showRotateOverlay, setShowRotateOverlay] = useState(false)
 
-  // ------ MAIN APP STATE ------
+  // ------ MAIN APP STATE (conversation, etc.) ------
   const [conversation, setConversation] = useState([])
   const [inputText, setInputText] = useState("")
   const [commandHistory, setCommandHistory] = useState([])
@@ -215,7 +213,7 @@ export default function App() {
   const fileInputRef = useRef(null)
 
   // ==================================================
-  // AUTH HANDLERS
+  // AUTH HANDLERS (unchanged)
   // ==================================================
   const handleAuthSubmit = () => {
     if (!email || !pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
@@ -439,7 +437,7 @@ export default function App() {
   }, [voiceGender])
 
   // ==================================================
-  // PROCESS USER QUERY (with guest limit)
+  // PROCESS USER QUERY (main)
   // ==================================================
   const processUserQuery = useCallback(async (query) => {
     if (!query || isProcessing) return
@@ -507,9 +505,9 @@ export default function App() {
   }, [isProcessing, speakText, userMode])
 
   // ==================================================
-  // CHAT OVERVIEW HANDLERS (with guest limit)
+  // OVERVIEW CHAT – uses the same conversation, so no separate state
   // ==================================================
-  const setupChatOverviewRecognition = useCallback(() => {
+  const setupOverviewRecognition = useCallback(() => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       alert("Your browser doesn't support speech recognition.")
       return null
@@ -532,55 +530,15 @@ export default function App() {
       }
       if (final) {
         setChatOverviewInterim('')
-        await processChatOverviewQuery(final)
+        await processUserQuery(final) // uses main processor
       } else if (interim) {
         setChatOverviewInterim(interim)
       }
     }
     return recognition
-  }, [])
+  }, [processUserQuery])
 
-  const processChatOverviewQuery = useCallback(async (query) => {
-    if (!query || chatOverviewProcessing) return
-    if (userMode === 'guest') {
-      incrementGuestMessage()
-    }
-    setChatOverviewProcessing(true)
-    const userMsg = { id: ++chatOverviewMsgCounter.current, role: 'user', content: query, time: Date.now() }
-    setChatOverviewMessages(prev => [...prev, userMsg])
-
-    const lower = query.toLowerCase()
-    const casualPhrases = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'how are you', "what's up"]
-    if (casualPhrases.some(p => lower.includes(p))) {
-      const replies = ["Hey there! 😊 How can I help?", "Hi! ✨ What can I do for you?", "Hello! 🌟 Ready to assist!"]
-      const reply = replies[Math.floor(Math.random() * replies.length)]
-      const assistantMsg = { id: ++chatOverviewMsgCounter.current, role: 'assistant', content: reply, time: Date.now() }
-      setChatOverviewMessages(prev => [...prev, assistantMsg])
-      if (chatOverviewVoiceEnabled) speakText(reply.replace(/[😊✨🌟]/g, ''))
-      setChatOverviewProcessing(false)
-      return
-    }
-
-    const result = await searchWeb(query)
-    let reply = result.error ? `⚠️ ${result.error}` : (result.answer || "I couldn't find an answer.")
-    const assistantMsg = { id: ++chatOverviewMsgCounter.current, role: 'assistant', content: reply, time: Date.now() }
-    setChatOverviewMessages(prev => [...prev, assistantMsg])
-    if (chatOverviewVoiceEnabled) speakText(reply)
-    setChatOverviewProcessing(false)
-  }, [chatOverviewProcessing, chatOverviewVoiceEnabled, speakText, userMode])
-
-  const toggleChatOverviewVoice = useCallback(() => {
-    setChatOverviewVoiceEnabled(prev => !prev)
-  }, [])
-
-  const sendChatOverviewText = useCallback(() => {
-    const text = chatOverviewInput.trim()
-    if (!text || chatOverviewProcessing) return
-    setChatOverviewInput('')
-    processChatOverviewQuery(text)
-  }, [chatOverviewInput, chatOverviewProcessing, processChatOverviewQuery])
-
-  const toggleChatOverviewListening = useCallback(() => {
+  const toggleOverviewVoice = useCallback(() => {
     if (chatOverviewListening) {
       if (chatOverviewRecognitionRef.current) {
         try { chatOverviewRecognitionRef.current.stop() } catch (e) {}
@@ -588,15 +546,22 @@ export default function App() {
       setChatOverviewListening(false)
     } else {
       if (!chatOverviewRecognitionRef.current) {
-        chatOverviewRecognitionRef.current = setupChatOverviewRecognition()
+        chatOverviewRecognitionRef.current = setupOverviewRecognition()
       }
       if (chatOverviewRecognitionRef.current) {
         try { chatOverviewRecognitionRef.current.start() } catch (e) {}
       }
     }
-  }, [chatOverviewListening, setupChatOverviewRecognition])
+  }, [chatOverviewListening, setupOverviewRecognition])
 
-  const handleChatOverviewFileShare = useCallback((e) => {
+  const sendOverviewText = useCallback(() => {
+    const text = chatOverviewInput.trim()
+    if (!text || isProcessing) return
+    setChatOverviewInput('')
+    processUserQuery(text)
+  }, [chatOverviewInput, isProcessing, processUserQuery])
+
+  const handleOverviewFileShare = useCallback((e) => {
     const files = e.target.files
     if (!files || files.length === 0) return
     const file = files[0]
@@ -605,7 +570,7 @@ export default function App() {
     const reader = new FileReader()
     reader.onloadend = () => {
       const fileData = {
-        id: ++chatOverviewMsgCounter.current,
+        id: ++msgCounter.current,
         role: 'user',
         content: `📎 ${file.name}`,
         time: Date.now(),
@@ -616,18 +581,19 @@ export default function App() {
           size: file.size
         }
       }
-      setChatOverviewMessages(prev => [...prev, fileData])
-      const reply = `Received your file: **${file.name}** (${(file.size / 1024).toFixed(1)} KB). How can I help with it? 🤖`
-      const assistantMsg = { id: ++chatOverviewMsgCounter.current, role: 'assistant', content: reply, time: Date.now() }
-      setChatOverviewMessages(prev => [...prev, assistantMsg])
+      setConversation(prev => [...prev, fileData])
+      setCommandHistory(prev => [...prev, { command: `📎 ${file.name}`, timestamp: Date.now() }])
+      const reply = `Received your file: **${file.name}** (${(file.size / 1024).toFixed(1)} KB). I can't process it directly, but I'm happy to help! 🤖`
+      const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
+      setConversation(prev => [...prev, assistantMsg])
       if (chatOverviewVoiceEnabled) speakText(reply.replace(/[🤖]/g, ''))
     }
     reader.readAsDataURL(file)
     e.target.value = ''
-  }, [chatOverviewVoiceEnabled, speakText])
+  }, [speakText, chatOverviewVoiceEnabled])
 
   // ==================================================
-  // FILE SHARE HANDLER (main)
+  // FILE SHARE HANDLER (main sidebar)
   // ==================================================
   const handleFileShare = useCallback((e) => {
     const files = e.target.files
@@ -801,7 +767,7 @@ export default function App() {
   }, [inputText, isProcessing, processUserQuery])
 
   // ==================================================
-  // WELCOME OVERLAY HANDLERS
+  // WELCOME OVERLAY
   // ==================================================
   const handleWelcomeDecision = useCallback((choice) => {
     setWelcomeStep('decision')
@@ -886,7 +852,6 @@ export default function App() {
           } else {
             setUserMode('guest')
             setGuestMessageCount(0)
-            // Guest welcome – once per day
             const today = new Date().toDateString()
             const lastWelcome = getLastWelcomeDate()
             if (lastWelcome !== today) {
@@ -1081,7 +1046,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: AUTH MODAL (for guest login)
+  // RENDER: AUTH MODAL
   // ============================================================
   if (showAuthModal) {
     return (
@@ -1128,7 +1093,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: FULL‑SCREEN CALL OVERLAY
+  // RENDER: FULL‑SCREEN CALL (mic button & text moved lower)
   // ============================================================
   if (isFullscreenCall) {
     return (
@@ -1181,7 +1146,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: CHAT OVERVIEW (with input raised)
+  // RENDER: CHAT OVERVIEW (shows main conversation, input row visible)
   // ============================================================
   if (showChatOverview) {
     return (
@@ -1191,15 +1156,15 @@ export default function App() {
             <Icon name="arrowLeft" size={24} color="#fff" /> Back
           </button>
           <span style={styles.chatOverviewTitle}>Chat with AI</span>
-          <button onClick={toggleChatOverviewVoice} style={styles.chatOverviewVoiceToggle}>
+          <button onClick={() => setChatOverviewVoiceEnabled(!chatOverviewVoiceEnabled)} style={styles.chatOverviewVoiceToggle}>
             <Icon name={chatOverviewVoiceEnabled ? 'volume2' : 'volumeX'} size={20} color="#fff" />
           </button>
         </div>
         <div style={styles.chatOverviewMessages}>
-          {chatOverviewMessages.length === 0 && (
+          {conversation.length === 0 && (
             <div style={styles.chatOverviewEmpty}>Start chatting with AI! 💬</div>
           )}
-          {chatOverviewMessages.map(msg => (
+          {conversation.map(msg => (
             <div key={msg.id} style={{
               ...styles.chatOverviewMsg,
               alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
@@ -1223,7 +1188,7 @@ export default function App() {
               <span style={styles.chatOverviewMsgText}>"{chatOverviewInterim}"</span>
             </div>
           )}
-          {chatOverviewProcessing && (
+          {isProcessing && (
             <div style={{ ...styles.chatOverviewMsg, alignSelf: 'flex-start', backgroundColor: '#1a1a1a' }}>
               <span style={styles.chatOverviewMsgText}>⏳ Thinking...</span>
             </div>
@@ -1234,19 +1199,19 @@ export default function App() {
             type="text"
             value={chatOverviewInput}
             onChange={(e) => setChatOverviewInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && sendChatOverviewText()}
+            onKeyDown={(e) => e.key === 'Enter' && sendOverviewText()}
             placeholder="Type a message..."
             style={styles.chatOverviewInput}
-            disabled={chatOverviewProcessing}
+            disabled={isProcessing}
           />
-          <button onClick={toggleChatOverviewListening} style={styles.chatOverviewMicBtn}>
+          <button onClick={toggleOverviewVoice} style={styles.chatOverviewMicBtn}>
             <Icon name="mic" size={20} color={chatOverviewListening ? "#4f8" : "#fff"} />
           </button>
           <label style={styles.chatOverviewAttachBtn}>
             <Icon name="file" size={20} color="#fff" />
-            <input type="file" accept="image/*,video/*,.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx" onChange={handleChatOverviewFileShare} style={{ display: 'none' }} />
+            <input type="file" accept="image/*,video/*,.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx" onChange={handleOverviewFileShare} style={{ display: 'none' }} />
           </label>
-          <button onClick={sendChatOverviewText} style={styles.chatOverviewSendBtn} disabled={chatOverviewProcessing}>
+          <button onClick={sendOverviewText} style={styles.chatOverviewSendBtn} disabled={isProcessing}>
             <Icon name="send" size={20} color="#fff" />
           </button>
         </div>
@@ -1311,7 +1276,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: ANDROID VIEW
+  // RENDER: ANDROID VIEW (unchanged)
   // ============================================================
   if (viewMode === 'android') {
     return (
@@ -1526,7 +1491,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: PC VIEW
+  // RENDER: PC VIEW (unchanged)
   // ============================================================
   return (
     <div style={styles.appPC}>
@@ -1787,7 +1752,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES – Complete (with chat overview padding fix)
+// STYLES – Complete (with overview input visible and call layout fixed)
 // ============================================================
 const styles = {
   appAndroid: {
@@ -2167,7 +2132,7 @@ const styles = {
     fontWeight: 'bold',
     cursor: 'pointer',
   },
-  // FULLSCREEN CALL
+  // FULLSCREEN CALL (fixed layout)
   fullscreenCallOverlay: {
     position: 'fixed',
     top: 0,
@@ -2202,9 +2167,10 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '20px',
+    gap: '30px',
     width: '100%',
     maxWidth: '500px',
+    marginTop: '40px', // moved down
   },
   fullscreenBallWrapper: {
     width: 'clamp(180px, 35vw, 260px)',
@@ -2269,7 +2235,7 @@ const styles = {
     '&:hover': { transform: 'scale(1.05)' },
     '&:disabled': { opacity: 0.5, cursor: 'not-allowed' },
   },
-  // CHAT OVERVIEW (with input raised)
+  // CHAT OVERVIEW (input row always visible)
   chatOverviewContainer: {
     position: 'fixed',
     top: 0,
@@ -2411,7 +2377,7 @@ const styles = {
     gap: '4px',
     '&:hover': { backgroundColor: '#2a4a4a' },
   },
-  // PROFILE (existing)
+  // PROFILE
   profileContainer: {
     backgroundColor: '#000',
     minHeight: '100vh',
@@ -2497,7 +2463,7 @@ const styles = {
     fontSize: '15px',
     cursor: 'pointer'
   },
-  // SIDEBAR (same as before)
+  // SIDEBAR
   sidebarOverlay: {
     position: 'fixed',
     top: 0,
