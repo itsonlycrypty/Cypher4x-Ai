@@ -3,28 +3,23 @@
   0%   { transform: rotateX(12deg) rotateY(0deg)   rotateZ(0deg); }
   100% { transform: rotateX(12deg) rotateY(360deg) rotateZ(0deg); }
 }
-
 @keyframes spinRing {
   0%   { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-
 @keyframes ballPulse {
   0%, 100% { filter: brightness(1); }
   50%      { filter: brightness(1.3); }
 }
-
 @keyframes glowPulse {
   0%, 100% { opacity: 0.4; transform: scale(1); }
   50%      { opacity: 0.9; transform: scale(1.15); }
 }
-
 @keyframes pulseText {
   0%, 100% { opacity: 0.8; transform: scale(1); }
   50%      { opacity: 1; transform: scale(1.05); }
 }
-
 @keyframes pulseGlow {
   0%, 100% { box-shadow: 0 0 60px rgba(255,0,60,0.4); }
   50%      { box-shadow: 0 0 100px rgba(255,0,60,0.8); }
-}
+  }
