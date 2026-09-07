@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
 // ==================================================
-// ICON SYSTEM
+// ICON SYSTEM (unchanged – abbreviated for length)
 // ==================================================
 const Icon = ({ name, size = 18, color = 'currentColor' }) => {
   const icons = {
@@ -29,7 +29,6 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     arrowLeft: 'M19 12H5M12 19l-7-7 7-7',
     volume2: 'M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07',
     volumeX: 'M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6',
-    rotate: 'M21 12a9 9 0 1 1-6.219-8.56M15 3h6v6',
   }
   const path = icons[name]
   if (!path) return null
@@ -46,12 +45,10 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
 const TAVILY_API_KEY = "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"
 const TAVILY_URL = "https://api.tavily.com/search"
 const VERSION = "Version 20.0.0"
-const CREATED_BY = "Crypty"
-const ASSISTED_BY = "Mole"
 const APP_START_TIME = Date.now()
 
 // ==================================================
-// STORAGE HELPERS
+// STORAGE HELPERS (unchanged)
 // ==================================================
 const getStorageKey = (email, pin) => `cypher4x_${email}_${pin}`
 const saveUserData = (email, pin, data) => {
@@ -128,19 +125,24 @@ const searchWeb = async (query) => {
 }
 
 // ==================================================
-// 🔴 RED BALL — 3D GLOWING SPHERE
+// 🔴 RED BALL — GENUINE 3D GLOWING SPHERE (UPDATED)
 // ==================================================
 const RedBall = ({ isSpeaking = false }) => (
   <div style={styles.ballContainer}>
+    {/* Outer glow rings */}
     <div style={styles.ring1} />
     <div style={styles.ring2} />
     <div style={styles.ring3} />
+
+    {/* 3D Sphere */}
     <div style={styles.ball3DContainer}>
       <div style={{
         ...styles.ball3D,
         ...(isSpeaking ? styles.ball3DSpeaking : {})
       }}>
+        {/* Highlight / specular shine */}
         <div style={styles.ballHighlight} />
+        {/* Core glow inside */}
         <div style={styles.ballInnerGlow} />
       </div>
     </div>
@@ -221,46 +223,7 @@ export default function App() {
   const fileInputRef = useRef(null)
 
   // ==================================================
-  // FULLSCREEN ON FIRST INTERACTION
-  // ==================================================
-  const requestFullscreen = useCallback(async () => {
-    try {
-      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-        if (document.documentElement.requestFullscreen) {
-          await document.documentElement.requestFullscreen()
-        } else if (document.webkitRequestFullscreen) {
-          await document.webkitRequestFullscreen()
-        }
-      }
-    } catch (e) {}
-  }, [])
-
-  useEffect(() => {
-    const handleFirstClick = () => {
-      requestFullscreen()
-      document.removeEventListener('click', handleFirstClick)
-    }
-    document.addEventListener('click', handleFirstClick)
-    return () => document.removeEventListener('click', handleFirstClick)
-  }, [requestFullscreen])
-
-  // ==================================================
-  // AI IDENTITY CHECK
-  // ==================================================
-  const getCreatorGreeting = (name) => {
-    if (!name) return null
-    const lowerName = name.toLowerCase()
-    if (lowerName.includes('crypty') || lowerName === 'crypty') {
-      return "🌟 Hello Creator Crypty! It's an honour to speak with you. You built me from scratch, and I'm forever grateful. How can I serve you today, my creator? 🙏"
-    }
-    if (lowerName.includes('mole') || lowerName === 'mole') {
-      return "🔧 Hey Mole! The brilliant assistant developer who helped bring me to life. Your contributions are invaluable! What can I do for you today? 💪"
-    }
-    return null
-  }
-
-  // ==================================================
-  // AUTH HANDLERS
+  // AUTH HANDLERS (unchanged)
   // ==================================================
   const handleAuthSubmit = () => {
     if (!email || !pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
@@ -326,17 +289,15 @@ export default function App() {
         setShowWelcomeOverlay(true)
         setWelcomeStep('greeting')
         const name = data.profile?.name || 'User'
-        const creatorMsg = getCreatorGreeting(name)
-        const msg = creatorMsg || `Hello ${name}! I'm CYPHER4X, your friendly AI assistant. How are you feeling today?`
+        const msg = `Hello ${name}! I'm CYPHER4X, your friendly AI assistant. How are you feeling today?`
         setWelcomeMessage(msg)
-        speakText(msg.replace(/[🌟🔧🙏💪]/g, ''))
+        speakText(msg)
       } else {
         const name = data.profile?.name || 'User'
-        const creatorMsg = getCreatorGreeting(name)
-        const greet = creatorMsg || `Welcome back, ${name}! I'm CYPHER4X. How can I help you today? ✨`
+        const greet = `Welcome back, ${name}! I'm CYPHER4X. How can I help you today? ✨`
         const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: greet, time: Date.now() }
         setConversation(prev => [...prev, assistantMsg])
-        speakText(greet.replace(/[🌟🔧🙏💪✨]/g, ''))
+        speakText(greet.replace(/[✨]/g, ''))
       }
     }
   }
@@ -486,7 +447,7 @@ export default function App() {
   }, [voiceGender])
 
   // ==================================================
-  // PROCESS USER QUERY
+  // PROCESS USER QUERY (main)
   // ==================================================
   const processUserQuery = useCallback(async (query) => {
     if (!query || isProcessing) return
@@ -554,7 +515,7 @@ export default function App() {
   }, [isProcessing, speakText, userMode])
 
   // ==================================================
-  // OVERVIEW CHAT
+  // OVERVIEW CHAT – uses main conversation
   // ==================================================
   const setupOverviewRecognition = useCallback(() => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -642,7 +603,7 @@ export default function App() {
   }, [speakText, chatOverviewVoiceEnabled])
 
   // ==================================================
-  // FILE SHARE HANDLER (main)
+  // FILE SHARE HANDLER (main sidebar)
   // ==================================================
   const handleFileShare = useCallback((e) => {
     const files = e.target.files
@@ -676,9 +637,9 @@ export default function App() {
   }, [speakText])
 
   // ==================================================
-  // FULL‑SCREEN CALL HANDLERS
+  // FULL‑SCREEN CALL HANDLERS (unchanged – no fullscreen API added)
   // ==================================================
-  const toggleFullscreenCall = useCallback(async () => {
+  const toggleFullscreenCall = useCallback(() => {
     if (isFullscreenCall) {
       setIsFullscreenCall(false)
       setIsCallActive(false)
@@ -689,22 +650,9 @@ export default function App() {
       setInterimTranscript('')
       synthRef.current?.cancel()
       setIsAISpeaking(false)
-      if (document.fullscreenElement || document.webkitFullscreenElement) {
-        try {
-          if (document.exitFullscreen) await document.exitFullscreen()
-          else if (document.webkitExitFullscreen) await document.webkitExitFullscreen()
-        } catch (e) {}
-      }
     } else {
       setIsFullscreenCall(true)
       setIsCallActive(true)
-      try {
-        if (document.documentElement.requestFullscreen) {
-          await document.documentElement.requestFullscreen()
-        } else if (document.webkitRequestFullscreen) {
-          await document.webkitRequestFullscreen()
-        }
-      } catch (e) {}
       if (!recognitionRef.current) {
         recognitionRef.current = setupSpeechRecognition(false, (finalTranscript) => {
           processUserQuery(finalTranscript)
@@ -1018,7 +966,7 @@ export default function App() {
   const formatTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
   // ============================================================
-  // RENDER: BOOT SCREEN
+  // RENDER: BOOT SCREEN (unchanged)
   // ============================================================
   if (isBooting) {
     const bootSteps = [
@@ -1047,7 +995,7 @@ export default function App() {
             <span style={styles.bootStatusText}>CYPHER4X LOADING...</span>
           </div>
           <div style={styles.bootCredit}>
-            Created by The Hackers Hub led by {CREATED_BY} & {ASSISTED_BY}
+            Created by Hackers Hub Organisation led by Crypty
           </div>
         </div>
       </div>
@@ -1155,7 +1103,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: FULL‑SCREEN CALL
+  // RENDER: FULL‑SCREEN CALL (NO RED BALL)
   // ============================================================
   if (isFullscreenCall) {
     return (
@@ -1205,7 +1153,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: CHAT OVERVIEW
+  // RENDER: CHAT OVERVIEW (input row raised higher)
   // ============================================================
   if (showChatOverview) {
     return (
@@ -1335,7 +1283,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: ANDROID VIEW — EXACT MATCH TO SECOND IMAGE
+  // RENDER: ANDROID VIEW (unchanged layout)
   // ============================================================
   if (viewMode === 'android') {
     return (
@@ -1481,49 +1429,76 @@ export default function App() {
           </>
         )}
 
-        {/* MAIN CONTENT — MATCHES SECOND IMAGE */}
         <div style={styles.mainContentAndroid}>
           <div style={styles.backgroundAndroid}>
-            {/* Top-left: Menu */}
-            <button onClick={() => setSidebarOpen(true)} style={styles.menuBtnTopLeft}>
-              <Icon name="menu" size={28} color="#ff003c" />
-            </button>
-
-            {/* Top-right: CALL button */}
-            <button onClick={toggleFullscreenCall} style={styles.callBtnTopRight}>
-              <Icon name="phone" size={22} color={isFullscreenCall ? "#4f8" : "#ff003c"} />
-              <span style={styles.callBtnTopRightLabel}>{isFullscreenCall ? 'ACTIVE' : 'CALL'}</span>
-            </button>
-
-            {/* Center: Title + Ball */}
-            <div style={styles.centerContent}>
-              <div style={styles.homeTitle}>CYPHER 4X</div>
-              <div style={styles.centerBallWrapper}>
-                <RedBall isSpeaking={isAISpeaking} />
-              </div>
-            </div>
-
-            {/* Bottom: Speak button */}
-            <div style={styles.speakButtonContainer}>
-              <button
-                onClick={startRecording}
-                disabled={isRecording || isProcessing || isFullscreenCall}
-                style={{ ...styles.speakButton, ...(isRecording ? styles.speakButtonActive : {}) }}
-              >
-                <Icon name="mic" size={36} color="#fff" />
-                <span style={styles.speakButtonLabel}>
-                  {isRecording ? 'Recording...' : isProcessing ? 'Processing...' : 'Speak'}
-                </span>
-              </button>
-            </div>
+            <RedBall isSpeaking={isAISpeaking} />
+            <div style={styles.faceTitleAndroid}>CYPHER4X</div>
           </div>
+
+          <div style={styles.topBarAndroid}>
+            <div style={{ width: '80px' }} />
+            <button onClick={toggleFullscreenCall} style={styles.callButtonTopRight}>
+              <Icon name="phone" size={24} color={isCallActive ? "#4f8" : "#ff003c"} />
+              <span style={styles.callLabelTop}>{isFullscreenCall ? 'ACTIVE' : 'CALL'}</span>
+            </button>
+          </div>
+
+          <div style={styles.listeningContainer}>
+            {isListening ? (
+              <>
+                <div style={styles.listeningDot} />
+                <span style={styles.listeningText}>Listening...</span>
+                {interimTranscript && <span style={styles.interimText}>"{interimTranscript}"</span>}
+                {interimTranscript && (
+                  <button onClick={sendInterim} style={styles.sendInterimBtn} disabled={isProcessing}>
+                    <Icon name="send" size={16} color="#fff" /><span>Send</span>
+                  </button>
+                )}
+              </>
+            ) : isProcessing ? (
+              <span style={styles.listeningText}>Processing...</span>
+            ) : isRecording ? (
+              <>
+                <div style={{ ...styles.listeningDot, backgroundColor: '#ff003c', boxShadow: '0 0 20px #ff003c' }} />
+                <span style={styles.listeningText}>Recording...</span>
+                {interimTranscript && <span style={styles.interimText}>"{interimTranscript}"</span>}
+                {interimTranscript && (
+                  <>
+                    <button onClick={sendInterim} style={styles.sendInterimBtn} disabled={isProcessing}>
+                      <Icon name="send" size={16} color="#fff" /><span>Send</span>
+                    </button>
+                    <button onClick={cancelRecording} style={styles.cancelInterimBtn}>
+                      <Icon name="close" size={18} color="#ff003c" />
+                    </button>
+                  </>
+                )}
+              </>
+            ) : null}
+          </div>
+
+          <div style={styles.voiceButtonContainer}>
+            <button
+              onClick={startRecording}
+              disabled={isRecording || isProcessing || isFullscreenCall}
+              style={{ ...styles.voiceButton, ...(isRecording ? styles.voiceButtonActive : {}) }}
+            >
+              <Icon name="mic" size={40} color="#fff" />
+              <span style={styles.voiceLabel}>
+                {isRecording ? 'Recording...' : isProcessing ? 'Processing...' : 'Tap to Speak'}
+              </span>
+            </button>
+          </div>
+
+          <button onClick={() => setSidebarOpen(true)} style={{ ...styles.hamburgerBtn, zIndex: 15 }}>
+            <Icon name="menu" size={28} color="#ff003c" />
+          </button>
         </div>
       </div>
     )
   }
 
   // ============================================================
-  // RENDER: PC VIEW
+  // RENDER: PC VIEW (unchanged)
   // ============================================================
   return (
     <div style={styles.appPC}>
@@ -1553,7 +1528,6 @@ export default function App() {
 
       <div style={styles.pcLayout}>
         <div style={styles.pcSidebar}>
-          {/* ... (same sidebar content as before) ... */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="chart" size={16} color="#ff003c" /> SYSTEM STATS</h3>
             <div style={styles.pcSidebarRow}><span>CPU Usage</span><span style={{ color: stats.cpuUsage > 80 ? '#ff003c' : '#4f8' }}>{stats.cpuUsage}%</span></div>
@@ -1610,6 +1584,7 @@ export default function App() {
               <div key={i} style={styles.pcSidebarRow}><span>{rem.text}</span><span style={styles.eventTimePC}>{rem.time}</span></div>
             ))}
           </div>
+          {/* CONVERSATION with Overview button */}
           <div style={styles.pcSidebarSection}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
               <h3 style={styles.pcSidebarTitle}><Icon name="chat" size={16} color="#ff003c" /> CONVERSATION</h3>
@@ -1784,7 +1759,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES — UPDATED TO MATCH SECOND IMAGE
+// STYLES – Updated with truly 3D ball styles
 // ============================================================
 const styles = {
   appAndroid: {
@@ -1797,12 +1772,10 @@ const styles = {
     border: 'none',
     margin: 0,
     padding: 0,
-    position: 'relative',
   },
   bootContainer: {
     backgroundColor: '#000',
     minHeight: '100vh',
-    height: '100vh',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1896,362 +1869,6 @@ const styles = {
     borderTop: '1px solid rgba(255,0,60,0.2)',
     paddingTop: '16px',
   },
-
-  // ---- ANDROID MAIN LAYOUT (exact match to second image) ----
-  mainContentAndroid: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-    height: '100vh',
-    border: 'none',
-    margin: 0,
-    padding: 0,
-  },
-  backgroundAndroid: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 0,
-    background: 'radial-gradient(ellipse at center, #0a0000 0%, #000 100%)',
-  },
-
-  // Top-left: menu
-  menuBtnTopLeft: {
-    position: 'absolute',
-    top: '20px',
-    left: '20px',
-    zIndex: 10,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    border: '1px solid rgba(255,255,255,0.15)',
-    borderRadius: '30px',
-    padding: '8px 12px',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backdropFilter: 'blur(10px)',
-  },
-
-  // Top-right: CALL
-  callBtnTopRight: {
-    position: 'absolute',
-    top: '20px',
-    right: '20px',
-    zIndex: 10,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    border: '2px solid #ff003c',
-    borderRadius: '30px',
-    padding: '8px 16px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    cursor: 'pointer',
-    backdropFilter: 'blur(10px)',
-    transition: 'all 0.3s ease',
-  },
-  callBtnTopRightLabel: {
-    color: '#ff003c',
-    fontSize: '12px',
-    fontWeight: 'bold',
-    letterSpacing: '1px',
-  },
-
-  // Center: title + ball
-  centerContent: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 2,
-    gap: '10px',
-  },
-  homeTitle: {
-    fontSize: 'clamp(32px, 8vw, 52px)',
-    fontWeight: 'bold',
-    color: '#ff003c',
-    textShadow: '0 0 40px #ff003c, 0 0 80px #ff003c66, 0 0 120px #ff003c33',
-    letterSpacing: '6px',
-    fontFamily: "'Courier New', monospace",
-    animation: 'pulseText 2.5s ease-in-out infinite',
-    textAlign: 'center',
-  },
-  centerBallWrapper: {
-    position: 'relative',
-    width: 'clamp(140px, 30vw, 200px)',
-    height: 'clamp(140px, 30vw, 200px)',
-    zIndex: 2,
-  },
-
-  // Bottom: Speak
-  speakButtonContainer: {
-    position: 'absolute',
-    bottom: '15%',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    zIndex: 5,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  speakButton: {
-    width: 'clamp(80px, 16vw, 110px)',
-    height: 'clamp(80px, 16vw, 110px)',
-    borderRadius: '50%',
-    backgroundColor: '#1a1a1a',
-    border: '3px solid #ff003c',
-    cursor: 'pointer',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '2px',
-    transition: 'all 0.3s ease',
-    boxShadow: '0 0 40px rgba(255,0,60,0.2)',
-  },
-  speakButtonActive: {
-    backgroundColor: '#ff003c',
-    borderColor: '#ff003c',
-    boxShadow: '0 0 80px rgba(255,0,60,0.7)',
-    animation: 'pulseGlow 1s ease-in-out infinite',
-  },
-  speakButtonLabel: {
-    color: '#fff',
-    fontSize: '10px',
-    fontWeight: 'bold',
-    letterSpacing: '1px',
-    marginTop: '2px',
-  },
-
-  // ---- 3D BALL STYLES (same) ----
-  ballContainer: {
-    position: 'relative',
-    width: '100%',
-    height: '100%',
-    pointerEvents: 'none',
-    zIndex: 1,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ball3DContainer: {
-    perspective: '800px',
-    transformStyle: 'preserve-3d',
-    width: '100%',
-    height: '100%',
-  },
-  ball3D: {
-    width: '100%',
-    height: '100%',
-    borderRadius: '50%',
-    position: 'relative',
-    transformStyle: 'preserve-3d',
-    background: `
-      radial-gradient(circle at 30% 25%, rgba(255, 200, 220, 0.9) 0%, transparent 45%),
-      radial-gradient(circle at 40% 35%, #ff6688 0%, #ff3355 25%, #ff003c 50%, #990022 75%, #550011 100%)
-    `,
-    boxShadow: `
-      inset -20px -20px 40px rgba(80, 0, 20, 0.8),
-      inset 15px 15px 30px rgba(255, 180, 200, 0.4),
-      0 0 50px rgba(255, 0, 60, 0.5),
-      0 0 100px rgba(255, 0, 60, 0.3),
-      0 0 150px rgba(255, 0, 60, 0.15)
-    `,
-    animation: 'rotateGlobe 25s linear infinite',
-    transition: 'all 0.3s ease',
-  },
-  ball3DSpeaking: {
-    boxShadow: `
-      inset -20px -20px 40px rgba(80, 0, 20, 0.8),
-      inset 15px 15px 30px rgba(255, 180, 200, 0.5),
-      0 0 80px rgba(255, 0, 60, 0.8),
-      0 0 150px rgba(255, 0, 60, 0.5),
-      0 0 220px rgba(255, 0, 60, 0.25)
-    `,
-    animation: 'rotateGlobe 25s linear infinite, ballPulse 1.2s ease-in-out infinite',
-  },
-  ballHighlight: {
-    position: 'absolute',
-    top: '18%',
-    left: '22%',
-    width: '35%',
-    height: '25%',
-    borderRadius: '50%',
-    background: 'radial-gradient(ellipse, rgba(255,255,255,0.6) 0%, transparent 70%)',
-    filter: 'blur(4px)',
-    pointerEvents: 'none',
-  },
-  ballInnerGlow: {
-    position: 'absolute',
-    top: '15%',
-    left: '15%',
-    width: '70%',
-    height: '70%',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(255,100,140,0.2) 0%, transparent 60%)',
-    pointerEvents: 'none',
-  },
-  ring1: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    width: '140%',
-    height: '140%',
-    transform: 'translate(-50%, -50%)',
-    borderRadius: '50%',
-    border: '2px solid rgba(255,0,60,0.25)',
-    animation: 'spinRing 12s linear infinite',
-    boxShadow: '0 0 30px rgba(255,0,60,0.05)',
-    pointerEvents: 'none',
-  },
-  ring2: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    width: '160%',
-    height: '160%',
-    transform: 'translate(-50%, -50%)',
-    borderRadius: '50%',
-    border: '1px solid rgba(255,0,60,0.12)',
-    animation: 'spinRing 18s linear infinite reverse',
-    pointerEvents: 'none',
-  },
-  ring3: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    width: '120%',
-    height: '120%',
-    transform: 'translate(-50%, -50%)',
-    borderRadius: '50%',
-    border: '1px dashed rgba(255,0,60,0.15)',
-    animation: 'spinRing 8s linear infinite',
-    pointerEvents: 'none',
-  },
-
-  // ---- SIDEBAR (unchanged) ----
-  sidebarOverlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.85)',
-    zIndex: 998
-  },
-  sidebar: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    bottom: 0,
-    width: '380px',
-    maxWidth: '90vw',
-    backgroundColor: '#0a0000',
-    borderRight: '2px solid #ff003c',
-    zIndex: 999,
-    overflowY: 'auto',
-    padding: '16px',
-    border: 'none',
-  },
-  sidebarHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '0',
-    paddingBottom: '10px',
-    borderBottom: '1px solid #333'
-  },
-  sidebarTitle: { color: '#ff003c', fontSize: '18px', fontWeight: 'bold', margin: 0, fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '8px' },
-  closeBtn: { backgroundColor: 'transparent', border: 'none', color: '#888', fontSize: '20px', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' },
-  sidebarSection: { marginBottom: '12px' },
-  sectionTitle: {
-    color: '#ff003c',
-    fontSize: '14px',
-    margin: '0 0 8px 0',
-    paddingBottom: '4px',
-    borderBottom: '1px solid #333',
-    fontFamily: 'monospace',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px'
-  },
-  settingRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' },
-  settingLabel: { fontSize: '13px', color: '#ddd' },
-  settingValue: { fontSize: '13px', color: '#ff6688' },
-  selectInput: {
-    padding: '4px 8px',
-    backgroundColor: '#000',
-    border: '1px solid #444',
-    color: '#fff',
-    borderRadius: '4px',
-    fontSize: '12px'
-  },
-  toggleBtn: {
-    padding: '4px 12px',
-    borderRadius: '3px',
-    border: 'none',
-    fontSize: '11px',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    backgroundColor: '#333',
-    color: '#fff'
-  },
-  statsCard: {
-    border: '1px solid #ff003c40',
-    borderRadius: '6px',
-    padding: '10px 12px',
-    backgroundColor: '#0a0a0a'
-  },
-  statRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 0', fontSize: '12px' },
-  statLabel: { color: '#aaa', display: 'flex', alignItems: 'center', gap: '4px' },
-  statValue: { color: '#ff6688', fontWeight: '500' },
-  profileCardSidebar: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' },
-  profileAvatarWrapper: { flexShrink: 0 },
-  profileAvatar: { width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #ff003c' },
-  profileAvatarPlaceholder: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    backgroundColor: '#ff003c',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#fff',
-    fontSize: '18px',
-    fontWeight: 'bold'
-  },
-  profileInfo: { display: 'flex', flexDirection: 'column' },
-  profileName: { color: '#fff', fontWeight: 'bold', fontSize: '14px' },
-  profileHandle: { color: '#888', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '2px' },
-  sidebarBtn: { padding: '6px 12px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' },
-  dangerBtn: { padding: '6px 12px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' },
-  logoutBtn: {
-    padding: '6px 12px',
-    backgroundColor: '#880000',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    width: '100%',
-    marginTop: '4px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '4px',
-    fontSize: '13px',
-  },
-
-  // ---- AUTH / MODALS (unchanged) ----
   authModalOverlay: {
     position: 'fixed',
     top: 0,
@@ -2518,6 +2135,7 @@ const styles = {
     fontWeight: 'bold',
     cursor: 'pointer',
   },
+  // FULLSCREEN CALL – NO BALL
   fullscreenCallOverlay: {
     position: 'fixed',
     top: 0,
@@ -2616,6 +2234,7 @@ const styles = {
     '&:hover': { transform: 'scale(1.05)' },
     '&:disabled': { opacity: 0.5, cursor: 'not-allowed' },
   },
+  // CHAT OVERVIEW – input row raised higher
   chatOverviewContainer: {
     position: 'fixed',
     top: 0,
@@ -2696,13 +2315,13 @@ const styles = {
   chatOverviewInputRowRaised: {
     display: 'flex',
     gap: '8px',
-    padding: '14px 16px',
-    paddingBottom: 'max(40px, env(safe-area-inset-bottom, 60px))',
+    padding: '12px 16px',
+    paddingBottom: 'max(30px, env(safe-area-inset-bottom, 50px))',
     backgroundColor: '#111',
     borderTop: '1px solid #333',
     flexShrink: 0,
     alignItems: 'center',
-    marginTop: '8px',
+    marginTop: '10px',
   },
   chatOverviewInput: {
     flex: 1,
@@ -2845,7 +2464,414 @@ const styles = {
     fontSize: '15px',
     cursor: 'pointer'
   },
-  // ---- PC STYLES (unchanged) ----
+  sidebarOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    zIndex: 998
+  },
+  sidebar: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    width: '380px',
+    maxWidth: '90vw',
+    backgroundColor: '#0a0000',
+    borderRight: '2px solid #ff003c',
+    zIndex: 999,
+    overflowY: 'auto',
+    padding: '16px',
+    border: 'none',
+  },
+  sidebarHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '0',
+    paddingBottom: '10px',
+    borderBottom: '1px solid #333'
+  },
+  sidebarTitle: { color: '#ff003c', fontSize: '18px', fontWeight: 'bold', margin: 0, fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '8px' },
+  closeBtn: { backgroundColor: 'transparent', border: 'none', color: '#888', fontSize: '20px', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' },
+  sidebarSection: { marginBottom: '12px' },
+  sectionTitle: {
+    color: '#ff003c',
+    fontSize: '14px',
+    margin: '0 0 8px 0',
+    paddingBottom: '4px',
+    borderBottom: '1px solid #333',
+    fontFamily: 'monospace',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px'
+  },
+  settingRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' },
+  settingLabel: { fontSize: '13px', color: '#ddd' },
+  settingValue: { fontSize: '13px', color: '#ff6688' },
+  selectInput: {
+    padding: '4px 8px',
+    backgroundColor: '#000',
+    border: '1px solid #444',
+    color: '#fff',
+    borderRadius: '4px',
+    fontSize: '12px'
+  },
+  toggleBtn: {
+    padding: '4px 12px',
+    borderRadius: '3px',
+    border: 'none',
+    fontSize: '11px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    backgroundColor: '#333',
+    color: '#fff'
+  },
+  statsCard: {
+    border: '1px solid #ff003c40',
+    borderRadius: '6px',
+    padding: '10px 12px',
+    backgroundColor: '#0a0a0a'
+  },
+  statRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 0', fontSize: '12px' },
+  statLabel: { color: '#aaa', display: 'flex', alignItems: 'center', gap: '4px' },
+  statValue: { color: '#ff6688', fontWeight: '500' },
+  profileCardSidebar: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' },
+  profileAvatarWrapper: { flexShrink: 0 },
+  profileAvatar: { width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #ff003c' },
+  profileAvatarPlaceholder: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    backgroundColor: '#ff003c',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#fff',
+    fontSize: '18px',
+    fontWeight: 'bold'
+  },
+  profileInfo: { display: 'flex', flexDirection: 'column' },
+  profileName: { color: '#fff', fontWeight: 'bold', fontSize: '14px' },
+  profileHandle: { color: '#888', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '2px' },
+  sidebarBtn: { padding: '6px 12px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' },
+  dangerBtn: { padding: '6px 12px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' },
+  logoutBtn: {
+    padding: '6px 12px',
+    backgroundColor: '#880000',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    width: '100%',
+    marginTop: '4px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
+    fontSize: '13px',
+  },
+  mainContentAndroid: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+    height: '100vh',
+    border: 'none',
+    margin: 0,
+    padding: 0,
+  },
+  backgroundAndroid: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 0,
+    background: 'radial-gradient(ellipse at center, #0a0000 0%, #000 100%)',
+  },
+  // ---------- 3D BALL STYLES (UPDATED) ----------
+  ballContainer: {
+    position: 'relative',
+    width: '300px',
+    height: '300px',
+    pointerEvents: 'none',
+    zIndex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ball3DContainer: {
+    perspective: '800px',
+    transformStyle: 'preserve-3d',
+    width: '100%',
+    height: '100%',
+  },
+  ball3D: {
+    width: '80%',
+    height: '80%',
+    borderRadius: '50%',
+    position: 'relative',
+    transformStyle: 'preserve-3d',
+    background: `
+      radial-gradient(circle at 30% 25%, rgba(255, 200, 220, 0.9) 0%, transparent 45%),
+      radial-gradient(circle at 40% 35%, #ff6688 0%, #ff3355 25%, #ff003c 50%, #990022 75%, #550011 100%)
+    `,
+    boxShadow: `
+      inset -20px -20px 40px rgba(80, 0, 20, 0.8),
+      inset 15px 15px 30px rgba(255, 180, 200, 0.4),
+      0 0 50px rgba(255, 0, 60, 0.5),
+      0 0 100px rgba(255, 0, 60, 0.3),
+      0 0 150px rgba(255, 0, 60, 0.15)
+    `,
+    animation: 'rotateGlobe 25s linear infinite',
+    transition: 'all 0.3s ease',
+  },
+  ball3DSpeaking: {
+    boxShadow: `
+      inset -20px -20px 40px rgba(80, 0, 20, 0.8),
+      inset 15px 15px 30px rgba(255, 180, 200, 0.5),
+      0 0 80px rgba(255, 0, 60, 0.8),
+      0 0 150px rgba(255, 0, 60, 0.5),
+      0 0 220px rgba(255, 0, 60, 0.25)
+    `,
+    animation: 'rotateGlobe 25s linear infinite, ballPulse 1.2s ease-in-out infinite',
+  },
+  ballHighlight: {
+    position: 'absolute',
+    top: '18%',
+    left: '22%',
+    width: '35%',
+    height: '25%',
+    borderRadius: '50%',
+    background: 'radial-gradient(ellipse, rgba(255,255,255,0.6) 0%, transparent 70%)',
+    filter: 'blur(4px)',
+    pointerEvents: 'none',
+  },
+  ballInnerGlow: {
+    position: 'absolute',
+    top: '15%',
+    left: '15%',
+    width: '70%',
+    height: '70%',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(255,100,140,0.2) 0%, transparent 60%)',
+    pointerEvents: 'none',
+  },
+  ring1: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    width: '140%',
+    height: '140%',
+    transform: 'translate(-50%, -50%)',
+    borderRadius: '50%',
+    border: '2px solid rgba(255,0,60,0.25)',
+    animation: 'spinRing 12s linear infinite',
+    boxShadow: '0 0 30px rgba(255,0,60,0.05)',
+    pointerEvents: 'none',
+  },
+  ring2: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    width: '160%',
+    height: '160%',
+    transform: 'translate(-50%, -50%)',
+    borderRadius: '50%',
+    border: '1px solid rgba(255,0,60,0.12)',
+    animation: 'spinRing 18s linear infinite reverse',
+    pointerEvents: 'none',
+  },
+  ring3: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    width: '120%',
+    height: '120%',
+    transform: 'translate(-50%, -50%)',
+    borderRadius: '50%',
+    border: '1px dashed rgba(255,0,60,0.15)',
+    animation: 'spinRing 8s linear infinite',
+    pointerEvents: 'none',
+  },
+  // ---------- END 3D BALL ----------
+  faceTitleAndroid: {
+    position: 'absolute',
+    bottom: '35%',
+    fontSize: 'clamp(42px, 6vw, 68px)',
+    fontWeight: 'bold',
+    color: '#ff003c',
+    textShadow: '0 0 40px #ff003c, 0 0 80px #ff003c66, 0 0 120px #ff003c33',
+    letterSpacing: '10px',
+    textAlign: 'center',
+    width: '100%',
+    zIndex: 2,
+    animation: 'pulseText 2.5s ease-in-out infinite',
+    fontFamily: "'Courier New', monospace",
+  },
+  topBarAndroid: {
+    position: 'absolute',
+    top: '20px',
+    left: '20px',
+    right: '20px',
+    zIndex: 10,
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  callButtonTopRight: {
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    border: '2px solid #ff003c',
+    borderRadius: '30px',
+    padding: '8px 16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    cursor: 'pointer',
+    color: '#ff003c',
+    fontSize: '14px',
+    fontWeight: 'bold',
+    letterSpacing: '1px',
+    transition: 'all 0.3s ease',
+  },
+  callLabelTop: {
+    fontSize: '12px',
+    fontWeight: 'bold',
+    letterSpacing: '1px',
+    color: '#fff',
+  },
+  listeningContainer: {
+    position: 'absolute',
+    top: '90px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    zIndex: 10,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: '8px 20px',
+    borderRadius: '30px',
+    border: '1px solid rgba(255,0,60,0.2)',
+    backdropFilter: 'blur(10px)',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  listeningDot: {
+    width: '10px',
+    height: '10px',
+    borderRadius: '50%',
+    backgroundColor: '#4f8',
+    boxShadow: '0 0 20px #4f8',
+    animation: 'pulseText 0.8s ease-in-out infinite',
+  },
+  listeningText: {
+    color: '#fff',
+    fontSize: '16px',
+    fontWeight: 'bold',
+    letterSpacing: '2px',
+    fontFamily: "'Courier New', monospace",
+  },
+  interimText: {
+    color: '#ff6688',
+    fontSize: '14px',
+    fontStyle: 'italic',
+    maxWidth: '200px',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    borderLeft: '1px solid rgba(255,0,60,0.3)',
+    paddingLeft: '12px',
+  },
+  sendInterimBtn: {
+    backgroundColor: '#ff003c',
+    border: 'none',
+    borderRadius: '20px',
+    padding: '4px 14px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    color: '#fff',
+    cursor: 'pointer',
+    fontSize: '13px',
+    fontWeight: 'bold',
+    transition: 'all 0.2s',
+  },
+  cancelInterimBtn: {
+    backgroundColor: 'transparent',
+    border: '1px solid #ff003c',
+    borderRadius: '20px',
+    padding: '4px 12px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    color: '#ff003c',
+    cursor: 'pointer',
+    fontSize: '13px',
+    fontWeight: 'bold',
+    transition: 'all 0.2s',
+  },
+  voiceButtonContainer: {
+    position: 'absolute',
+    bottom: '50px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    zIndex: 10,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '10px',
+  },
+  voiceButton: {
+    width: '90px',
+    height: '90px',
+    borderRadius: '50%',
+    backgroundColor: '#1a1a1a',
+    border: '3px solid #ff003c',
+    cursor: 'pointer',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 0 40px rgba(255,0,60,0.2)',
+  },
+  voiceButtonActive: {
+    backgroundColor: '#ff003c',
+    borderColor: '#ff003c',
+    boxShadow: '0 0 80px rgba(255,0,60,0.7)',
+    animation: 'pulseGlow 1s ease-in-out infinite',
+  },
+  voiceLabel: {
+    color: '#fff',
+    fontSize: '12px',
+    fontWeight: 'bold',
+    letterSpacing: '1px',
+    marginTop: '4px',
+  },
+  hamburgerBtn: {
+    position: 'absolute',
+    top: '25px',
+    left: '25px',
+    backgroundColor: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    zIndex: 15,
+    padding: '8px',
+    borderRadius: '4px',
+  },
   appPC: {
     minHeight: '100vh',
     height: '100vh',
