@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
 // ==================================================
-// ICON SYSTEM
+// ICON SYSTEM (unchanged)
 // ==================================================
 const Icon = ({ name, size = 18, color = 'currentColor' }) => {
   const icons = {
@@ -41,7 +41,7 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
 }
 
 // ==================================================
-// CONFIG
+// CONFIG (unchanged)
 // ==================================================
 const TAVILY_API_KEY = "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"
 const TAVILY_URL = "https://api.tavily.com/search"
@@ -49,7 +49,7 @@ const VERSION = "Version 20.0.0"
 const APP_START_TIME = Date.now()
 
 // ==================================================
-// STORAGE HELPERS
+// STORAGE HELPERS (unchanged)
 // ==================================================
 const getStorageKey = (email, pin) => `cypher4x_${email}_${pin}`
 const saveUserData = (email, pin, data) => {
@@ -98,7 +98,7 @@ const setLastWelcomeDate = (date) => {
 }
 
 // ==================================================
-// SEARCH FUNCTION
+// SEARCH FUNCTION (unchanged)
 // ==================================================
 const searchWeb = async (query) => {
   if (!TAVILY_API_KEY) return { error: "Tavily API key not configured." }
@@ -126,7 +126,7 @@ const searchWeb = async (query) => {
 }
 
 // ==================================================
-// 🔴 RED BALL — GENUINE 3D GLOWING SPHERE
+// 🔴 RED BALL — 3D GLOWING SPHERE (unchanged)
 // ==================================================
 const RedBall = ({ isSpeaking = false }) => (
   <div style={styles.ballContainer}>
@@ -219,34 +219,34 @@ export default function App() {
   const fileInputRef = useRef(null)
 
   // ==================================================
-  // FULLSCREEN API HANDLERS
+  // FULLSCREEN ON FIRST INTERACTION
   // ==================================================
-  const enterFullscreen = useCallback(async () => {
+  const requestFullscreen = useCallback(async () => {
     try {
-      if (document.documentElement.requestFullscreen) {
-        await document.documentElement.requestFullscreen()
-      } else if (document.webkitRequestFullscreen) {
-        await document.webkitRequestFullscreen()
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen()
+        } else if (document.webkitRequestFullscreen) {
+          await document.webkitRequestFullscreen()
+        }
       }
     } catch (e) {
-      console.warn('Fullscreen not supported or denied:', e)
+      // ignore if blocked
     }
   }, [])
 
-  const exitFullscreen = useCallback(async () => {
-    try {
-      if (document.fullscreenElement) {
-        await document.exitFullscreen()
-      } else if (document.webkitFullscreenElement) {
-        await document.webkitExitFullscreen()
-      }
-    } catch (e) {
-      console.warn('Exit fullscreen error:', e)
+  // Attach one-time click listener to request fullscreen on first user interaction
+  useEffect(() => {
+    const handleFirstClick = () => {
+      requestFullscreen()
+      document.removeEventListener('click', handleFirstClick)
     }
-  }, [])
+    document.addEventListener('click', handleFirstClick)
+    return () => document.removeEventListener('click', handleFirstClick)
+  }, [requestFullscreen])
 
   // ==================================================
-  // AUTH HANDLERS
+  // AUTH HANDLERS (unchanged)
   // ==================================================
   const handleAuthSubmit = () => {
     if (!email || !pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
@@ -346,7 +346,7 @@ export default function App() {
   }, [profile, conversation, commandHistory, events, reminders, faceRecognition, biometricAuth, voiceGender, viewMode])
 
   // ==================================================
-  // LOGOUT
+  // LOGOUT (unchanged)
   // ==================================================
   const handleLogout = () => {
     if (!confirm("Logout from this account?")) return
@@ -369,7 +369,7 @@ export default function App() {
   }
 
   // ==================================================
-  // GUEST MESSAGE LIMIT
+  // GUEST MESSAGE LIMIT (unchanged)
   // ==================================================
   const incrementGuestMessage = () => {
     if (userMode !== 'guest') return
@@ -381,7 +381,7 @@ export default function App() {
   }
 
   // ==================================================
-  // SPEECH RECOGNITION
+  // SPEECH RECOGNITION (unchanged)
   // ==================================================
   const setupSpeechRecognition = useCallback((isOneOff = false, onFinal = null) => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -443,7 +443,7 @@ export default function App() {
   }, [isFullscreenCall])
 
   // ==================================================
-  // TEXT-TO-SPEECH
+  // TEXT-TO-SPEECH (unchanged)
   // ==================================================
   const speakText = useCallback((text, onEnd = null) => {
     if (!text || !synthRef.current) return
@@ -470,7 +470,7 @@ export default function App() {
   }, [voiceGender])
 
   // ==================================================
-  // PROCESS USER QUERY
+  // PROCESS USER QUERY (unchanged)
   // ==================================================
   const processUserQuery = useCallback(async (query) => {
     if (!query || isProcessing) return
@@ -538,7 +538,7 @@ export default function App() {
   }, [isProcessing, speakText, userMode])
 
   // ==================================================
-  // OVERVIEW CHAT
+  // OVERVIEW CHAT (unchanged)
   // ==================================================
   const setupOverviewRecognition = useCallback(() => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -626,7 +626,7 @@ export default function App() {
   }, [speakText, chatOverviewVoiceEnabled])
 
   // ==================================================
-  // FILE SHARE HANDLER (main)
+  // FILE SHARE HANDLER (main) (unchanged)
   // ==================================================
   const handleFileShare = useCallback((e) => {
     const files = e.target.files
@@ -660,7 +660,7 @@ export default function App() {
   }, [speakText])
 
   // ==================================================
-  // FULL‑SCREEN CALL HANDLERS (with fullscreen API)
+  // FULL‑SCREEN CALL HANDLERS (unchanged – still uses fullscreen)
   // ==================================================
   const toggleFullscreenCall = useCallback(async () => {
     if (isFullscreenCall) {
@@ -673,11 +673,22 @@ export default function App() {
       setInterimTranscript('')
       synthRef.current?.cancel()
       setIsAISpeaking(false)
-      await exitFullscreen()
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        try {
+          if (document.exitFullscreen) await document.exitFullscreen()
+          else if (document.webkitExitFullscreen) await document.webkitExitFullscreen()
+        } catch (e) {}
+      }
     } else {
       setIsFullscreenCall(true)
       setIsCallActive(true)
-      await enterFullscreen()
+      try {
+        if (document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen()
+        } else if (document.webkitRequestFullscreen) {
+          await document.webkitRequestFullscreen()
+        }
+      } catch (e) {}
       if (!recognitionRef.current) {
         recognitionRef.current = setupSpeechRecognition(false, (finalTranscript) => {
           processUserQuery(finalTranscript)
@@ -699,7 +710,7 @@ export default function App() {
         setIsCallActive(false)
       }
     }
-  }, [isFullscreenCall, setupSpeechRecognition, speakText, processUserQuery, enterFullscreen, exitFullscreen])
+  }, [isFullscreenCall, setupSpeechRecognition, speakText, processUserQuery])
 
   const interruptAndListen = useCallback(() => {
     if (synthRef.current) synthRef.current.cancel()
@@ -710,7 +721,7 @@ export default function App() {
   }, [])
 
   // ==================================================
-  // TAP TO SPEAK (main)
+  // TAP TO SPEAK (main) (unchanged)
   // ==================================================
   const startRecording = useCallback(() => {
     if (isRecording || isProcessing || isFullscreenCall) return
@@ -768,7 +779,7 @@ export default function App() {
   }, [isRecording, isProcessing, isFullscreenCall, processUserQuery])
 
   // ==================================================
-  // SEND / CANCEL
+  // SEND / CANCEL (unchanged)
   // ==================================================
   const sendInterim = useCallback(() => {
     if (!interimTranscript.trim() || isProcessing) return
@@ -792,7 +803,7 @@ export default function App() {
   }, [])
 
   // ==================================================
-  // SEND TEXT (main)
+  // SEND TEXT (main) (unchanged)
   // ==================================================
   const sendTextMessage = useCallback(() => {
     const text = inputText.trim()
@@ -802,7 +813,7 @@ export default function App() {
   }, [inputText, isProcessing, processUserQuery])
 
   // ==================================================
-  // WELCOME OVERLAY
+  // WELCOME OVERLAY (unchanged)
   // ==================================================
   const handleWelcomeDecision = useCallback((choice) => {
     setWelcomeStep('decision')
@@ -821,7 +832,7 @@ export default function App() {
   }, [speakText])
 
   // ==================================================
-  // VIEW TOGGLE (with rotate overlay)
+  // VIEW TOGGLE (with rotate overlay) (unchanged)
   // ==================================================
   const toggleView = useCallback(() => {
     setViewMode(prev => {
@@ -835,7 +846,7 @@ export default function App() {
   }, [])
 
   // ==================================================
-  // STATS
+  // STATS (unchanged)
   // ==================================================
   useEffect(() => {
     const timer = setInterval(() => {
@@ -854,7 +865,7 @@ export default function App() {
   }, [conversation])
 
   // ==================================================
-  // BOOT SEQUENCE + AUTO-LOGIN + GUEST WELCOME
+  // BOOT SEQUENCE + AUTO-LOGIN + GUEST WELCOME (unchanged)
   // ==================================================
   useEffect(() => {
     const bootSteps = [
@@ -905,7 +916,7 @@ export default function App() {
   }, [])
 
   // ==================================================
-  // PROFILE HANDLERS
+  // PROFILE HANDLERS (unchanged)
   // ==================================================
   const handleAvatarChange = useCallback((e) => {
     const file = e.target.files[0]
@@ -991,7 +1002,7 @@ export default function App() {
   const formatTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
   // ============================================================
-  // RENDER: BOOT SCREEN
+  // RENDER: BOOT SCREEN (with fullscreen on click)
   // ============================================================
   if (isBooting) {
     const bootSteps = [
@@ -1002,7 +1013,7 @@ export default function App() {
       'System Ready!'
     ]
     return (
-      <div style={styles.bootContainer}>
+      <div style={styles.bootContainer} onClick={requestFullscreen}>
         <div style={styles.bootBackground} />
         <div style={styles.bootContent}>
           <h1 style={styles.bootTitle}>CYPHER4X</h1>
@@ -1028,7 +1039,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: GUEST LIMIT OVERLAY
+  // RENDER: GUEST LIMIT OVERLAY (unchanged)
   // ============================================================
   if (showGuestLimit) {
     return (
@@ -1052,7 +1063,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: WELCOME OVERLAY
+  // RENDER: WELCOME OVERLAY (unchanged)
   // ============================================================
   if (showWelcomeOverlay) {
     return (
@@ -1081,7 +1092,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: AUTH MODAL
+  // RENDER: AUTH MODAL (unchanged)
   // ============================================================
   if (showAuthModal) {
     return (
@@ -1128,7 +1139,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: FULL‑SCREEN CALL (with Fullscreen API)
+  // RENDER: FULL‑SCREEN CALL (unchanged)
   // ============================================================
   if (isFullscreenCall) {
     return (
@@ -1163,7 +1174,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: ROTATE OVERLAY (PC view)
+  // RENDER: ROTATE OVERLAY (PC view) (unchanged)
   // ============================================================
   if (showRotateOverlay) {
     return (
@@ -1178,7 +1189,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: CHAT OVERVIEW
+  // RENDER: CHAT OVERVIEW (input raised) (unchanged)
   // ============================================================
   if (showChatOverview) {
     return (
@@ -1252,7 +1263,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: PROFILE EDIT
+  // RENDER: PROFILE EDIT (unchanged)
   // ============================================================
   if (editingProfile) {
     return (
@@ -1308,11 +1319,13 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: ANDROID VIEW
+  // RENDER: ANDROID VIEW (fullscreen toggle removed)
   // ============================================================
   if (viewMode === 'android') {
     return (
       <div style={styles.appAndroid}>
+        {/* No fullscreen toggle button */}
+
         {sidebarOpen && (
           <>
             <div style={styles.sidebarOverlay} onClick={() => setSidebarOpen(false)} />
@@ -1458,72 +1471,25 @@ export default function App() {
           <div style={styles.backgroundAndroid}>
             <RedBall isSpeaking={isAISpeaking} />
             <div style={styles.faceTitleAndroid}>CYPHER4X</div>
+            <div style={styles.callButtonCentered} onClick={toggleFullscreenCall}>
+              <Icon name="phone" size={36} color="#fff" />
+              <span style={styles.callButtonLabel}>CALL</span>
+            </div>
+            <div style={styles.tapToConnect}>Tap to connect</div>
           </div>
 
           <div style={styles.topBarAndroid}>
-            <div style={{ width: '80px' }} />
-            <button onClick={toggleFullscreenCall} style={styles.callButtonTopRight}>
-              <Icon name="phone" size={24} color={isCallActive ? "#4f8" : "#ff003c"} />
-              <span style={styles.callLabelTop}>{isFullscreenCall ? 'ACTIVE' : 'CALL'}</span>
+            <button onClick={() => setSidebarOpen(true)} style={styles.hamburgerBtn}>
+              <Icon name="menu" size={28} color="#ff003c" />
             </button>
           </div>
-
-          <div style={styles.listeningContainer}>
-            {isListening ? (
-              <>
-                <div style={styles.listeningDot} />
-                <span style={styles.listeningText}>Listening...</span>
-                {interimTranscript && <span style={styles.interimText}>"{interimTranscript}"</span>}
-                {interimTranscript && (
-                  <button onClick={sendInterim} style={styles.sendInterimBtn} disabled={isProcessing}>
-                    <Icon name="send" size={16} color="#fff" /><span>Send</span>
-                  </button>
-                )}
-              </>
-            ) : isProcessing ? (
-              <span style={styles.listeningText}>Processing...</span>
-            ) : isRecording ? (
-              <>
-                <div style={{ ...styles.listeningDot, backgroundColor: '#ff003c', boxShadow: '0 0 20px #ff003c' }} />
-                <span style={styles.listeningText}>Recording...</span>
-                {interimTranscript && <span style={styles.interimText}>"{interimTranscript}"</span>}
-                {interimTranscript && (
-                  <>
-                    <button onClick={sendInterim} style={styles.sendInterimBtn} disabled={isProcessing}>
-                      <Icon name="send" size={16} color="#fff" /><span>Send</span>
-                    </button>
-                    <button onClick={cancelRecording} style={styles.cancelInterimBtn}>
-                      <Icon name="close" size={18} color="#ff003c" />
-                    </button>
-                  </>
-                )}
-              </>
-            ) : null}
-          </div>
-
-          <div style={styles.voiceButtonContainer}>
-            <button
-              onClick={startRecording}
-              disabled={isRecording || isProcessing || isFullscreenCall}
-              style={{ ...styles.voiceButton, ...(isRecording ? styles.voiceButtonActive : {}) }}
-            >
-              <Icon name="mic" size={40} color="#fff" />
-              <span style={styles.voiceLabel}>
-                {isRecording ? 'Recording...' : isProcessing ? 'Processing...' : 'Tap to Speak'}
-              </span>
-            </button>
-          </div>
-
-          <button onClick={() => setSidebarOpen(true)} style={{ ...styles.hamburgerBtn, zIndex: 15 }}>
-            <Icon name="menu" size={28} color="#ff003c" />
-          </button>
         </div>
       </div>
     )
   }
 
   // ============================================================
-  // RENDER: PC VIEW
+  // RENDER: PC VIEW (fullscreen toggle removed)
   // ============================================================
   return (
     <div style={styles.appPC}>
@@ -1531,6 +1497,7 @@ export default function App() {
         <div style={styles.headerLeft}>
           <h1 style={styles.titlePC}>CYPHER4X</h1>
           <span style={styles.versionBadgePC}>{VERSION}</span>
+          {/* No fullscreen toggle button here */}
           <button onClick={toggleFullscreenCall} style={{ ...styles.callBtnPC, ...(isFullscreenCall ? styles.callBtnPCActive : {}) }}>
             <Icon name="phone" size={18} color={isFullscreenCall ? "#4f8" : "#ff003c"} />
             <span>{isFullscreenCall ? 'ACTIVE' : 'CALL'}</span>
@@ -1784,7 +1751,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES – COMPLETE (with 3D ball and all features)
+// STYLES – Complete (with fullscreen toggle removed)
 // ============================================================
 const styles = {
   appAndroid: {
@@ -1797,10 +1764,12 @@ const styles = {
     border: 'none',
     margin: 0,
     padding: 0,
+    position: 'relative',
   },
   bootContainer: {
     backgroundColor: '#000',
     minHeight: '100vh',
+    height: '100vh',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1893,6 +1862,65 @@ const styles = {
     fontFamily: "'Courier New', monospace",
     borderTop: '1px solid rgba(255,0,60,0.2)',
     paddingTop: '16px',
+  },
+  // No fullscreen toggle button style
+  callButtonCentered: {
+    position: 'absolute',
+    bottom: '18%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    backgroundColor: '#ff003c',
+    border: 'none',
+    borderRadius: '60px',
+    padding: '14px 32px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    cursor: 'pointer',
+    boxShadow: '0 0 50px rgba(255,0,60,0.5)',
+    transition: 'all 0.3s ease',
+    zIndex: 5,
+    '&:hover': { transform: 'translateX(-50%) scale(1.05)', boxShadow: '0 0 70px rgba(255,0,60,0.7)' },
+  },
+  callButtonLabel: {
+    color: '#fff',
+    fontSize: '20px',
+    fontWeight: 'bold',
+    letterSpacing: '2px',
+  },
+  tapToConnect: {
+    position: 'absolute',
+    bottom: '12%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: '14px',
+    letterSpacing: '2px',
+    zIndex: 5,
+    fontFamily: "'Courier New', monospace",
+  },
+  topBarAndroid: {
+    position: 'absolute',
+    top: '20px',
+    right: '20px',
+    zIndex: 10,
+    display: 'flex',
+    justifyContent: 'flex-end',
+    width: '100%',
+    padding: '0 20px',
+  },
+  hamburgerBtn: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    border: '1px solid rgba(255,255,255,0.15)',
+    borderRadius: '30px',
+    padding: '8px 12px',
+    color: '#fff',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    backdropFilter: 'blur(10px)',
+    '&:hover': { backgroundColor: 'rgba(255,255,255,0.05)' },
   },
   authModalOverlay: {
     position: 'fixed',
@@ -2338,13 +2366,13 @@ const styles = {
   chatOverviewInputRowRaised: {
     display: 'flex',
     gap: '8px',
-    padding: '12px 16px',
-    paddingBottom: 'max(30px, env(safe-area-inset-bottom, 50px))',
+    padding: '14px 16px',
+    paddingBottom: 'max(40px, env(safe-area-inset-bottom, 60px))',
     backgroundColor: '#111',
     borderTop: '1px solid #333',
     flexShrink: 0,
     alignItems: 'center',
-    marginTop: '10px',
+    marginTop: '8px',
   },
   chatOverviewInput: {
     flex: 1,
@@ -2742,154 +2770,60 @@ const styles = {
   topBarAndroid: {
     position: 'absolute',
     top: '20px',
-    left: '20px',
     right: '20px',
     zIndex: 10,
     display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    justifyContent: 'flex-end',
+    width: '100%',
+    padding: '0 20px',
   },
-  callButtonTopRight: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    border: '2px solid #ff003c',
-    borderRadius: '30px',
-    padding: '8px 16px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    cursor: 'pointer',
-    color: '#ff003c',
-    fontSize: '14px',
-    fontWeight: 'bold',
-    letterSpacing: '1px',
-    transition: 'all 0.3s ease',
-  },
-  callLabelTop: {
-    fontSize: '12px',
-    fontWeight: 'bold',
-    letterSpacing: '1px',
-    color: '#fff',
-  },
-  listeningContainer: {
-    position: 'absolute',
-    top: '90px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    zIndex: 10,
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
+  hamburgerBtn: {
     backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: '8px 20px',
+    border: '1px solid rgba(255,255,255,0.15)',
     borderRadius: '30px',
-    border: '1px solid rgba(255,0,60,0.2)',
-    backdropFilter: 'blur(10px)',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  listeningDot: {
-    width: '10px',
-    height: '10px',
-    borderRadius: '50%',
-    backgroundColor: '#4f8',
-    boxShadow: '0 0 20px #4f8',
-    animation: 'pulseText 0.8s ease-in-out infinite',
-  },
-  listeningText: {
+    padding: '8px 12px',
     color: '#fff',
-    fontSize: '16px',
-    fontWeight: 'bold',
-    letterSpacing: '2px',
-    fontFamily: "'Courier New', monospace",
-  },
-  interimText: {
-    color: '#ff6688',
-    fontSize: '14px',
-    fontStyle: 'italic',
-    maxWidth: '200px',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-    borderLeft: '1px solid rgba(255,0,60,0.3)',
-    paddingLeft: '12px',
-  },
-  sendInterimBtn: {
-    backgroundColor: '#ff003c',
-    border: 'none',
-    borderRadius: '20px',
-    padding: '4px 14px',
+    cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
-    color: '#fff',
-    cursor: 'pointer',
-    fontSize: '13px',
-    fontWeight: 'bold',
-    transition: 'all 0.2s',
+    backdropFilter: 'blur(10px)',
+    '&:hover': { backgroundColor: 'rgba(255,255,255,0.05)' },
   },
-  cancelInterimBtn: {
-    backgroundColor: 'transparent',
-    border: '1px solid #ff003c',
-    borderRadius: '20px',
-    padding: '4px 12px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '4px',
-    color: '#ff003c',
-    cursor: 'pointer',
-    fontSize: '13px',
-    fontWeight: 'bold',
-    transition: 'all 0.2s',
-  },
-  voiceButtonContainer: {
+  callButtonCentered: {
     position: 'absolute',
-    bottom: '50px',
+    bottom: '18%',
     left: '50%',
     transform: 'translateX(-50%)',
-    zIndex: 10,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  voiceButton: {
-    width: '90px',
-    height: '90px',
-    borderRadius: '50%',
-    backgroundColor: '#1a1a1a',
-    border: '3px solid #ff003c',
-    cursor: 'pointer',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '4px',
-    transition: 'all 0.3s ease',
-    boxShadow: '0 0 40px rgba(255,0,60,0.2)',
-  },
-  voiceButtonActive: {
     backgroundColor: '#ff003c',
-    borderColor: '#ff003c',
-    boxShadow: '0 0 80px rgba(255,0,60,0.7)',
-    animation: 'pulseGlow 1s ease-in-out infinite',
-  },
-  voiceLabel: {
-    color: '#fff',
-    fontSize: '12px',
-    fontWeight: 'bold',
-    letterSpacing: '1px',
-    marginTop: '4px',
-  },
-  hamburgerBtn: {
-    position: 'absolute',
-    top: '25px',
-    left: '25px',
-    backgroundColor: 'transparent',
     border: 'none',
+    borderRadius: '60px',
+    padding: '14px 32px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
     cursor: 'pointer',
-    zIndex: 15,
-    padding: '8px',
-    borderRadius: '4px',
+    boxShadow: '0 0 50px rgba(255,0,60,0.5)',
+    transition: 'all 0.3s ease',
+    zIndex: 5,
+    '&:hover': { transform: 'translateX(-50%) scale(1.05)', boxShadow: '0 0 70px rgba(255,0,60,0.7)' },
+  },
+  callButtonLabel: {
+    color: '#fff',
+    fontSize: '20px',
+    fontWeight: 'bold',
+    letterSpacing: '2px',
+  },
+  tapToConnect: {
+    position: 'absolute',
+    bottom: '12%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: '14px',
+    letterSpacing: '2px',
+    zIndex: 5,
+    fontFamily: "'Courier New', monospace",
   },
   appPC: {
     minHeight: '100vh',
