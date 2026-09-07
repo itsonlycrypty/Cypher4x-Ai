@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
 // ==================================================
-// ICON SYSTEM (unchanged – abbreviated for length)
+// ICON SYSTEM (unchanged)
 // ==================================================
 const Icon = ({ name, size = 18, color = 'currentColor' }) => {
   const icons = {
@@ -39,7 +39,6 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     rotate: 'M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9',
     camera: 'M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2v11zM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
     faceId: 'M4 4h16v16H4V4zm2 2v12h12V6H6zm4 4h4v4h-4v-4z',
-    atSign: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z',
   }
   const path = icons[name]
   if (!path) return null
@@ -59,7 +58,7 @@ const VERSION = "Version 20.0.0"
 const APP_START_TIME = Date.now()
 
 // ==================================================
-// STORAGE HELPERS (unchanged)
+// STORAGE HELPERS
 // ==================================================
 const getStorageKey = (email, pin) => `cypher4x_${email}_${pin}`
 const saveUserData = (email, pin, data) => {
@@ -136,24 +135,22 @@ const searchWeb = async (query) => {
 }
 
 // ==================================================
-// 🔴 RED BALL — SMALLER & RINGS FIXED
+// 🔴 RED BALL — CENTERED INSIDE RINGS (FIXED)
 // ==================================================
 const RedBall = ({ isSpeaking = false }) => (
   <div style={styles.ballContainer}>
-    {/* Outer glow rings — now perfectly centered around the ball */}
+    {/* Outer glow rings — perfectly centered */}
     <div style={styles.ring1} />
     <div style={styles.ring2} />
     <div style={styles.ring3} />
 
-    {/* 3D Sphere — centered via flexbox */}
+    {/* 3D Sphere — centered via flex */}
     <div style={styles.ball3DContainer}>
       <div style={{
         ...styles.ball3D,
         ...(isSpeaking ? styles.ball3DSpeaking : {})
       }}>
-        {/* Highlight / specular shine */}
         <div style={styles.ballHighlight} />
-        {/* Core glow inside */}
         <div style={styles.ballInnerGlow} />
       </div>
     </div>
@@ -234,7 +231,7 @@ export default function App() {
   const fileInputRef = useRef(null)
 
   // ==================================================
-  // AUTH HANDLERS (unchanged)
+  // AUTH HANDLERS
   // ==================================================
   const handleAuthSubmit = () => {
     if (!email || !pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
@@ -458,7 +455,7 @@ export default function App() {
   }, [voiceGender])
 
   // ==================================================
-  // PROCESS USER QUERY (main)
+  // PROCESS USER QUERY
   // ==================================================
   const processUserQuery = useCallback(async (query) => {
     if (!query || isProcessing) return
@@ -526,7 +523,7 @@ export default function App() {
   }, [isProcessing, speakText, userMode])
 
   // ==================================================
-  // OVERVIEW CHAT – uses main conversation
+  // OVERVIEW CHAT
   // ==================================================
   const setupOverviewRecognition = useCallback(() => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -614,7 +611,7 @@ export default function App() {
   }, [speakText, chatOverviewVoiceEnabled])
 
   // ==================================================
-  // FILE SHARE HANDLER (main sidebar)
+  // FILE SHARE HANDLER
   // ==================================================
   const handleFileShare = useCallback((e) => {
     const files = e.target.files
@@ -648,7 +645,7 @@ export default function App() {
   }, [speakText])
 
   // ==================================================
-  // FULL‑SCREEN CALL HANDLERS
+  // FULL‑SCREEN CALL
   // ==================================================
   const toggleFullscreenCall = useCallback(() => {
     if (isFullscreenCall) {
@@ -696,7 +693,7 @@ export default function App() {
   }, [])
 
   // ==================================================
-  // TAP TO SPEAK (main)
+  // TAP TO SPEAK
   // ==================================================
   const startRecording = useCallback(() => {
     if (isRecording || isProcessing || isFullscreenCall) return
@@ -778,7 +775,7 @@ export default function App() {
   }, [])
 
   // ==================================================
-  // SEND TEXT (main)
+  // SEND TEXT
   // ==================================================
   const sendTextMessage = useCallback(() => {
     const text = inputText.trim()
@@ -807,7 +804,7 @@ export default function App() {
   }, [speakText])
 
   // ==================================================
-  // VIEW TOGGLE (with rotate overlay)
+  // VIEW TOGGLE
   // ==================================================
   const toggleView = useCallback(() => {
     setViewMode(prev => {
@@ -1114,7 +1111,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: FULL‑SCREEN CALL (NO RED BALL)
+  // RENDER: FULL‑SCREEN CALL
   // ============================================================
   if (isFullscreenCall) {
     return (
@@ -1149,7 +1146,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: ROTATE OVERLAY (PC view)
+  // RENDER: ROTATE OVERLAY
   // ============================================================
   if (showRotateOverlay) {
     return (
@@ -1765,7 +1762,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES – Fixed ball size & ring centering
+// STYLES – ball centered inside rings
 // ============================================================
 const styles = {
   appAndroid: {
@@ -2604,7 +2601,7 @@ const styles = {
     zIndex: 0,
     background: 'radial-gradient(ellipse at center, #0a0000 0%, #000 100%)',
   },
-  // ---------- 3D BALL STYLES — SMALLER & RINGS CENTERED ----------
+  // ---------- 3D BALL — CENTERED ----------
   ballContainer: {
     position: 'relative',
     width: '200px',
@@ -2675,7 +2672,7 @@ const styles = {
     background: 'radial-gradient(circle, rgba(255,100,140,0.2) 0%, transparent 60%)',
     pointerEvents: 'none',
   },
-  // Rings — now properly centered using absolute + transform
+  // Rings — perfectly centered
   ring1: {
     position: 'absolute',
     top: '50%',
