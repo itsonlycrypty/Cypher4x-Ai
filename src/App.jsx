@@ -170,7 +170,7 @@ export default function App() {
   const [welcomeStep, setWelcomeStep] = useState('greeting')
   const [welcomeMessage, setWelcomeMessage] = useState('')
 
-  // ------ CHAT OVERVIEW (uses main conversation) ------
+  // ------ CHAT OVERVIEW ------
   const [showChatOverview, setShowChatOverview] = useState(false)
   const [chatOverviewInput, setChatOverviewInput] = useState('')
   const [chatOverviewListening, setChatOverviewListening] = useState(false)
@@ -182,7 +182,7 @@ export default function App() {
   // ------ PC ROTATE OVERLAY ------
   const [showRotateOverlay, setShowRotateOverlay] = useState(false)
 
-  // ------ MAIN APP STATE (conversation, etc.) ------
+  // ------ MAIN APP STATE ------
   const [conversation, setConversation] = useState([])
   const [inputText, setInputText] = useState("")
   const [commandHistory, setCommandHistory] = useState([])
@@ -505,7 +505,7 @@ export default function App() {
   }, [isProcessing, speakText, userMode])
 
   // ==================================================
-  // OVERVIEW CHAT – uses the same conversation
+  // OVERVIEW CHAT – uses main conversation
   // ==================================================
   const setupOverviewRecognition = useCallback(() => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -1093,7 +1093,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: FULL‑SCREEN CALL
+  // RENDER: FULL‑SCREEN CALL (ball centered)
   // ============================================================
   if (isFullscreenCall) {
     return (
@@ -1146,7 +1146,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: CHAT OVERVIEW (scrollable)
+  // RENDER: CHAT OVERVIEW (input row raised)
   // ============================================================
   if (showChatOverview) {
     return (
@@ -1752,7 +1752,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES – with scrolling and call layout fixes
+// STYLES – Full (with input row raised, ball centered)
 // ============================================================
 const styles = {
   appAndroid: {
@@ -2128,7 +2128,7 @@ const styles = {
     fontWeight: 'bold',
     cursor: 'pointer',
   },
-  // FULLSCREEN CALL (with content pushed down)
+  // FULLSCREEN CALL (ball centered)
   fullscreenCallOverlay: {
     position: 'fixed',
     top: 0,
@@ -2163,13 +2163,11 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: '30px',
     width: '100%',
     maxWidth: '500px',
-    marginTop: '40px',
-    justifyContent: 'flex-end',
     flex: 1,
-    paddingBottom: '40px',
   },
   fullscreenBallWrapper: {
     width: 'clamp(180px, 35vw, 260px)',
@@ -2234,7 +2232,7 @@ const styles = {
     '&:hover': { transform: 'scale(1.05)' },
     '&:disabled': { opacity: 0.5, cursor: 'not-allowed' },
   },
-  // CHAT OVERVIEW (scrollable)
+  // CHAT OVERVIEW (input row raised)
   chatOverviewContainer: {
     position: 'fixed',
     top: 0,
@@ -2245,7 +2243,7 @@ const styles = {
     zIndex: 99994,
     display: 'flex',
     flexDirection: 'column',
-    paddingBottom: 'env(safe-area-inset-bottom, 20px)',
+    paddingBottom: 'env(safe-area-inset-bottom, 10px)',
     overflow: 'hidden',
   },
   chatOverviewHeader: {
@@ -2314,8 +2312,8 @@ const styles = {
   chatOverviewInputRow: {
     display: 'flex',
     gap: '8px',
-    padding: '12px 16px',
-    paddingBottom: 'max(12px, env(safe-area-inset-bottom, 20px))',
+    padding: '10px 16px',
+    paddingBottom: 'max(20px, env(safe-area-inset-bottom, 40px))',
     backgroundColor: '#111',
     borderTop: '1px solid #333',
     flexShrink: 0,
@@ -2377,7 +2375,6 @@ const styles = {
     gap: '4px',
     '&:hover': { backgroundColor: '#2a4a4a' },
   },
-  // PROFILE
   profileContainer: {
     backgroundColor: '#000',
     minHeight: '100vh',
