@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
 // ==================================================
-// ICON SYSTEM
+// ICON SYSTEM (unchanged)
 // ==================================================
 const Icon = ({ name, size = 18, color = 'currentColor' }) => {
   const icons = {
@@ -853,7 +853,7 @@ export default function App() {
   }, [conversation])
 
   // ==================================================
-  // BOOT SEQUENCE + AUTO-LOGIN
+  // BOOT SEQUENCE + AUTO-LOGIN + GUEST WELCOME
   // ==================================================
   useEffect(() => {
     const bootSteps = [
@@ -886,6 +886,17 @@ export default function App() {
           } else {
             setUserMode('guest')
             setGuestMessageCount(0)
+            // Guest welcome – once per day
+            const today = new Date().toDateString()
+            const lastWelcome = getLastWelcomeDate()
+            if (lastWelcome !== today) {
+              setLastWelcomeDate(today)
+              setShowWelcomeOverlay(true)
+              setWelcomeStep('greeting')
+              const msg = "Hello User! I'm CYPHER4X, your friendly AI assistant. How are you feeling today?"
+              setWelcomeMessage(msg)
+              speakText(msg)
+            }
           }
         }, 300)
       }
@@ -1170,7 +1181,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: CHAT OVERVIEW
+  // RENDER: CHAT OVERVIEW (with input raised)
   // ============================================================
   if (showChatOverview) {
     return (
@@ -1776,7 +1787,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES – Complete (includes all new styles)
+// STYLES – Complete (with chat overview padding fix)
 // ============================================================
 const styles = {
   appAndroid: {
@@ -1886,7 +1897,7 @@ const styles = {
     borderTop: '1px solid rgba(255,0,60,0.2)',
     paddingTop: '16px',
   },
-  // AUTH MODAL (guest login)
+  // AUTH MODAL
   authModalOverlay: {
     position: 'fixed',
     top: 0,
@@ -1978,7 +1989,7 @@ const styles = {
     fontWeight: 'bold',
     textDecoration: 'underline',
   },
-  // GUEST LIMIT OVERLAY
+  // GUEST LIMIT
   guestLimitOverlay: {
     position: 'fixed',
     top: 0,
@@ -2258,7 +2269,7 @@ const styles = {
     '&:hover': { transform: 'scale(1.05)' },
     '&:disabled': { opacity: 0.5, cursor: 'not-allowed' },
   },
-  // CHAT OVERVIEW
+  // CHAT OVERVIEW (with input raised)
   chatOverviewContainer: {
     position: 'fixed',
     top: 0,
@@ -2269,6 +2280,7 @@ const styles = {
     zIndex: 99994,
     display: 'flex',
     flexDirection: 'column',
+    paddingBottom: 'env(safe-area-inset-bottom, 20px)',
   },
   chatOverviewHeader: {
     display: 'flex',
@@ -2337,6 +2349,7 @@ const styles = {
     display: 'flex',
     gap: '8px',
     padding: '12px 16px',
+    paddingBottom: 'max(12px, env(safe-area-inset-bottom, 20px))',
     backgroundColor: '#111',
     borderTop: '1px solid #333',
     flexShrink: 0,
@@ -3164,7 +3177,6 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // PC sidebar logout (reuse same style)
   logoutBtn: {
     padding: '5px 10px',
     backgroundColor: '#880000',
