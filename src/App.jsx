@@ -27,6 +27,8 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     image: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l3-3 3 3 3-3 3 3',
     video: 'M23 7l-5 5 5 5V7zM1 5h15v14H1z',
     arrowLeft: 'M19 12H5M12 19l-7-7 7-7',
+    volume2: 'M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07',
+    volumeX: 'M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6',
   }
   const path = icons[name]
   if (!path) return null
@@ -46,7 +48,7 @@ const VERSION = "Version 20.0.0"
 const APP_START_TIME = Date.now()
 
 // ==================================================
-// STORAGE HELPERS (user‑specific)
+// STORAGE HELPERS
 // ==================================================
 const getStorageKey = (email, pin) => `cypher4x_${email}_${pin}`
 const saveUserData = (email, pin, data) => {
@@ -142,6 +144,26 @@ export default function App() {
   const [viewMode, setViewMode] = useState('android')
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
+  // ------ WELCOME OVERLAY ------
+  const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(false)
+  const [welcomeStep, setWelcomeStep] = useState('greeting') // 'greeting' | 'decision'
+  const [welcomeMessage, setWelcomeMessage] = useState('')
+
+  // ------ CHAT OVERVIEW ------
+  const [showChatOverview, setShowChatOverview] = useState(false)
+  const [chatOverviewInput, setChatOverviewInput] = useState('')
+  const [chatOverviewMessages, setChatOverviewMessages] = useState([])
+  const [chatOverviewListening, setChatOverviewListening] = useState(false)
+  const [chatOverviewInterim, setChatOverviewInterim] = useState('')
+  const [chatOverviewProcessing, setChatOverviewProcessing] = useState(false)
+  const [chatOverviewVoiceEnabled, setChatOverviewVoiceEnabled] = useState(true)
+  const chatOverviewMsgCounter = useRef(0)
+  const chatOverviewRecognitionRef = useRef(null)
+
+  // ------ PC ROTATE OVERLAY ------
+  const [showRotateOverlay, setShowRotateOverlay] = useState(false)
+
+  // ------ MAIN APP STATE ------
   const [conversation, setConversation] = useState([])
   const [inputText, setInputText] = useState("")
   const [commandHistory, setCommandHistory] = useState([])
@@ -224,10 +246,15 @@ export default function App() {
       setVoiceGender(data.voiceGender || 'female')
       setViewMode(data.viewMode || 'android')
       msgCounter.current = (data.conversation || []).length + 1
-      if (data.profile) {
-        const welcome = `Welcome back, ${data.profile.name}! I'm CYPHER4X.`
-        speakText(welcome)
-      }
+      // Show welcome overlay after login
+      setTimeout(() => {
+        setShowWelcomeOverlay(true)
+        setWelcomeStep('greeting')
+        const name = data.profile?.name || 'User'
+        const msg = `Hello ${name}! I'm CYPHER4X, your friendly AI assistant. How are you feeling today?`
+        setWelcomeMessage(msg)
+        speakText(msg)
+      }, 500)
     }
   }
 
@@ -247,7 +274,6 @@ export default function App() {
     saveUserData(email, pin, data)
   }
 
-  // Auto‑save on changes
   useEffect(() => {
     if (isLoggedIn) saveCurrentUserData()
   }, [profile, conversation, commandHistory, events, reminders, faceRecognition, biometricAuth, voiceGender, viewMode])
@@ -407,17 +433,131 @@ export default function App() {
   }, [isProcessing, speakText])
 
   // ==================================================
-  // FILE SHARE HANDLER
+  // CHAT OVERVIEW HANDLERS
+  // ==================================================
+  const setupChatOverviewRecognition = useCallback(() => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert("Your browser doesn't support speech recognition.")
+      return null
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    const recognition = new SpeechRecognition()
+    recognition.continuous = true
+    recognition.interimResults = true
+    recognition.lang = 'en-US'
+
+    recognition.onstart = () => setChatOverviewListening(true)
+    recognition.onend = () => setChatOverviewListening(false)
+    recognition.onerror = () => setChatOverviewListening(false)
+    recognition.onresult = async (event) => {
+      let final = '', interim = ''
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i]
+        if (result.isFinal) final += result[0].transcript
+        else interim += result[0].transcript
+      }
+      if (final) {
+        setChatOverviewInterim('')
+        await processChatOverviewQuery(final)
+      } else if (interim) {
+        setChatOverviewInterim(interim)
+      }
+    }
+    return recognition
+  }, [])
+
+  const processChatOverviewQuery = useCallback(async (query) => {
+    if (!query || chatOverviewProcessing) return
+    setChatOverviewProcessing(true)
+    const userMsg = { id: ++chatOverviewMsgCounter.current, role: 'user', content: query, time: Date.now() }
+    setChatOverviewMessages(prev => [...prev, userMsg])
+
+    const lower = query.toLowerCase()
+    const casualPhrases = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'how are you', "what's up"]
+    if (casualPhrases.some(p => lower.includes(p))) {
+      const replies = ["Hey there! 😊 How can I help?", "Hi! ✨ What can I do for you?", "Hello! 🌟 Ready to assist!"]
+      const reply = replies[Math.floor(Math.random() * replies.length)]
+      const assistantMsg = { id: ++chatOverviewMsgCounter.current, role: 'assistant', content: reply, time: Date.now() }
+      setChatOverviewMessages(prev => [...prev, assistantMsg])
+      if (chatOverviewVoiceEnabled) speakText(reply.replace(/[😊✨🌟]/g, ''))
+      setChatOverviewProcessing(false)
+      return
+    }
+
+    const result = await searchWeb(query)
+    let reply = result.error ? `⚠️ ${result.error}` : (result.answer || "I couldn't find an answer.")
+    const assistantMsg = { id: ++chatOverviewMsgCounter.current, role: 'assistant', content: reply, time: Date.now() }
+    setChatOverviewMessages(prev => [...prev, assistantMsg])
+    if (chatOverviewVoiceEnabled) speakText(reply)
+    setChatOverviewProcessing(false)
+  }, [chatOverviewProcessing, chatOverviewVoiceEnabled, speakText])
+
+  const toggleChatOverviewVoice = useCallback(() => {
+    setChatOverviewVoiceEnabled(prev => !prev)
+  }, [])
+
+  const sendChatOverviewText = useCallback(() => {
+    const text = chatOverviewInput.trim()
+    if (!text || chatOverviewProcessing) return
+    setChatOverviewInput('')
+    processChatOverviewQuery(text)
+  }, [chatOverviewInput, chatOverviewProcessing, processChatOverviewQuery])
+
+  const toggleChatOverviewListening = useCallback(() => {
+    if (chatOverviewListening) {
+      if (chatOverviewRecognitionRef.current) {
+        try { chatOverviewRecognitionRef.current.stop() } catch (e) {}
+      }
+      setChatOverviewListening(false)
+    } else {
+      if (!chatOverviewRecognitionRef.current) {
+        chatOverviewRecognitionRef.current = setupChatOverviewRecognition()
+      }
+      if (chatOverviewRecognitionRef.current) {
+        try { chatOverviewRecognitionRef.current.start() } catch (e) {}
+      }
+    }
+  }, [chatOverviewListening, setupChatOverviewRecognition])
+
+  const handleChatOverviewFileShare = useCallback((e) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    const file = files[0]
+    const maxSize = 20 * 1024 * 1024
+    if (file.size > maxSize) { alert("File too large! Max 20MB."); return }
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const fileData = {
+        id: ++chatOverviewMsgCounter.current,
+        role: 'user',
+        content: `📎 ${file.name}`,
+        time: Date.now(),
+        file: {
+          name: file.name,
+          type: file.type,
+          data: reader.result,
+          size: file.size
+        }
+      }
+      setChatOverviewMessages(prev => [...prev, fileData])
+      const reply = `Received your file: **${file.name}** (${(file.size / 1024).toFixed(1)} KB). How can I help with it? 🤖`
+      const assistantMsg = { id: ++chatOverviewMsgCounter.current, role: 'assistant', content: reply, time: Date.now() }
+      setChatOverviewMessages(prev => [...prev, assistantMsg])
+      if (chatOverviewVoiceEnabled) speakText(reply.replace(/[🤖]/g, ''))
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }, [chatOverviewVoiceEnabled, speakText])
+
+  // ==================================================
+  // FILE SHARE HANDLER (main)
   // ==================================================
   const handleFileShare = useCallback((e) => {
     const files = e.target.files
     if (!files || files.length === 0) return
     const file = files[0]
-    const maxSize = 20 * 1024 * 1024 // 20MB
-    if (file.size > maxSize) {
-      alert("File too large! Max 20MB.")
-      return
-    }
+    const maxSize = 20 * 1024 * 1024
+    if (file.size > maxSize) { alert("File too large! Max 20MB."); return }
     const reader = new FileReader()
     reader.onloadend = () => {
       const fileData = {
@@ -434,7 +574,6 @@ export default function App() {
       }
       setConversation(prev => [...prev, fileData])
       setCommandHistory(prev => [...prev, { command: `📎 ${file.name}`, timestamp: Date.now() }])
-
       const reply = `I received your file: **${file.name}** (${(file.size / 1024).toFixed(1)} KB). I can't process the content directly, but I'm happy to help if you have questions about it! 🤖`
       const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
       setConversation(prev => [...prev, assistantMsg])
@@ -488,14 +627,12 @@ export default function App() {
     if (synthRef.current) synthRef.current.cancel()
     setIsAISpeaking(false)
     if (recognitionRef.current) {
-      try {
-        recognitionRef.current.start()
-      } catch (e) {}
+      try { recognitionRef.current.start() } catch (e) {}
     }
   }, [])
 
   // ==================================================
-  // TAP TO SPEAK (for non‑fullscreen)
+  // TAP TO SPEAK (main)
   // ==================================================
   const startRecording = useCallback(() => {
     if (isRecording || isProcessing || isFullscreenCall) return
@@ -553,44 +690,35 @@ export default function App() {
   }, [isRecording, isProcessing, isFullscreenCall, processUserQuery])
 
   // ==================================================
-  // SEND / CANCEL
+  // WELCOME OVERLAY HANDLERS
   // ==================================================
-  const sendInterim = useCallback(() => {
-    if (!interimTranscript.trim() || isProcessing) return
-    const text = interimTranscript.trim()
-    setInterimTranscript('')
-    setRecordingMode(false)
-    if (recognitionRef.current) {
-      try { recognitionRef.current.stop() } catch (e) {}
+  const handleWelcomeDecision = useCallback((choice) => {
+    setWelcomeStep('decision')
+    let reply = ''
+    if (choice === 'fine') {
+      reply = "That's great to hear! 😄 I'm so happy you're feeling well. How can I make your day even better today?"
+    } else {
+      reply = "I'm sorry to hear that. 😔 I'm here for you. Would you like to talk about it or maybe I can help you with something to cheer you up?"
     }
-    processUserQuery(text)
-  }, [interimTranscript, isProcessing, processUserQuery])
-
-  const cancelRecording = useCallback(() => {
-    setInterimTranscript('')
-    setRecordingMode(false)
-    setIsRecording(false)
-    setIsListening(false)
-    if (recognitionRef.current) {
-      try { recognitionRef.current.stop() } catch (e) {}
-    }
-  }, [])
+    const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
+    setConversation(prev => [...prev, assistantMsg])
+    speakText(reply.replace(/[😄😔]/g, ''))
+    setTimeout(() => {
+      setShowWelcomeOverlay(false)
+    }, 3000)
+  }, [speakText])
 
   // ==================================================
-  // SEND TEXT
-  // ==================================================
-  const sendTextMessage = useCallback(() => {
-    const text = inputText.trim()
-    if (!text || isProcessing) return
-    setInputText('')
-    processUserQuery(text)
-  }, [inputText, isProcessing, processUserQuery])
-
-  // ==================================================
-  // VIEW TOGGLE
+  // VIEW TOGGLE (with rotate overlay)
   // ==================================================
   const toggleView = useCallback(() => {
-    setViewMode(prev => prev === 'android' ? 'pc' : 'android')
+    setViewMode(prev => {
+      const newMode = prev === 'android' ? 'pc' : 'android'
+      if (newMode === 'pc') {
+        setShowRotateOverlay(true)
+      }
+      return newMode
+    })
     setSidebarOpen(false)
   }, [])
 
@@ -758,6 +886,38 @@ export default function App() {
             <span style={styles.bootStatusDot} />
             <span style={styles.bootStatusText}>CYPHER4X LOADING...</span>
           </div>
+          <div style={styles.bootCredit}>
+            Created by Hackers Hub Organisation led by Crypty
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ============================================================
+  // RENDER: WELCOME OVERLAY
+  // ============================================================
+  if (showWelcomeOverlay) {
+    return (
+      <div style={styles.welcomeOverlay}>
+        <div style={styles.welcomeCard}>
+          <div style={styles.welcomeBall}>
+            <RedBall isSpeaking={isAISpeaking} />
+          </div>
+          <div style={styles.welcomeMessageText}>{welcomeMessage}</div>
+          {welcomeStep === 'greeting' && (
+            <div style={styles.welcomeButtons}>
+              <button onClick={() => handleWelcomeDecision('notfine')} style={styles.welcomeBtnNotFine}>
+                I'm not fine
+              </button>
+              <button onClick={() => handleWelcomeDecision('fine')} style={styles.welcomeBtnFine}>
+                I'm fine
+              </button>
+            </div>
+          )}
+          {welcomeStep === 'decision' && (
+            <div style={styles.welcomeDecisionText}>Thank you for sharing. I'm here to help you. 💙</div>
+          )}
         </div>
       </div>
     )
@@ -807,7 +967,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: FULL‑SCREEN CALL OVERLAY
+  // RENDER: FULL‑SCREEN CALL OVERLAY (fixed layout)
   // ============================================================
   if (isFullscreenCall) {
     return (
@@ -838,6 +998,95 @@ export default function App() {
             disabled={isProcessing}
           >
             <Icon name="mic" size={48} color="#fff" />
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ============================================================
+  // RENDER: ROTATE OVERLAY (PC view)
+  // ============================================================
+  if (showRotateOverlay) {
+    return (
+      <div style={styles.rotateOverlay}>
+        <div style={styles.rotateCard}>
+          <Icon name="rotate" size={48} color="#ff003c" />
+          <div style={styles.rotateText}>Pls Rotate device if you are using Android</div>
+          <button onClick={() => setShowRotateOverlay(false)} style={styles.rotateOkBtn}>OK</button>
+        </div>
+      </div>
+    )
+  }
+
+  // ============================================================
+  // RENDER: CHAT OVERVIEW
+  // ============================================================
+  if (showChatOverview) {
+    return (
+      <div style={styles.chatOverviewContainer}>
+        <div style={styles.chatOverviewHeader}>
+          <button onClick={() => setShowChatOverview(false)} style={styles.chatOverviewBackBtn}>
+            <Icon name="arrowLeft" size={24} color="#fff" /> Back
+          </button>
+          <span style={styles.chatOverviewTitle}>Chat with AI</span>
+          <button onClick={toggleChatOverviewVoice} style={styles.chatOverviewVoiceToggle}>
+            <Icon name={chatOverviewVoiceEnabled ? 'volume2' : 'volumeX'} size={20} color="#fff" />
+          </button>
+        </div>
+        <div style={styles.chatOverviewMessages}>
+          {chatOverviewMessages.length === 0 && (
+            <div style={styles.chatOverviewEmpty}>Start chatting with AI! 💬</div>
+          )}
+          {chatOverviewMessages.map(msg => (
+            <div key={msg.id} style={{
+              ...styles.chatOverviewMsg,
+              alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+              backgroundColor: msg.role === 'user' ? '#ff003c' : '#1a1a1a',
+            }}>
+              <span style={styles.chatOverviewMsgText}>{msg.content}</span>
+              {msg.file && (
+                <div style={styles.filePreviewPC}>
+                  {msg.file.type.startsWith('image/') && <img src={msg.file.data} alt={msg.file.name} style={{ maxWidth: '100%', maxHeight: '80px', borderRadius: '4px', marginTop: '4px' }} />}
+                  {msg.file.type.startsWith('video/') && <video controls style={{ maxWidth: '100%', maxHeight: '80px', borderRadius: '4px', marginTop: '4px' }}><source src={msg.file.data} type={msg.file.type} /></video>}
+                  {!msg.file.type.startsWith('image/') && !msg.file.type.startsWith('video/') && (
+                    <div style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>📎 {msg.file.name}</div>
+                  )}
+                </div>
+              )}
+              <span style={styles.chatOverviewMsgTime}>{formatTime(msg.time)}</span>
+            </div>
+          ))}
+          {chatOverviewInterim && (
+            <div style={{ ...styles.chatOverviewMsg, alignSelf: 'flex-end', backgroundColor: '#333', opacity: 0.7 }}>
+              <span style={styles.chatOverviewMsgText}>"{chatOverviewInterim}"</span>
+            </div>
+          )}
+          {chatOverviewProcessing && (
+            <div style={{ ...styles.chatOverviewMsg, alignSelf: 'flex-start', backgroundColor: '#1a1a1a' }}>
+              <span style={styles.chatOverviewMsgText}>⏳ Thinking...</span>
+            </div>
+          )}
+        </div>
+        <div style={styles.chatOverviewInputRow}>
+          <input
+            type="text"
+            value={chatOverviewInput}
+            onChange={(e) => setChatOverviewInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && sendChatOverviewText()}
+            placeholder="Type a message..."
+            style={styles.chatOverviewInput}
+            disabled={chatOverviewProcessing}
+          />
+          <button onClick={toggleChatOverviewListening} style={styles.chatOverviewMicBtn}>
+            <Icon name="mic" size={20} color={chatOverviewListening ? "#4f8" : "#fff"} />
+          </button>
+          <label style={styles.chatOverviewAttachBtn}>
+            <Icon name="file" size={20} color="#fff" />
+            <input type="file" accept="image/*,video/*,.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx" onChange={handleChatOverviewFileShare} style={{ display: 'none' }} />
+          </label>
+          <button onClick={sendChatOverviewText} style={styles.chatOverviewSendBtn} disabled={chatOverviewProcessing}>
+            <Icon name="send" size={20} color="#fff" />
           </button>
         </div>
       </div>
@@ -950,9 +1199,14 @@ export default function App() {
                   </span>
                 </div>
               </div>
-              {/* CONVERSATION */}
+              {/* CONVERSATION with Overview button */}
               <div style={styles.sidebarSection}>
-                <h3 style={styles.sectionTitle}><Icon name="chat" size={16} color="#ff003c" /> CONVERSATION</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <h3 style={styles.sectionTitle}><Icon name="chat" size={16} color="#ff003c" /> CONVERSATION</h3>
+                  <button onClick={() => setShowChatOverview(true)} style={styles.overviewBtn}>
+                    <Icon name="desktop" size={14} color="#fff" /> Overview
+                  </button>
+                </div>
                 <div style={styles.conversationLogPC}>
                   {conversation.length === 0 && <p style={styles.dashEmptyPC}>No conversation yet</p>}
                   {conversation.slice(-6).map(msg => (
@@ -1136,7 +1390,6 @@ export default function App() {
 
       <div style={styles.pcLayout}>
         <div style={styles.pcSidebar}>
-          {/* System Stats */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="chart" size={16} color="#ff003c" /> SYSTEM STATS</h3>
             <div style={styles.pcSidebarRow}><span>CPU Usage</span><span style={{ color: stats.cpuUsage > 80 ? '#ff003c' : '#4f8' }}>{stats.cpuUsage}%</span></div>
@@ -1146,7 +1399,6 @@ export default function App() {
             <div style={styles.pcSidebarRow}><span>Network</span><span style={{ color: parseFloat(stats.networkSpeed) < 1 ? '#ff003c' : '#4f8' }}>{stats.networkSpeed} Mbps</span></div>
             <div style={styles.pcSidebarRow}><span>Uptime</span><span>{formatUptime(stats.uptime)}</span></div>
           </div>
-          {/* AI Config */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="settings" size={16} color="#ff003c" /> AI CONFIGURATION</h3>
             <div style={styles.pcSidebarRow}><span>AI Engine</span><span>TAVILY</span></div>
@@ -1165,7 +1417,6 @@ export default function App() {
               </span>
             </div>
           </div>
-          {/* Security */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="faceId" size={16} color="#ff003c" /> SECURITY</h3>
             <div style={styles.pcSidebarRow}>
@@ -1183,23 +1434,26 @@ export default function App() {
               </div>
             </div>
           </div>
-          {/* Events */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="calendar" size={16} color="#ff003c" /> TODAY'S EVENTS</h3>
             {events.length === 0 ? <p style={styles.dashEmptyPC}>No events scheduled</p> : events.map((evt, i) => (
               <div key={i} style={styles.pcSidebarRow}><span>{evt.title}</span><span style={styles.eventTimePC}>{evt.time}</span></div>
             ))}
           </div>
-          {/* Reminders */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="clock" size={16} color="#ff003c" /> REMINDERS</h3>
             {reminders.length === 0 ? <p style={styles.dashEmptyPC}>No reminders set</p> : reminders.map((rem, i) => (
               <div key={i} style={styles.pcSidebarRow}><span>{rem.text}</span><span style={styles.eventTimePC}>{rem.time}</span></div>
             ))}
           </div>
-          {/* Conversation */}
+          {/* CONVERSATION with Overview button */}
           <div style={styles.pcSidebarSection}>
-            <h3 style={styles.pcSidebarTitle}><Icon name="chat" size={16} color="#ff003c" /> CONVERSATION</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <h3 style={styles.pcSidebarTitle}><Icon name="chat" size={16} color="#ff003c" /> CONVERSATION</h3>
+              <button onClick={() => setShowChatOverview(true)} style={styles.overviewBtn}>
+                <Icon name="desktop" size={14} color="#fff" /> Overview
+              </button>
+            </div>
             <div style={styles.conversationLogPC}>
               {conversation.length === 0 && <p style={styles.dashEmptyPC}>No conversation yet</p>}
               {conversation.slice(-6).map(msg => (
@@ -1225,6 +1479,19 @@ export default function App() {
                 </div>
               ))}
             </div>
+            <div style={styles.inputRow}>
+              <input
+                type="text"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && sendTextMessage()}
+                placeholder="Type a message..."
+                style={styles.textInputSmall}
+              />
+              <button onClick={sendTextMessage} style={styles.sendBtnSmall} disabled={isProcessing}>
+                <Icon name="send" size={16} color="#fff" />
+              </button>
+            </div>
             <div style={styles.commandActionsPC}>
               <button onClick={clearConversation} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear</button>
               <button onClick={exportChat} style={styles.dashBtnPC}><Icon name="save" size={14} color="#fff" /> Export</button>
@@ -1234,7 +1501,6 @@ export default function App() {
               </label>
             </div>
           </div>
-          {/* Command History */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="clock" size={16} color="#ff003c" /> COMMAND HISTORY</h3>
             <div style={styles.commandHistoryPC}>
@@ -1248,12 +1514,10 @@ export default function App() {
             </div>
             <button onClick={clearCommands} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear All</button>
           </div>
-          {/* View Toggle */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="desktop" size={16} color="#ff003c" /> VIEW MODE</h3>
             <button onClick={toggleView} style={styles.toggleBtnPC2}>Switch to Android</button>
           </div>
-          {/* Profile */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="user" size={16} color="#ff003c" /> PROFILE</h3>
             <div style={styles.profileCardSidebarPC}>
@@ -1267,14 +1531,12 @@ export default function App() {
             </div>
             <button onClick={openEditProfile} style={styles.sidebarBtnPC}><Icon name="edit" size={14} color="#fff" /> Edit Profile</button>
           </div>
-          {/* Danger Zone */}
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="alertTriangle" size={16} color="#ff003c" /> DANGER ZONE</h3>
             <button onClick={resetAllData} style={styles.dangerBtnPC}><Icon name="trash" size={14} color="#fff" /> Reset All Data</button>
           </div>
         </div>
 
-        {/* PC Main – no text under ball */}
         <div style={styles.pcMain}>
           <div style={styles.pcBallContainer}>
             <RedBall isSpeaking={isAISpeaking} />
@@ -1354,7 +1616,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES – Complete (all styles)
+// STYLES – Complete
 // ============================================================
 const styles = {
   appAndroid: {
@@ -1454,6 +1716,16 @@ const styles = {
     fontSize: '14px',
     letterSpacing: '2px',
   },
+  bootCredit: {
+    color: '#ff6688',
+    fontSize: '14px',
+    marginTop: '20px',
+    opacity: 0.7,
+    letterSpacing: '1px',
+    fontFamily: "'Courier New', monospace",
+    borderTop: '1px solid rgba(255,0,60,0.2)',
+    paddingTop: '16px',
+  },
   authContainer: {
     backgroundColor: '#000',
     minHeight: '100vh',
@@ -1529,6 +1801,121 @@ const styles = {
     fontWeight: 'bold',
     textDecoration: 'underline',
   },
+  // Welcome Overlay
+  welcomeOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(0,0,0,0.92)',
+    zIndex: 99999,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '20px',
+  },
+  welcomeCard: {
+    backgroundColor: '#111',
+    border: '2px solid #ff003c',
+    borderRadius: '20px',
+    padding: '40px 30px',
+    maxWidth: '500px',
+    width: '100%',
+    textAlign: 'center',
+  },
+  welcomeBall: {
+    width: '120px',
+    height: '120px',
+    margin: '0 auto 20px',
+    position: 'relative',
+  },
+  welcomeMessageText: {
+    color: '#fff',
+    fontSize: '20px',
+    lineHeight: '1.6',
+    marginBottom: '24px',
+    fontFamily: "'Courier New', monospace",
+  },
+  welcomeButtons: {
+    display: 'flex',
+    gap: '12px',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+  },
+  welcomeBtnNotFine: {
+    padding: '12px 24px',
+    backgroundColor: '#880000',
+    color: '#fff',
+    border: '1px solid #ff003c',
+    borderRadius: '30px',
+    fontSize: '16px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    flex: 1,
+    minWidth: '120px',
+  },
+  welcomeBtnFine: {
+    padding: '12px 24px',
+    backgroundColor: '#008800',
+    color: '#fff',
+    border: '1px solid #4f8',
+    borderRadius: '30px',
+    fontSize: '16px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    flex: 1,
+    minWidth: '120px',
+  },
+  welcomeDecisionText: {
+    color: '#ff6688',
+    fontSize: '18px',
+    fontStyle: 'italic',
+    marginTop: '12px',
+  },
+  // Rotate Overlay
+  rotateOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    zIndex: 99998,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '20px',
+  },
+  rotateCard: {
+    backgroundColor: '#111',
+    border: '2px solid #ff003c',
+    borderRadius: '20px',
+    padding: '40px 30px',
+    maxWidth: '400px',
+    width: '100%',
+    textAlign: 'center',
+  },
+  rotateText: {
+    color: '#fff',
+    fontSize: '18px',
+    margin: '20px 0',
+    lineHeight: '1.6',
+    fontFamily: "'Courier New', monospace",
+  },
+  rotateOkBtn: {
+    padding: '12px 40px',
+    backgroundColor: '#ff003c',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '30px',
+    fontSize: '16px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+  },
+  // Fullscreen Call (fixed)
   fullscreenCallOverlay: {
     position: 'fixed',
     top: 0,
@@ -1565,11 +1952,11 @@ const styles = {
     alignItems: 'center',
     gap: '20px',
     width: '100%',
-    maxWidth: '600px',
+    maxWidth: '500px',
   },
   fullscreenBallWrapper: {
-    width: 'clamp(200px, 40vw, 300px)',
-    height: 'clamp(200px, 40vw, 300px)',
+    width: 'clamp(180px, 35vw, 260px)',
+    height: 'clamp(180px, 35vw, 260px)',
     position: 'relative',
   },
   fullscreenListeningStatus: {
@@ -1613,10 +2000,11 @@ const styles = {
     maxWidth: '90%',
     textAlign: 'center',
     border: '1px solid rgba(255,0,60,0.2)',
+    minHeight: '40px',
   },
   fullscreenMicBtn: {
-    width: 'clamp(80px, 15vw, 120px)',
-    height: 'clamp(80px, 15vw, 120px)',
+    width: 'clamp(70px, 14vw, 100px)',
+    height: 'clamp(70px, 14vw, 100px)',
     borderRadius: '50%',
     backgroundColor: '#ff003c',
     border: '3px solid #ff003c',
@@ -1629,6 +2017,147 @@ const styles = {
     '&:hover': { transform: 'scale(1.05)' },
     '&:disabled': { opacity: 0.5, cursor: 'not-allowed' },
   },
+  // Chat Overview
+  chatOverviewContainer: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: '#000',
+    zIndex: 99997,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  chatOverviewHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '12px 16px',
+    backgroundColor: '#111',
+    borderBottom: '1px solid #333',
+    flexShrink: 0,
+  },
+  chatOverviewBackBtn: {
+    background: 'none',
+    border: 'none',
+    color: '#fff',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    fontSize: '16px',
+    cursor: 'pointer',
+  },
+  chatOverviewTitle: {
+    color: '#ff003c',
+    fontSize: '18px',
+    fontWeight: 'bold',
+  },
+  chatOverviewVoiceToggle: {
+    background: 'none',
+    border: 'none',
+    color: '#fff',
+    cursor: 'pointer',
+    padding: '4px',
+  },
+  chatOverviewMessages: {
+    flex: 1,
+    overflowY: 'auto',
+    padding: '12px 16px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  chatOverviewEmpty: {
+    color: '#666',
+    textAlign: 'center',
+    fontSize: '16px',
+    marginTop: '40px',
+  },
+  chatOverviewMsg: {
+    maxWidth: '80%',
+    padding: '10px 14px',
+    borderRadius: '12px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+  },
+  chatOverviewMsgText: {
+    color: '#fff',
+    fontSize: '14px',
+    wordBreak: 'break-word',
+  },
+  chatOverviewMsgTime: {
+    fontSize: '10px',
+    color: '#888',
+    alignSelf: 'flex-end',
+  },
+  chatOverviewInputRow: {
+    display: 'flex',
+    gap: '8px',
+    padding: '12px 16px',
+    backgroundColor: '#111',
+    borderTop: '1px solid #333',
+    flexShrink: 0,
+    alignItems: 'center',
+  },
+  chatOverviewInput: {
+    flex: 1,
+    padding: '10px 14px',
+    backgroundColor: '#000',
+    border: '1px solid #333',
+    color: '#fff',
+    borderRadius: '20px',
+    fontSize: '14px',
+    outline: 'none',
+  },
+  chatOverviewMicBtn: {
+    background: 'none',
+    border: 'none',
+    color: '#fff',
+    cursor: 'pointer',
+    padding: '8px',
+    borderRadius: '50%',
+    backgroundColor: 'rgba(255,0,60,0.2)',
+  },
+  chatOverviewAttachBtn: {
+    background: 'none',
+    border: 'none',
+    color: '#fff',
+    cursor: 'pointer',
+    padding: '8px',
+    borderRadius: '50%',
+    backgroundColor: 'rgba(255,0,60,0.2)',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  chatOverviewSendBtn: {
+    background: 'none',
+    border: 'none',
+    color: '#fff',
+    cursor: 'pointer',
+    padding: '8px',
+    borderRadius: '50%',
+    backgroundColor: '#ff003c',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    '&:disabled': { opacity: 0.5, cursor: 'not-allowed' },
+  },
+  overviewBtn: {
+    padding: '4px 12px',
+    backgroundColor: '#1a3a3a',
+    border: '1px solid #2a5a5a',
+    borderRadius: '4px',
+    color: '#fff',
+    cursor: 'pointer',
+    fontSize: '11px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    '&:hover': { backgroundColor: '#2a4a4a' },
+  },
+  // ... rest of styles (same as before)
   profileContainer: {
     backgroundColor: '#000',
     minHeight: '100vh',
@@ -2071,7 +2600,6 @@ const styles = {
     padding: '8px',
     borderRadius: '4px',
   },
-  // PC styles
   appPC: {
     minHeight: '100vh',
     height: '100vh',
@@ -2380,6 +2908,5 @@ const styles = {
 }
 
 // ============================================================
-// GLOBAL KEYFRAMES (added to index.css)
+// KEYFRAMES (add to index.css)
 // ============================================================
-// (These must be in your index.css – included for completeness)
