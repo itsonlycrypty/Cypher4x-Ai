@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
 // ==================================================
-// ICON SYSTEM
+// ICON SYSTEM (unchanged – abbreviated)
 // ==================================================
 const Icon = ({ name, size = 18, color = 'currentColor' }) => {
   const icons = {
@@ -48,7 +48,7 @@ const VERSION = "Version 20.0.0"
 const APP_START_TIME = Date.now()
 
 // ==================================================
-// STORAGE HELPERS
+// STORAGE HELPERS (unchanged)
 // ==================================================
 const getStorageKey = (email, pin) => `cypher4x_${email}_${pin}`
 const saveUserData = (email, pin, data) => {
@@ -125,7 +125,7 @@ const searchWeb = async (query) => {
 }
 
 // ==================================================
-// RED BALL COMPONENT
+// RED BALL COMPONENT (kept for other views, but not used in call)
 // ==================================================
 const RedBall = ({ isSpeaking = false }) => (
   <div style={styles.ballContainer}>
@@ -213,7 +213,7 @@ export default function App() {
   const fileInputRef = useRef(null)
 
   // ==================================================
-  // AUTH HANDLERS
+  // AUTH HANDLERS (unchanged)
   // ==================================================
   const handleAuthSubmit = () => {
     if (!email || !pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
@@ -1093,7 +1093,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: FULL‑SCREEN CALL (ball centered)
+  // RENDER: FULL‑SCREEN CALL (NO RED BALL)
   // ============================================================
   if (isFullscreenCall) {
     return (
@@ -1101,10 +1101,7 @@ export default function App() {
         <button onClick={toggleFullscreenCall} style={styles.returnBtn}>
           <Icon name="arrowLeft" size={28} color="#fff" /> Return
         </button>
-        <div style={styles.fullscreenCallContent}>
-          <div style={styles.fullscreenBallWrapper}>
-            <RedBall isSpeaking={isAISpeaking} />
-          </div>
+        <div style={styles.fullscreenCallContentNoBall}>
           <div style={styles.fullscreenListeningStatus}>
             {isListening ? (
               <div style={styles.fullscreenListeningDot} />
@@ -1146,7 +1143,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: CHAT OVERVIEW (input row raised)
+  // RENDER: CHAT OVERVIEW (input row raised higher)
   // ============================================================
   if (showChatOverview) {
     return (
@@ -1194,7 +1191,7 @@ export default function App() {
             </div>
           )}
         </div>
-        <div style={styles.chatOverviewInputRow}>
+        <div style={styles.chatOverviewInputRowRaised}>
           <input
             type="text"
             value={chatOverviewInput}
@@ -1752,7 +1749,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES – Full (with input row raised, ball centered)
+// STYLES – Updated: no ball in call, input row raised
 // ============================================================
 const styles = {
   appAndroid: {
@@ -2128,7 +2125,7 @@ const styles = {
     fontWeight: 'bold',
     cursor: 'pointer',
   },
-  // FULLSCREEN CALL (ball centered)
+  // FULLSCREEN CALL – NO BALL
   fullscreenCallOverlay: {
     position: 'fixed',
     top: 0,
@@ -2159,7 +2156,7 @@ const styles = {
     cursor: 'pointer',
     zIndex: 10,
   },
-  fullscreenCallContent: {
+  fullscreenCallContentNoBall: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -2168,11 +2165,6 @@ const styles = {
     width: '100%',
     maxWidth: '500px',
     flex: 1,
-  },
-  fullscreenBallWrapper: {
-    width: 'clamp(180px, 35vw, 260px)',
-    height: 'clamp(180px, 35vw, 260px)',
-    position: 'relative',
   },
   fullscreenListeningStatus: {
     display: 'flex',
@@ -2232,7 +2224,7 @@ const styles = {
     '&:hover': { transform: 'scale(1.05)' },
     '&:disabled': { opacity: 0.5, cursor: 'not-allowed' },
   },
-  // CHAT OVERVIEW (input row raised)
+  // CHAT OVERVIEW – input row raised higher
   chatOverviewContainer: {
     position: 'fixed',
     top: 0,
@@ -2284,6 +2276,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '8px',
+    maxHeight: 'calc(100vh - 160px)', // leave room for input
   },
   chatOverviewEmpty: {
     color: '#666',
@@ -2309,15 +2302,17 @@ const styles = {
     color: '#888',
     alignSelf: 'flex-end',
   },
-  chatOverviewInputRow: {
+  // RAISED INPUT ROW
+  chatOverviewInputRowRaised: {
     display: 'flex',
     gap: '8px',
-    padding: '10px 16px',
-    paddingBottom: 'max(20px, env(safe-area-inset-bottom, 40px))',
+    padding: '12px 16px',
+    paddingBottom: 'max(30px, env(safe-area-inset-bottom, 50px))',
     backgroundColor: '#111',
     borderTop: '1px solid #333',
     flexShrink: 0,
     alignItems: 'center',
+    marginTop: '10px',
   },
   chatOverviewInput: {
     flex: 1,
@@ -2832,7 +2827,6 @@ const styles = {
     padding: '8px',
     borderRadius: '4px',
   },
-  // PC styles
   appPC: {
     minHeight: '100vh',
     height: '100vh',
