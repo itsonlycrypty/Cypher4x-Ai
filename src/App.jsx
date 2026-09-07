@@ -29,6 +29,17 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     arrowLeft: 'M19 12H5M12 19l-7-7 7-7',
     volume2: 'M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07',
     volumeX: 'M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6',
+    atSign: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM16 12h4',
+    pencil: 'M17 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h10zm-6 5l-4 4v3h3l4-4-3-3z',
+    save: 'M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8',
+    trash: 'M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6',
+    user: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+    edit: 'M17 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h10zm-5 7l-3 3v3h3l3-3-3-3z',
+    chat: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z',
+    rotate: 'M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9',
+    camera: 'M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2v11zM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+    faceId: 'M4 4h16v16H4V4zm2 2v12h12V6H6zm4 4h4v4h-4v-4z',
+    atSign: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z',
   }
   const path = icons[name]
   if (!path) return null
@@ -125,16 +136,16 @@ const searchWeb = async (query) => {
 }
 
 // ==================================================
-// 🔴 RED BALL — GENUINE 3D GLOWING SPHERE (UPDATED)
+// 🔴 RED BALL — SMALLER & RINGS FIXED
 // ==================================================
 const RedBall = ({ isSpeaking = false }) => (
   <div style={styles.ballContainer}>
-    {/* Outer glow rings */}
+    {/* Outer glow rings — now perfectly centered around the ball */}
     <div style={styles.ring1} />
     <div style={styles.ring2} />
     <div style={styles.ring3} />
 
-    {/* 3D Sphere */}
+    {/* 3D Sphere — centered via flexbox */}
     <div style={styles.ball3DContainer}>
       <div style={{
         ...styles.ball3D,
@@ -637,7 +648,7 @@ export default function App() {
   }, [speakText])
 
   // ==================================================
-  // FULL‑SCREEN CALL HANDLERS (unchanged – no fullscreen API added)
+  // FULL‑SCREEN CALL HANDLERS
   // ==================================================
   const toggleFullscreenCall = useCallback(() => {
     if (isFullscreenCall) {
@@ -966,7 +977,7 @@ export default function App() {
   const formatTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
   // ============================================================
-  // RENDER: BOOT SCREEN (unchanged)
+  // RENDER: BOOT SCREEN
   // ============================================================
   if (isBooting) {
     const bootSteps = [
@@ -1153,7 +1164,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: CHAT OVERVIEW (input row raised higher)
+  // RENDER: CHAT OVERVIEW
   // ============================================================
   if (showChatOverview) {
     return (
@@ -1283,7 +1294,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: ANDROID VIEW (unchanged layout)
+  // RENDER: ANDROID VIEW
   // ============================================================
   if (viewMode === 'android') {
     return (
@@ -1332,7 +1343,6 @@ export default function App() {
                   </span>
                 </div>
               </div>
-              {/* CONVERSATION with Overview button */}
               <div style={styles.sidebarSection}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <h3 style={styles.sectionTitle}><Icon name="chat" size={16} color="#ff003c" /> CONVERSATION</h3>
@@ -1387,7 +1397,6 @@ export default function App() {
                   </label>
                 </div>
               </div>
-              {/* COMMAND HISTORY */}
               <div style={styles.sidebarSection}>
                 <h3 style={styles.sectionTitle}><Icon name="clock" size={16} color="#ff003c" /> COMMAND HISTORY</h3>
                 <div style={styles.commandHistoryPC}>
@@ -1401,7 +1410,6 @@ export default function App() {
                 </div>
                 <button onClick={clearCommands} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear All</button>
               </div>
-              {/* PROFILE with Logout */}
               <div style={styles.sidebarSection}>
                 <h3 style={styles.sectionTitle}><Icon name="user" size={16} color="#ff003c" /> PROFILE</h3>
                 <div style={styles.profileCardSidebar}>
@@ -1420,7 +1428,6 @@ export default function App() {
                   <button onClick={() => { setShowAuthModal(true); setShowLogin(true); }} style={styles.sidebarBtn}><Icon name="settings" size={14} color="#fff" /> Login</button>
                 )}
               </div>
-              {/* DANGER ZONE */}
               <div style={styles.sidebarSection}>
                 <h3 style={styles.sectionTitle}><Icon name="alertTriangle" size={16} color="#ff003c" /> DANGER ZONE</h3>
                 <button onClick={resetAllData} style={styles.dangerBtn}><Icon name="trash" size={14} color="#fff" /> Reset All Data</button>
@@ -1498,7 +1505,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: PC VIEW (unchanged)
+  // RENDER: PC VIEW
   // ============================================================
   return (
     <div style={styles.appPC}>
@@ -1584,7 +1591,6 @@ export default function App() {
               <div key={i} style={styles.pcSidebarRow}><span>{rem.text}</span><span style={styles.eventTimePC}>{rem.time}</span></div>
             ))}
           </div>
-          {/* CONVERSATION with Overview button */}
           <div style={styles.pcSidebarSection}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
               <h3 style={styles.pcSidebarTitle}><Icon name="chat" size={16} color="#ff003c" /> CONVERSATION</h3>
@@ -1759,7 +1765,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES – Updated with truly 3D ball styles
+// STYLES – Fixed ball size & ring centering
 // ============================================================
 const styles = {
   appAndroid: {
@@ -2135,7 +2141,6 @@ const styles = {
     fontWeight: 'bold',
     cursor: 'pointer',
   },
-  // FULLSCREEN CALL – NO BALL
   fullscreenCallOverlay: {
     position: 'fixed',
     top: 0,
@@ -2234,7 +2239,6 @@ const styles = {
     '&:hover': { transform: 'scale(1.05)' },
     '&:disabled': { opacity: 0.5, cursor: 'not-allowed' },
   },
-  // CHAT OVERVIEW – input row raised higher
   chatOverviewContainer: {
     position: 'fixed',
     top: 0,
@@ -2600,11 +2604,11 @@ const styles = {
     zIndex: 0,
     background: 'radial-gradient(ellipse at center, #0a0000 0%, #000 100%)',
   },
-  // ---------- 3D BALL STYLES (UPDATED) ----------
+  // ---------- 3D BALL STYLES — SMALLER & RINGS CENTERED ----------
   ballContainer: {
     position: 'relative',
-    width: '300px',
-    height: '300px',
+    width: '200px',
+    height: '200px',
     pointerEvents: 'none',
     zIndex: 1,
     display: 'flex',
@@ -2616,10 +2620,13 @@ const styles = {
     transformStyle: 'preserve-3d',
     width: '100%',
     height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   ball3D: {
-    width: '80%',
-    height: '80%',
+    width: '76%',
+    height: '76%',
     borderRadius: '50%',
     position: 'relative',
     transformStyle: 'preserve-3d',
@@ -2630,9 +2637,9 @@ const styles = {
     boxShadow: `
       inset -20px -20px 40px rgba(80, 0, 20, 0.8),
       inset 15px 15px 30px rgba(255, 180, 200, 0.4),
-      0 0 50px rgba(255, 0, 60, 0.5),
-      0 0 100px rgba(255, 0, 60, 0.3),
-      0 0 150px rgba(255, 0, 60, 0.15)
+      0 0 40px rgba(255, 0, 60, 0.5),
+      0 0 80px rgba(255, 0, 60, 0.3),
+      0 0 120px rgba(255, 0, 60, 0.15)
     `,
     animation: 'rotateGlobe 25s linear infinite',
     transition: 'all 0.3s ease',
@@ -2641,9 +2648,9 @@ const styles = {
     boxShadow: `
       inset -20px -20px 40px rgba(80, 0, 20, 0.8),
       inset 15px 15px 30px rgba(255, 180, 200, 0.5),
-      0 0 80px rgba(255, 0, 60, 0.8),
-      0 0 150px rgba(255, 0, 60, 0.5),
-      0 0 220px rgba(255, 0, 60, 0.25)
+      0 0 60px rgba(255, 0, 60, 0.8),
+      0 0 120px rgba(255, 0, 60, 0.5),
+      0 0 180px rgba(255, 0, 60, 0.25)
     `,
     animation: 'rotateGlobe 25s linear infinite, ballPulse 1.2s ease-in-out infinite',
   },
@@ -2668,13 +2675,14 @@ const styles = {
     background: 'radial-gradient(circle, rgba(255,100,140,0.2) 0%, transparent 60%)',
     pointerEvents: 'none',
   },
+  // Rings — now properly centered using absolute + transform
   ring1: {
     position: 'absolute',
     top: '50%',
     left: '50%',
-    width: '140%',
-    height: '140%',
     transform: 'translate(-50%, -50%)',
+    width: '135%',
+    height: '135%',
     borderRadius: '50%',
     border: '2px solid rgba(255,0,60,0.25)',
     animation: 'spinRing 12s linear infinite',
@@ -2685,9 +2693,9 @@ const styles = {
     position: 'absolute',
     top: '50%',
     left: '50%',
-    width: '160%',
-    height: '160%',
     transform: 'translate(-50%, -50%)',
+    width: '165%',
+    height: '165%',
     borderRadius: '50%',
     border: '1px solid rgba(255,0,60,0.12)',
     animation: 'spinRing 18s linear infinite reverse',
@@ -2697,9 +2705,9 @@ const styles = {
     position: 'absolute',
     top: '50%',
     left: '50%',
-    width: '120%',
-    height: '120%',
     transform: 'translate(-50%, -50%)',
+    width: '115%',
+    height: '115%',
     borderRadius: '50%',
     border: '1px dashed rgba(255,0,60,0.15)',
     animation: 'spinRing 8s linear infinite',
@@ -2987,8 +2995,8 @@ const styles = {
   },
   pcBallContainer: {
     position: 'relative',
-    width: 'clamp(150px, 25vw, 220px)',
-    height: 'clamp(150px, 25vw, 220px)',
+    width: 'clamp(140px, 22vw, 200px)',
+    height: 'clamp(140px, 22vw, 200px)',
     pointerEvents: 'none',
     marginBottom: '10px',
   },
