@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
 // ==================================================
-// ICON SYSTEM (unchanged – same as before)
+// ICON SYSTEM
 // ==================================================
 const Icon = ({ name, size = 18, color = 'currentColor' }) => {
   const icons = {
@@ -48,7 +48,7 @@ const VERSION = "Version 20.0.0"
 const APP_START_TIME = Date.now()
 
 // ==================================================
-// STORAGE HELPERS (unchanged)
+// STORAGE HELPERS
 // ==================================================
 const getStorageKey = (email, pin) => `cypher4x_${email}_${pin}`
 const saveUserData = (email, pin, data) => {
@@ -170,7 +170,7 @@ export default function App() {
   const [welcomeStep, setWelcomeStep] = useState('greeting')
   const [welcomeMessage, setWelcomeMessage] = useState('')
 
-  // ------ CHAT OVERVIEW (now uses main conversation) ------
+  // ------ CHAT OVERVIEW (uses main conversation) ------
   const [showChatOverview, setShowChatOverview] = useState(false)
   const [chatOverviewInput, setChatOverviewInput] = useState('')
   const [chatOverviewListening, setChatOverviewListening] = useState(false)
@@ -213,7 +213,7 @@ export default function App() {
   const fileInputRef = useRef(null)
 
   // ==================================================
-  // AUTH HANDLERS (unchanged)
+  // AUTH HANDLERS
   // ==================================================
   const handleAuthSubmit = () => {
     if (!email || !pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
@@ -505,7 +505,7 @@ export default function App() {
   }, [isProcessing, speakText, userMode])
 
   // ==================================================
-  // OVERVIEW CHAT – uses the same conversation, so no separate state
+  // OVERVIEW CHAT – uses the same conversation
   // ==================================================
   const setupOverviewRecognition = useCallback(() => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -530,7 +530,7 @@ export default function App() {
       }
       if (final) {
         setChatOverviewInterim('')
-        await processUserQuery(final) // uses main processor
+        await processUserQuery(final)
       } else if (interim) {
         setChatOverviewInterim(interim)
       }
@@ -1093,7 +1093,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: FULL‑SCREEN CALL (mic button & text moved lower)
+  // RENDER: FULL‑SCREEN CALL
   // ============================================================
   if (isFullscreenCall) {
     return (
@@ -1146,7 +1146,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: CHAT OVERVIEW (shows main conversation, input row visible)
+  // RENDER: CHAT OVERVIEW (scrollable)
   // ============================================================
   if (showChatOverview) {
     return (
@@ -1276,7 +1276,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: ANDROID VIEW (unchanged)
+  // RENDER: ANDROID VIEW
   // ============================================================
   if (viewMode === 'android') {
     return (
@@ -1491,7 +1491,7 @@ export default function App() {
   }
 
   // ============================================================
-  // RENDER: PC VIEW (unchanged)
+  // RENDER: PC VIEW
   // ============================================================
   return (
     <div style={styles.appPC}>
@@ -1752,7 +1752,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES – Complete (with overview input visible and call layout fixed)
+// STYLES – with scrolling and call layout fixes
 // ============================================================
 const styles = {
   appAndroid: {
@@ -1862,7 +1862,6 @@ const styles = {
     borderTop: '1px solid rgba(255,0,60,0.2)',
     paddingTop: '16px',
   },
-  // AUTH MODAL
   authModalOverlay: {
     position: 'fixed',
     top: 0,
@@ -1954,7 +1953,6 @@ const styles = {
     fontWeight: 'bold',
     textDecoration: 'underline',
   },
-  // GUEST LIMIT
   guestLimitOverlay: {
     position: 'fixed',
     top: 0,
@@ -2018,7 +2016,6 @@ const styles = {
     flex: 1,
     minWidth: '100px',
   },
-  // WELCOME OVERLAY
   welcomeOverlay: {
     position: 'fixed',
     top: 0,
@@ -2092,7 +2089,6 @@ const styles = {
     fontStyle: 'italic',
     marginTop: '12px',
   },
-  // ROTATE OVERLAY
   rotateOverlay: {
     position: 'fixed',
     top: 0,
@@ -2132,7 +2128,7 @@ const styles = {
     fontWeight: 'bold',
     cursor: 'pointer',
   },
-  // FULLSCREEN CALL (fixed layout)
+  // FULLSCREEN CALL (with content pushed down)
   fullscreenCallOverlay: {
     position: 'fixed',
     top: 0,
@@ -2170,7 +2166,10 @@ const styles = {
     gap: '30px',
     width: '100%',
     maxWidth: '500px',
-    marginTop: '40px', // moved down
+    marginTop: '40px',
+    justifyContent: 'flex-end',
+    flex: 1,
+    paddingBottom: '40px',
   },
   fullscreenBallWrapper: {
     width: 'clamp(180px, 35vw, 260px)',
@@ -2235,7 +2234,7 @@ const styles = {
     '&:hover': { transform: 'scale(1.05)' },
     '&:disabled': { opacity: 0.5, cursor: 'not-allowed' },
   },
-  // CHAT OVERVIEW (input row always visible)
+  // CHAT OVERVIEW (scrollable)
   chatOverviewContainer: {
     position: 'fixed',
     top: 0,
@@ -2247,6 +2246,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     paddingBottom: 'env(safe-area-inset-bottom, 20px)',
+    overflow: 'hidden',
   },
   chatOverviewHeader: {
     display: 'flex',
@@ -2463,7 +2463,6 @@ const styles = {
     fontSize: '15px',
     cursor: 'pointer'
   },
-  // SIDEBAR
   sidebarOverlay: {
     position: 'fixed',
     top: 0,
@@ -2574,7 +2573,6 @@ const styles = {
     gap: '4px',
     fontSize: '13px',
   },
-  // MAIN ANDROID
   mainContentAndroid: {
     flex: 1,
     display: 'flex',
