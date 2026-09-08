@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
 // ==================================================
-// ICON SYSTEM (unchanged)
+// ICON SYSTEM
 // ==================================================
 const Icon = ({ name, size = 18, color = 'currentColor' }) => {
   const icons = {
@@ -139,12 +139,12 @@ const searchWeb = async (query) => {
 // ==================================================
 const RedBall = ({ isSpeaking = false }) => (
   <div style={styles.ballContainer}>
-    {/* Outer glow rings — perfectly centered */}
+    {/* Outer glow rings — perfectly centered via margin trick */}
     <div style={styles.ring1} />
     <div style={styles.ring2} />
     <div style={styles.ring3} />
 
-    {/* 3D Sphere — centered via flex */}
+    {/* 3D Sphere — centered via flex parent */}
     <div style={styles.ball3DContainer}>
       <div style={{
         ...styles.ball3D,
@@ -1762,7 +1762,7 @@ export default function App() {
 }
 
 // ============================================================
-// STYLES – ball centered inside rings
+// STYLES – All styles including the final ball & ring layout
 // ============================================================
 const styles = {
   appAndroid: {
@@ -2601,11 +2601,11 @@ const styles = {
     zIndex: 0,
     background: 'radial-gradient(ellipse at center, #0a0000 0%, #000 100%)',
   },
-  // ---------- 3D BALL — CENTERED ----------
+  // ---------- 3D BALL — FINAL LAYOUT (centered) ----------
   ballContainer: {
     position: 'relative',
-    width: '200px',
-    height: '200px',
+    width: '300px',
+    height: '300px',
     pointerEvents: 'none',
     zIndex: 1,
     display: 'flex',
@@ -2615,15 +2615,10 @@ const styles = {
   ball3DContainer: {
     perspective: '800px',
     transformStyle: 'preserve-3d',
-    width: '100%',
-    height: '100%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   ball3D: {
-    width: '76%',
-    height: '76%',
+    width: '180px',
+    height: '180px',
     borderRadius: '50%',
     position: 'relative',
     transformStyle: 'preserve-3d',
@@ -2634,9 +2629,9 @@ const styles = {
     boxShadow: `
       inset -20px -20px 40px rgba(80, 0, 20, 0.8),
       inset 15px 15px 30px rgba(255, 180, 200, 0.4),
-      0 0 40px rgba(255, 0, 60, 0.5),
-      0 0 80px rgba(255, 0, 60, 0.3),
-      0 0 120px rgba(255, 0, 60, 0.15)
+      0 0 50px rgba(255, 0, 60, 0.5),
+      0 0 100px rgba(255, 0, 60, 0.3),
+      0 0 150px rgba(255, 0, 60, 0.15)
     `,
     animation: 'rotateGlobe 25s linear infinite',
     transition: 'all 0.3s ease',
@@ -2645,9 +2640,9 @@ const styles = {
     boxShadow: `
       inset -20px -20px 40px rgba(80, 0, 20, 0.8),
       inset 15px 15px 30px rgba(255, 180, 200, 0.5),
-      0 0 60px rgba(255, 0, 60, 0.8),
-      0 0 120px rgba(255, 0, 60, 0.5),
-      0 0 180px rgba(255, 0, 60, 0.25)
+      0 0 80px rgba(255, 0, 60, 0.8),
+      0 0 150px rgba(255, 0, 60, 0.5),
+      0 0 220px rgba(255, 0, 60, 0.25)
     `,
     animation: 'rotateGlobe 25s linear infinite, ballPulse 1.2s ease-in-out infinite',
   },
@@ -2672,43 +2667,43 @@ const styles = {
     background: 'radial-gradient(circle, rgba(255,100,140,0.2) 0%, transparent 60%)',
     pointerEvents: 'none',
   },
-  // Rings — perfectly centered
+  // Rings – centered using margin trick
   ring1: {
     position: 'absolute',
     top: '50%',
     left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '135%',
-    height: '135%',
+    width: '240px',
+    height: '240px',
+    marginLeft: '-120px',
+    marginTop: '-120px',
     borderRadius: '50%',
     border: '2px solid rgba(255,0,60,0.25)',
     animation: 'spinRing 12s linear infinite',
     boxShadow: '0 0 30px rgba(255,0,60,0.05)',
-    pointerEvents: 'none',
   },
   ring2: {
     position: 'absolute',
     top: '50%',
     left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '165%',
-    height: '165%',
+    width: '280px',
+    height: '280px',
+    marginLeft: '-140px',
+    marginTop: '-140px',
     borderRadius: '50%',
     border: '1px solid rgba(255,0,60,0.12)',
     animation: 'spinRing 18s linear infinite reverse',
-    pointerEvents: 'none',
   },
   ring3: {
     position: 'absolute',
     top: '50%',
     left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '115%',
-    height: '115%',
+    width: '200px',
+    height: '200px',
+    marginLeft: '-100px',
+    marginTop: '-100px',
     borderRadius: '50%',
     border: '1px dashed rgba(255,0,60,0.15)',
     animation: 'spinRing 8s linear infinite',
-    pointerEvents: 'none',
   },
   // ---------- END 3D BALL ----------
   faceTitleAndroid: {
@@ -2992,8 +2987,8 @@ const styles = {
   },
   pcBallContainer: {
     position: 'relative',
-    width: 'clamp(140px, 22vw, 200px)',
-    height: 'clamp(140px, 22vw, 200px)',
+    width: 'clamp(160px, 25vw, 300px)',
+    height: 'clamp(160px, 25vw, 300px)',
     pointerEvents: 'none',
     marginBottom: '10px',
   },
@@ -3202,3 +3197,26 @@ const styles = {
 // ============================================================
 // KEYFRAMES (add to index.css)
 // ============================================================
+// Add these animations to your global CSS:
+/*
+@keyframes pulseText {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+@keyframes rotateGlobe {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes ballPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+@keyframes spinRing {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 80px rgba(255,0,60,0.7); }
+  50% { box-shadow: 0 0 120px rgba(255,0,60,0.9); }
+}
+*/
