@@ -40,6 +40,8 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     copy: 'M8 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1M8 5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2V5zm4 2h4m-4 4h4',
     pause: 'M6 4h4v16H6V4zm8 0h4v16h-4V4z',
     play: 'M5 3l14 9-14 9V3z',
+    externalLink: 'M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3',
+    refresh: 'M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15',
   }
   const path = icons[name]
   if (!path) return null
@@ -126,6 +128,71 @@ const searchWeb = async (query) => {
   }
 }
 
+// Command execution handler
+const executeCommand = (query) => {
+  const lower = query.toLowerCase().trim()
+  let url = null
+  let response = null
+
+  if (lower.startsWith('open ')) {
+    const target = lower.replace('open ', '').trim()
+    const siteMap = {
+      'youtube': 'https://youtube.com',
+      'google': 'https://google.com',
+      'facebook': 'https://facebook.com',
+      'twitter': 'https://twitter.com',
+      'x': 'https://x.com',
+      'instagram': 'https://instagram.com',
+      'whatsapp': 'https://web.whatsapp.com',
+      'gmail': 'https://mail.google.com',
+      'maps': 'https://maps.google.com',
+      'calculator': 'https://www.google.com/search?q=calculator',
+      'weather': 'https://www.google.com/search?q=weather',
+      'news': 'https://news.google.com',
+      'github': 'https://github.com',
+      'reddit': 'https://reddit.com',
+      'linkedin': 'https://linkedin.com',
+      'netflix': 'https://netflix.com',
+      'spotify': 'https://open.spotify.com',
+      'chatgpt': 'https://chat.openai.com',
+      'tiktok': 'https://tiktok.com',
+      'pinterest': 'https://pinterest.com',
+      'amazon': 'https://amazon.com',
+      'wikipedia': 'https://wikipedia.org',
+    }
+    if (siteMap[target]) url = siteMap[target]
+    else if (target.includes('.') && !target.includes(' ')) url = `https://${target}`
+    else url = `https://www.google.com/search?q=${encodeURIComponent(target)}`
+    if (url) {
+      window.open(url, '_blank')
+      response = `Opening ${target} for you! 🚀`
+    }
+  } else if (lower.startsWith('search ')) {
+    const term = lower.replace('search ', '').trim()
+    url = `https://www.google.com/search?q=${encodeURIComponent(term)}`
+    window.open(url, '_blank')
+    response = `Searching for "${term}"... 🔍`
+  } else if (lower.startsWith('play ')) {
+    const song = lower.replace('play ', '').trim()
+    url = `https://www.youtube.com/results?search_query=${encodeURIComponent(song)}`
+    window.open(url, '_blank')
+    response = `Playing "${song}" on YouTube! 🎵`
+  } else if (lower === 'time' || lower.includes('what time') || lower.includes('current time')) {
+    response = `The current time is ${new Date().toLocaleTimeString()}. ⏰`
+  } else if (lower === 'date' || lower.includes('what date') || lower.includes('today')) {
+    response = `Today is ${new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. 📅`
+  } else if (lower.includes('calculate') || lower.match(/^[\d\s+\-*/().]+$/)) {
+    try {
+      const expr = lower.replace('calculate', '').trim()
+      // Safe eval for simple math
+      const result = Function(`"use strict"; return (${expr})`)()
+      if (typeof result === 'number') response = `The answer is ${result}. 🧮`
+    } catch (e) {}
+  }
+
+  return response ? { response } : null
+}
+
 const RedBall = ({ isSpeaking = false }) => (
   <div style={styles.ballContainer}>
     <div style={styles.ring1} />
@@ -143,6 +210,14 @@ const RedBall = ({ isSpeaking = false }) => (
   </div>
 )
 
+const PERSONALITIES = [
+  { id: 'polite', label: 'Polite', desc: 'Always respectful and courteous', icon: '🤝' },
+  { id: 'concise', label: 'Concise', desc: 'Short, direct, to the point', icon: '⚡' },
+  { id: 'clear', label: 'Clear', desc: 'Simple, easy to understand', icon: '💡' },
+  { id: 'comprehensive', label: 'Comprehensive', desc: 'Detailed, thorough answers', icon: '📚' },
+  { id: 'custom', label: 'Custom', desc: 'AI learns your communication style', icon: '🎨' },
+]
+
 export default function App() {
   const [userMode, setUserMode] = useState('guest')
   const [email, setEmail] = useState('')
@@ -157,18 +232,23 @@ export default function App() {
   const [editingProfile, setEditingProfile] = useState(false)
   const [isBooting, setIsBooting] = useState(true)
   const [bootTypedText, setBootTypedText] = useState('')
+  const [bootTypedCredit, setBootTypedCredit] = useState('')
   const [viewMode, setViewMode] = useState('android')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(false)
   const [welcomeStep, setWelcomeStep] = useState('greeting')
   const [welcomeMessage, setWelcomeMessage] = useState('')
   const [showSettings, setShowSettings] = useState(false)
+  const [showPersonalityModal, setShowPersonalityModal] = useState(false)
+  const [aiPersonality, setAiPersonality] = useState('polite')
+  const [customPersonality, setCustomPersonality] = useState('')
+  const [backgroundImage, setBackgroundImage] = useState(null)
   const [settings, setSettings] = useState({
     welcomeEnabled: true,
     autoStartVoice: true,
-    darkMode: false,
     language: 'en',
     voiceSpeed: 1,
+    personality: 'polite',
   })
   const [showChatOverview, setShowChatOverview] = useState(false)
   const [chatOverviewInput, setChatOverviewInput] = useState('')
@@ -203,42 +283,64 @@ export default function App() {
   const recognitionRef = useRef(null)
   const msgCounter = useRef(0)
   const fileInputRef = useRef(null)
+  const bgInputRef = useRef(null)
 
-  // BOOT TYPEWRITER
+  // BOOT TYPEWRITER - types both CYPHER4X and credit
   useEffect(() => {
     if (!isBooting) return
     const title = "CYPHER4X"
-    let index = 0
+    const credit = "Created by Hackers Hub led by Crypty"
+    let titleIndex = 0
+    let creditIndex = 0
+    let phase = 'title'
+
     const interval = setInterval(() => {
-      if (index <= title.length) {
-        setBootTypedText(title.slice(0, index))
-        index++
-      } else {
-        clearInterval(interval)
-        setTimeout(() => {
-          setIsBooting(false)
-          const auth = getAuth()
-          if (auth && userExists(auth.email, auth.pin)) {
-            setEmail(auth.email)
-            setPin(auth.pin)
-            loginUser(auth.email, auth.pin)
-          } else {
-            setUserMode('guest')
-            setGuestMessageCount(0)
-            const today = new Date().toDateString()
-            const lastWelcome = getLastWelcomeDate()
-            if (lastWelcome !== today && settings.welcomeEnabled) {
-              setLastWelcomeDate(today)
-              setShowWelcomeOverlay(true)
-              setWelcomeStep('greeting')
-              const msg = "Hello User! I'm CYPHER4X, your friendly AI assistant. How are you feeling today?"
-              setWelcomeMessage(msg)
-              speakText(msg)
+      if (phase === 'title') {
+        if (titleIndex <= title.length) {
+          setBootTypedText(title.slice(0, titleIndex))
+          titleIndex++
+        } else {
+          phase = 'pause'
+          setTimeout(() => { phase = 'credit' }, 500)
+        }
+      } else if (phase === 'credit') {
+        if (creditIndex <= credit.length) {
+          setBootTypedCredit(credit.slice(0, creditIndex))
+          creditIndex++
+        } else {
+          clearInterval(interval)
+          setTimeout(() => {
+            setIsBooting(false)
+            const auth = getAuth()
+            if (auth && userExists(auth.email, auth.pin)) {
+              setEmail(auth.email)
+              setPin(auth.pin)
+              loginUser(auth.email, auth.pin)
+            } else {
+              setUserMode('guest')
+              setGuestMessageCount(0)
+              // Show personality selection on first entry
+              const savedPersonality = localStorage.getItem('cypher4x_personality')
+              if (!savedPersonality) {
+                setShowPersonalityModal(true)
+              } else {
+                setAiPersonality(savedPersonality)
+              }
+              const today = new Date().toDateString()
+              const lastWelcome = getLastWelcomeDate()
+              if (lastWelcome !== today && settings.welcomeEnabled && savedPersonality) {
+                setLastWelcomeDate(today)
+                setShowWelcomeOverlay(true)
+                setWelcomeStep('greeting')
+                const msg = "Hello User! I'm CYPHER4X, your friendly AI assistant. How are you feeling today?"
+                setWelcomeMessage(msg)
+                speakText(msg)
+              }
             }
-          }
-        }, 800)
+          }, 800)
+        }
       }
-    }, 120)
+    }, 100)
     return () => clearInterval(interval)
   }, [isBooting, settings.welcomeEnabled])
 
@@ -263,7 +365,8 @@ export default function App() {
       const emptyData = {
         profile: null, conversation: [], commandHistory: [], events: [], reminders: [],
         faceRecognition: false, biometricAuth: false, voiceGender: 'female', viewMode: 'android',
-        settings: { welcomeEnabled: true, autoStartVoice: true, darkMode: false, language: 'en', voiceSpeed: 1 }
+        personality: 'polite', backgroundImage: null,
+        settings: { welcomeEnabled: true, autoStartVoice: true, language: 'en', voiceSpeed: 1, personality: 'polite' }
       }
       saveUserData(email, pin, emptyData)
       loginUser(email, pin)
@@ -291,6 +394,8 @@ export default function App() {
       setBiometricAuth(data.biometricAuth || false)
       setVoiceGender(data.voiceGender || 'female')
       setViewMode(data.viewMode || 'android')
+      setAiPersonality(data.personality || 'polite')
+      setBackgroundImage(data.backgroundImage || null)
       if (data.settings) setSettings(data.settings)
       msgCounter.current = (data.conversation || []).length + 1
       const today = new Date().toDateString()
@@ -308,7 +413,7 @@ export default function App() {
         const greet = `Welcome back, ${name}! I'm CYPHER4X. How can I help you today?`
         const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: greet, time: Date.now() }
         setConversation(prev => [...prev, assistantMsg])
-        speakText(greet.replace(/[✨]/g, ''))
+        speakText(greet)
       }
     }
   }
@@ -317,14 +422,15 @@ export default function App() {
     if (userMode !== 'loggedin') return
     const data = {
       profile, conversation, commandHistory, events, reminders,
-      faceRecognition, biometricAuth, voiceGender, viewMode, settings
+      faceRecognition, biometricAuth, voiceGender, viewMode,
+      personality: aiPersonality, backgroundImage, settings
     }
     saveUserData(email, pin, data)
   }
 
   useEffect(() => {
     if (userMode === 'loggedin') saveCurrentUserData()
-  }, [profile, conversation, commandHistory, events, reminders, faceRecognition, biometricAuth, voiceGender, viewMode, settings])
+  }, [profile, conversation, commandHistory, events, reminders, faceRecognition, biometricAuth, voiceGender, viewMode, aiPersonality, backgroundImage, settings])
 
   const handleLogout = () => {
     if (!confirm("Logout from this account?")) return
@@ -423,15 +529,37 @@ export default function App() {
     }
   }, [voiceGender, settings.voiceSpeed])
 
+  const getPersonalityPrefix = () => {
+    switch (aiPersonality) {
+      case 'concise': return '[Short answer] '
+      case 'comprehensive': return '[Detailed] '
+      case 'polite': return ''
+      case 'clear': return ''
+      default: return ''
+    }
+  }
+
   const processUserQuery = useCallback(async (query) => {
     if (!query || isProcessing) return
     if (userMode === 'guest') incrementGuestMessage()
     setIsProcessing(true)
     setInterimTranscript('')
     setRecordingMode(false)
+
     const userMsg = { id: ++msgCounter.current, role: 'user', content: query, time: Date.now() }
     setConversation(prev => [...prev, userMsg])
     setCommandHistory(prev => [...prev, { command: query, timestamp: Date.now() }])
+
+    // Check for commands first
+    const cmdResult = executeCommand(query)
+    if (cmdResult) {
+      const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: cmdResult.response, time: Date.now() }
+      setConversation(prev => [...prev, assistantMsg])
+      speakText(cmdResult.response)
+      setIsProcessing(false)
+      return
+    }
+
     const lower = query.toLowerCase()
     const casualPhrases = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', "what's up", 'sup', 'yo', 'howdy', 'hey there']
     if (casualPhrases.some(phrase => lower.includes(phrase))) {
@@ -450,6 +578,7 @@ export default function App() {
       setIsProcessing(false)
       return
     }
+
     if (lower.includes('how are you') || lower.includes('how do you feel') || lower.includes('feeling')) {
       const emotionalReplies = [
         "I'm feeling fantastic, thank you for asking! How about you?",
@@ -464,6 +593,7 @@ export default function App() {
       setIsProcessing(false)
       return
     }
+
     const result = await searchWeb(query)
     let reply = result.error ? `Search error: ${result.error}` : (result.answer || "I couldn't find an answer to that.")
     if (!result.error && reply.length > 10) {
@@ -474,13 +604,13 @@ export default function App() {
         "Let me share what I know: ",
         "Based on my search, "
       ]
-      reply = intros[Math.floor(Math.random() * intros.length)] + reply
+      reply = getPersonalityPrefix() + intros[Math.floor(Math.random() * intros.length)] + reply
     }
     const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
     setConversation(prev => [...prev, assistantMsg])
     speakText(reply)
     setIsProcessing(false)
-  }, [isProcessing, speakText, userMode])
+  }, [isProcessing, speakText, userMode, aiPersonality])
 
   const setupOverviewRecognition = useCallback(() => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -797,6 +927,38 @@ export default function App() {
     setTimeout(() => { setShowWelcomeOverlay(false) }, 3000)
   }, [speakText])
 
+  const handlePersonalitySelect = (personalityId) => {
+    setAiPersonality(personalityId)
+    setSettings({ ...settings, personality: personalityId })
+    localStorage.setItem('cypher4x_personality', personalityId)
+    setShowPersonalityModal(false)
+    const today = new Date().toDateString()
+    const lastWelcome = getLastWelcomeDate()
+    if (lastWelcome !== today && settings.welcomeEnabled) {
+      setLastWelcomeDate(today)
+      setShowWelcomeOverlay(true)
+      setWelcomeStep('greeting')
+      const msg = "Hello User! I'm CYPHER4X, your friendly AI assistant. How are you feeling today?"
+      setWelcomeMessage(msg)
+      speakText(msg)
+    }
+  }
+
+  const handleBackgroundChange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) { alert("Select an image file!"); return }
+    if (file.size > 5 * 1024 * 1024) { alert("Image too large! Max 5MB"); return }
+    const reader = new FileReader()
+    reader.onloadend = () => setBackgroundImage(reader.result)
+    reader.readAsDataURL(file)
+  }
+
+  const resetBackground = () => {
+    setBackgroundImage(null)
+    if (bgInputRef.current) bgInputRef.current.value = ''
+  }
+
   const toggleView = useCallback(() => {
     setViewMode(prev => {
       const newMode = prev === 'android' ? 'pc' : 'android'
@@ -862,7 +1024,8 @@ export default function App() {
       const emptyData = {
         profile: null, conversation: [], commandHistory: [], events: [], reminders: [],
         faceRecognition: false, biometricAuth: false, voiceGender: 'female', viewMode: 'android',
-        settings: { welcomeEnabled: true, autoStartVoice: true, darkMode: false, language: 'en', voiceSpeed: 1 }
+        personality: 'polite', backgroundImage: null,
+        settings: { welcomeEnabled: true, autoStartVoice: true, language: 'en', voiceSpeed: 1, personality: 'polite' }
       }
       saveUserData(email, pin, emptyData)
     }
@@ -875,6 +1038,8 @@ export default function App() {
     setBiometricAuth(false)
     setVoiceGender('female')
     setViewMode('android')
+    setBackgroundImage(null)
+    setAiPersonality('polite')
     setSidebarOpen(false)
   }, [userMode, email, pin])
 
@@ -903,9 +1068,7 @@ export default function App() {
   if (isBooting) {
     return (
       <div style={styles.bootContainer}>
-        <style>{`
-          @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-        `}</style>
+        <style>{`@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }`}</style>
         <div style={styles.bootBackground} />
         <div style={styles.bootContent}>
           <h1 style={styles.bootTitle}>
@@ -913,7 +1076,49 @@ export default function App() {
             <span style={styles.bootCursor}>|</span>
           </h1>
           <p style={styles.bootSubtitle}>Advanced AI System</p>
-          <div style={styles.bootCredit}>Created by Hackers hub led by Crypty</div>
+          <div style={styles.bootCredit}>
+            {bootTypedCredit}
+            {bootTypedCredit.length > 0 && bootTypedCredit.length < 38 && <span style={styles.bootCursor}>|</span>}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // PERSONALITY SELECTION MODAL (FIRST ENTRY)
+  if (showPersonalityModal) {
+    return (
+      <div style={styles.personalityOverlay}>
+        <div style={styles.personalityCard}>
+          <h1 style={styles.personalityTitle}>CYPHER4X</h1>
+          <p style={styles.personalitySubtitle}>Choose your AI personality</p>
+          <div style={styles.personalityGrid}>
+            {PERSONALITIES.map(p => (
+              <button
+                key={p.id}
+                onClick={() => handlePersonalitySelect(p.id)}
+                style={{
+                  ...styles.personalityOption,
+                  borderColor: aiPersonality === p.id ? '#ff003c' : '#333',
+                  backgroundColor: aiPersonality === p.id ? 'rgba(255,0,60,0.15)' : '#1a1a1a',
+                }}
+              >
+                <span style={styles.personalityIcon}>{p.icon}</span>
+                <span style={styles.personalityLabel}>{p.label}</span>
+                <span style={styles.personalityDesc}>{p.desc}</span>
+              </button>
+            ))}
+          </div>
+          {aiPersonality === 'custom' && (
+            <input
+              type="text"
+              placeholder="Describe how you want me to talk..."
+              value={customPersonality}
+              onChange={(e) => setCustomPersonality(e.target.value)}
+              style={styles.personalityInput}
+            />
+          )}
+          <p style={styles.personalityHint}>You can change this anytime in Settings</p>
         </div>
       </div>
     )
@@ -938,7 +1143,10 @@ export default function App() {
     return (
       <div style={styles.welcomeOverlay}>
         <div style={styles.welcomeCard}>
-          <div style={styles.welcomeBall}><RedBall isSpeaking={isAISpeaking} /></div>
+          {/* Red ball hidden after user selects an option */}
+          {welcomeStep === 'greeting' && (
+            <div style={styles.welcomeBall}><RedBall isSpeaking={isAISpeaking} /></div>
+          )}
           <div style={styles.welcomeMessageText}>{welcomeMessage}</div>
           {welcomeStep === 'greeting' && (
             <div style={styles.welcomeButtons}>
@@ -963,14 +1171,7 @@ export default function App() {
           <p style={styles.authSubtitle}>{showLogin ? 'Login' : 'Sign Up'}</p>
           <div style={styles.authError}>{authError}</div>
           <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} style={styles.authInput} />
-          <input
-            type="password"
-            placeholder="4-digit PIN"
-            value={pin}
-            onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-            style={styles.authInput}
-            maxLength="4"
-          />
+          <input type="password" placeholder="4-digit PIN" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))} style={styles.authInput} maxLength="4" />
           <button onClick={handleAuthSubmit} style={styles.authBtn}>{showLogin ? 'Login' : 'Create Account'}</button>
           <div style={styles.authSwitch}>
             <span>{showLogin ? "Don't have an account?" : "Already have an account?"}</span>
@@ -983,9 +1184,10 @@ export default function App() {
     )
   }
 
+  // FULL SCREEN SETTINGS
   if (showSettings) {
     return (
-      <div style={styles.settingsOverlay}>
+      <div style={styles.settingsFullscreen}>
         <style>{`
           .toggle-switch { position: relative; display: inline-block; width: 46px; height: 24px; }
           .toggle-switch input { opacity: 0; width: 0; height: 0; }
@@ -994,12 +1196,15 @@ export default function App() {
           .toggle-switch input:checked + .toggle-slider { background-color: #ff003c; }
           .toggle-switch input:checked + .toggle-slider:before { transform: translateX(22px); }
         `}</style>
-        <div style={styles.settingsCard}>
-          <div style={styles.settingsHeader}>
-            <h2 style={styles.settingsTitle}>Settings</h2>
-            <button onClick={() => setShowSettings(false)} style={styles.settingsClose}>✕</button>
-          </div>
-          <div style={styles.settingsGroup}>
+        <div style={styles.settingsHeaderFull}>
+          <h1 style={styles.settingsTitleFull}>Settings</h1>
+          <button onClick={() => setShowSettings(false)} style={styles.settingsCloseFull}>
+            <Icon name="close" size={28} color="#fff" />
+          </button>
+        </div>
+        <div style={styles.settingsBodyFull}>
+          <div style={styles.settingsSection}>
+            <h3 style={styles.settingsSectionTitle}>General</h3>
             <div style={styles.settingItem}>
               <span>Welcome Messages</span>
               <label className="toggle-switch">
@@ -1015,13 +1220,6 @@ export default function App() {
               </label>
             </div>
             <div style={styles.settingItem}>
-              <span>Dark Mode</span>
-              <label className="toggle-switch">
-                <input type="checkbox" checked={settings.darkMode} onChange={(e) => setSettings({ ...settings, darkMode: e.target.checked })} />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
-            <div style={styles.settingItem}>
               <span>Language</span>
               <select value={settings.language} onChange={(e) => setSettings({ ...settings, language: e.target.value })} style={styles.settingsSelect}>
                 <option value="en">English</option>
@@ -1030,6 +1228,10 @@ export default function App() {
                 <option value="de">German</option>
               </select>
             </div>
+          </div>
+
+          <div style={styles.settingsSection}>
+            <h3 style={styles.settingsSectionTitle}>Voice</h3>
             <div style={styles.settingItem}>
               <span>Voice Speed</span>
               <input type="range" min="0.5" max="2" step="0.1" value={settings.voiceSpeed} onChange={(e) => setSettings({ ...settings, voiceSpeed: parseFloat(e.target.value) })} style={styles.settingsRange} />
@@ -1043,8 +1245,55 @@ export default function App() {
               </select>
             </div>
           </div>
-          <button onClick={() => setShowSettings(false)} style={styles.settingsDoneBtn}>Done</button>
+
+          <div style={styles.settingsSection}>
+            <h3 style={styles.settingsSectionTitle}>AI Personality</h3>
+            <div style={styles.personalityGridSettings}>
+              {PERSONALITIES.map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => {
+                    setAiPersonality(p.id)
+                    setSettings({ ...settings, personality: p.id })
+                    localStorage.setItem('cypher4x_personality', p.id)
+                  }}
+                  style={{
+                    ...styles.personalityOptionSmall,
+                    borderColor: aiPersonality === p.id ? '#ff003c' : '#333',
+                    backgroundColor: aiPersonality === p.id ? 'rgba(255,0,60,0.15)' : '#1a1a1a',
+                  }}
+                >
+                  <span style={{ fontSize: '20px' }}>{p.icon}</span>
+                  <span style={{ fontSize: '12px', color: '#fff', fontWeight: 'bold' }}>{p.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={styles.settingsSection}>
+            <h3 style={styles.settingsSectionTitle}>Background</h3>
+            <div style={styles.backgroundControls}>
+              <label style={styles.uploadBtn}>
+                <Icon name="image" size={18} color="#fff" />
+                <span>Choose Image</span>
+                <input ref={bgInputRef} type="file" accept="image/*" onChange={handleBackgroundChange} style={{ display: 'none' }} />
+              </label>
+              {backgroundImage && (
+                <button onClick={resetBackground} style={styles.resetBtn}>
+                  <Icon name="refresh" size={18} color="#fff" />
+                  <span>Reset</span>
+                </button>
+              )}
+            </div>
+            {backgroundImage && (
+              <div style={styles.bgPreview}>
+                <img src={backgroundImage} alt="Background preview" style={styles.bgPreviewImg} />
+              </div>
+            )}
+            <p style={styles.bgHint}>The Red Ball will remain visible on top of your background.</p>
+          </div>
         </div>
+        <button onClick={() => setShowSettings(false)} style={styles.settingsDoneFull}>Done</button>
       </div>
     )
   }
@@ -1251,7 +1500,7 @@ export default function App() {
               <div style={styles.sidebarSection}>
                 <h3 style={styles.sectionTitle}><Icon name="settings" size={16} color="#ff003c" /> AI CONFIG</h3>
                 <div style={styles.settingRow}><span style={styles.settingLabel}>AI Engine</span><span style={styles.settingValue}>TAVILY</span></div>
-                <div style={styles.settingRow}><span style={styles.settingLabel}>Language</span><span style={styles.settingValue}>English</span></div>
+                <div style={styles.settingRow}><span style={styles.settingLabel}>Personality</span><span style={styles.settingValue}>{PERSONALITIES.find(p => p.id === aiPersonality)?.label || 'Polite'}</span></div>
                 <div style={styles.settingRow}>
                   <span style={styles.settingLabel}>Voice Gender</span>
                   <select value={voiceGender} onChange={(e) => setVoiceGender(e.target.value)} style={styles.selectInput}>
@@ -1341,7 +1590,12 @@ export default function App() {
           </>
         )}
 
-        <div style={styles.mainContentAndroid}>
+        <div style={{
+          ...styles.mainContentAndroid,
+          backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}>
           <div style={styles.backgroundAndroid}>
             <RedBall isSpeaking={isAISpeaking} />
             <div style={styles.faceTitleAndroid}>CYPHER4X</div>
@@ -1349,13 +1603,14 @@ export default function App() {
 
           <div style={styles.topBarAndroid}>
             <div style={{ width: '80px' }} />
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <button onClick={() => setShowSettings(true)} style={styles.settingsButtonTop}>
-                <Icon name="cog" size={20} color="#fff" />
-              </button>
+            <div style={styles.topRightButtons}>
+              {/* Call button FIRST, then Settings */}
               <button onClick={toggleFullscreenCall} style={styles.callButtonTopRight}>
                 <Icon name="phone" size={24} color={isCallActive ? "#4f8" : "#ff003c"} />
                 <span style={styles.callLabelTop}>{isFullscreenCall ? 'ACTIVE' : 'CALL'}</span>
+              </button>
+              <button onClick={() => setShowSettings(true)} style={styles.settingsButtonTop}>
+                <Icon name="cog" size={20} color="#fff" />
               </button>
             </div>
           </div>
@@ -1421,12 +1676,13 @@ export default function App() {
         <div style={styles.headerLeft}>
           <h1 style={styles.titlePC}>CYPHER4X</h1>
           <span style={styles.versionBadgePC}>{VERSION}</span>
+        </div>
+        <div style={styles.headerRight}>
+          {/* Call button FIRST, then Settings */}
           <button onClick={toggleFullscreenCall} style={{ ...styles.callBtnPC, ...(isFullscreenCall ? styles.callBtnPCActive : {}) }}>
             <Icon name="phone" size={18} color={isFullscreenCall ? "#4f8" : "#ff003c"} />
             <span>{isFullscreenCall ? 'ACTIVE' : 'CALL'}</span>
           </button>
-        </div>
-        <div style={styles.headerRight}>
           <button onClick={() => setShowSettings(true)} style={styles.settingsBtnPC}>
             <Icon name="cog" size={20} color="#fff" />
           </button>
@@ -1454,7 +1710,7 @@ export default function App() {
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="settings" size={16} color="#ff003c" /> AI CONFIGURATION</h3>
             <div style={styles.pcSidebarRow}><span>AI Engine</span><span>TAVILY</span></div>
-            <div style={styles.pcSidebarRow}><span>Language</span><span>English</span></div>
+            <div style={styles.pcSidebarRow}><span>Personality</span><span>{PERSONALITIES.find(p => p.id === aiPersonality)?.label || 'Polite'}</span></div>
             <div style={styles.pcSidebarRow}>
               <span>Voice</span>
               <select value={voiceGender} onChange={(e) => setVoiceGender(e.target.value)} style={styles.selectInputPC}>
@@ -1575,7 +1831,12 @@ export default function App() {
           </div>
         </div>
 
-        <div style={styles.pcMain}>
+        <div style={{
+          ...styles.pcMain,
+          backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}>
           <div style={styles.pcBallContainer}>
             <RedBall isSpeaking={isAISpeaking} />
           </div>
@@ -1661,7 +1922,20 @@ const styles = {
   bootTitle: { fontSize: 'clamp(48px, 12vw, 72px)', fontWeight: 'bold', color: '#ff003c', textShadow: '0 0 40px #ff003c, 0 0 80px #ff003c44', letterSpacing: '8px', margin: '0 0 10px', fontFamily: "'Courier New', monospace", minHeight: '80px' },
   bootCursor: { display: 'inline-block', animation: 'blink 0.7s step-end infinite', color: '#ff003c' },
   bootSubtitle: { fontSize: 'clamp(14px, 2vw, 20px)', color: '#ff6688', letterSpacing: '4px', marginBottom: '40px', opacity: 0.8 },
-  bootCredit: { color: '#ff6688', fontSize: '14px', marginTop: '20px', opacity: 0.7, letterSpacing: '1px', fontFamily: "'Courier New', monospace", borderTop: '1px solid rgba(255,0,60,0.2)', paddingTop: '16px' },
+  bootCredit: { color: '#ff6688', fontSize: '14px', marginTop: '20px', opacity: 0.7, letterSpacing: '1px', fontFamily: "'Courier New', monospace", borderTop: '1px solid rgba(255,0,60,0.2)', paddingTop: '16px', minHeight: '30px' },
+
+  personalityOverlay: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: '#000', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflowY: 'auto' },
+  personalityCard: { width: '100%', maxWidth: '700px', backgroundColor: '#111', border: '2px solid #ff003c', borderRadius: '16px', padding: '30px', textAlign: 'center' },
+  personalityTitle: { color: '#ff003c', fontSize: '36px', letterSpacing: '6px', margin: '0 0 8px', fontFamily: "'Courier New', monospace" },
+  personalitySubtitle: { color: '#ff6688', fontSize: '16px', marginBottom: '24px' },
+  personalityGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '20px' },
+  personalityOption: { padding: '16px 12px', border: '2px solid #333', borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', transition: 'all 0.2s' },
+  personalityIcon: { fontSize: '28px' },
+  personalityLabel: { color: '#fff', fontWeight: 'bold', fontSize: '15px' },
+  personalityDesc: { color: '#888', fontSize: '11px', textAlign: 'center' },
+  personalityInput: { width: '100%', padding: '12px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '16px' },
+  personalityHint: { color: '#666', fontSize: '12px', marginTop: '12px', fontStyle: 'italic' },
+
   authModalOverlay: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.9)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' },
   authModalCard: { width: '100%', maxWidth: '400px', backgroundColor: '#111', border: '2px solid #ff003c', borderRadius: '12px', padding: '30px', textAlign: 'center', position: 'relative' },
   authModalClose: { position: 'absolute', top: '10px', right: '15px', background: 'none', border: 'none', color: '#888', fontSize: '24px', cursor: 'pointer' },
@@ -1672,6 +1946,7 @@ const styles = {
   authBtn: { width: '100%', padding: '14px', backgroundColor: '#ff003c', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer', marginTop: '8px' },
   authSwitch: { marginTop: '16px', display: 'flex', justifyContent: 'center', gap: '8px', color: '#888', fontSize: '14px' },
   authSwitchBtn: { background: 'none', border: 'none', color: '#ff003c', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold', textDecoration: 'underline' },
+
   guestLimitOverlay: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.92)', zIndex: 99998, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' },
   guestLimitCard: { backgroundColor: '#111', border: '2px solid #ff003c', borderRadius: '20px', padding: '40px 30px', maxWidth: '420px', width: '100%', textAlign: 'center' },
   guestLimitTitle: { color: '#ff003c', fontSize: '24px', marginBottom: '16px' },
@@ -1679,6 +1954,7 @@ const styles = {
   guestLimitButtons: { display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' },
   guestLimitLoginBtn: { padding: '12px 30px', backgroundColor: '#ff003c', color: '#fff', border: 'none', borderRadius: '30px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', flex: 1, minWidth: '100px' },
   guestLimitSignupBtn: { padding: '12px 30px', backgroundColor: '#1a3a3a', color: '#fff', border: '1px solid #2a5a5a', borderRadius: '30px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', flex: 1, minWidth: '100px' },
+
   welcomeOverlay: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.92)', zIndex: 99997, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' },
   welcomeCard: { backgroundColor: '#111', border: '2px solid #ff003c', borderRadius: '20px', padding: '40px 30px', maxWidth: '500px', width: '100%', textAlign: 'center' },
   welcomeBall: { width: '120px', height: '120px', margin: '0 auto 20px', position: 'relative' },
@@ -1687,21 +1963,36 @@ const styles = {
   welcomeBtnNotFine: { padding: '12px 24px', backgroundColor: '#880000', color: '#fff', border: '1px solid #ff003c', borderRadius: '30px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', flex: 1, minWidth: '120px' },
   welcomeBtnFine: { padding: '12px 24px', backgroundColor: '#008800', color: '#fff', border: '1px solid #4f8', borderRadius: '30px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', flex: 1, minWidth: '120px' },
   welcomeDecisionText: { color: '#ff6688', fontSize: '18px', fontStyle: 'italic', marginTop: '12px' },
-  settingsOverlay: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.9)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' },
-  settingsCard: { width: '100%', maxWidth: '420px', backgroundColor: '#111', border: '2px solid #ff003c', borderRadius: '12px', padding: '24px' },
-  settingsHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
-  settingsTitle: { color: '#ff003c', fontSize: '24px', margin: 0 },
-  settingsClose: { background: 'none', border: 'none', color: '#888', fontSize: '24px', cursor: 'pointer' },
-  settingsGroup: { display: 'flex', flexDirection: 'column', gap: '16px' },
-  settingItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#fff', fontSize: '15px' },
-  settingsSelect: { padding: '4px 8px', backgroundColor: '#000', border: '1px solid #444', color: '#fff', borderRadius: '4px' },
-  settingsRange: { width: '120px', backgroundColor: '#333', accentColor: '#ff003c' },
-  settingsValue: { color: '#ff6688', minWidth: '30px', textAlign: 'right' },
-  settingsDoneBtn: { width: '100%', padding: '12px', backgroundColor: '#ff003c', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', marginTop: '20px' },
+
+  settingsFullscreen: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: '#000', zIndex: 100000, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
+  settingsHeaderFull: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #333', backgroundColor: '#0a0000', flexShrink: 0 },
+  settingsTitleFull: { color: '#ff003c', fontSize: '24px', margin: 0, letterSpacing: '2px' },
+  settingsCloseFull: { background: 'none', border: 'none', cursor: 'pointer', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  settingsBodyFull: { flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '24px' },
+  settingsSection: { borderBottom: '1px solid #1a1a1a', paddingBottom: '20px' },
+  settingsSectionTitle: { color: '#ff003c', fontSize: '14px', margin: '0 0 16px 0', letterSpacing: '1px', textTransform: 'uppercase' },
+  settingsDoneFull: { padding: '16px', backgroundColor: '#ff003c', color: '#fff', border: 'none', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', flexShrink: 0 },
+
+  personalityGridSettings: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '8px' },
+  personalityOptionSmall: { padding: '12px 8px', border: '2px solid #333', borderRadius: '8px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', transition: 'all 0.2s' },
+
+  backgroundControls: { display: 'flex', gap: '10px', flexWrap: 'wrap' },
+  uploadBtn: { padding: '10px 16px', backgroundColor: '#ff003c', color: '#fff', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 'bold' },
+  resetBtn: { padding: '10px 16px', backgroundColor: '#333', color: '#fff', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 'bold', border: 'none' },
+  bgPreview: { marginTop: '12px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #333' },
+  bgPreviewImg: { width: '100%', maxHeight: '150px', objectFit: 'cover', display: 'block' },
+  bgHint: { color: '#666', fontSize: '12px', marginTop: '8px', fontStyle: 'italic' },
+
+  settingItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#fff', fontSize: '15px', marginBottom: '14px' },
+  settingsSelect: { padding: '6px 12px', backgroundColor: '#000', border: '1px solid #444', color: '#fff', borderRadius: '6px', fontSize: '14px' },
+  settingsRange: { width: '140px', accentColor: '#ff003c' },
+  settingsValue: { color: '#ff6688', minWidth: '40px', textAlign: 'right', fontWeight: 'bold' },
+
   rotateOverlay: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.9)', zIndex: 99996, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' },
   rotateCard: { backgroundColor: '#111', border: '2px solid #ff003c', borderRadius: '20px', padding: '40px 30px', maxWidth: '400px', width: '100%', textAlign: 'center' },
   rotateText: { color: '#fff', fontSize: '18px', margin: '20px 0', lineHeight: '1.6', fontFamily: "'Courier New', monospace" },
   rotateOkBtn: { padding: '12px 40px', backgroundColor: '#ff003c', color: '#fff', border: 'none', borderRadius: '30px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer' },
+
   fullscreenCallOverlay: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: '#000', zIndex: 99995, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' },
   returnBtn: { position: 'absolute', top: '20px', left: '20px', backgroundColor: 'rgba(255,0,60,0.3)', border: '1px solid #ff003c', borderRadius: '30px', padding: '10px 20px', color: '#fff', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', zIndex: 10 },
   fullscreenCallContentNoBall: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '30px', width: '100%', maxWidth: '500px', flex: 1 },
@@ -1711,6 +2002,7 @@ const styles = {
   fullscreenStatusText: { color: '#fff', fontSize: '18px', fontWeight: 'bold', letterSpacing: '1px' },
   fullscreenTranscript: { color: '#ff6688', fontSize: '16px', fontStyle: 'italic', padding: '8px 20px', backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: '12px', maxWidth: '90%', textAlign: 'center', border: '1px solid rgba(255,0,60,0.2)', minHeight: '40px' },
   fullscreenMicBtn: { width: 'clamp(70px, 14vw, 100px)', height: 'clamp(70px, 14vw, 100px)', borderRadius: '50%', backgroundColor: '#ff003c', border: '3px solid #ff003c', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 60px rgba(255,0,60,0.4)' },
+
   chatOverviewContainer: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: '#000', zIndex: 99994, display: 'flex', flexDirection: 'column', paddingBottom: 'env(safe-area-inset-bottom, 10px)', overflow: 'hidden' },
   chatOverviewHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', backgroundColor: '#111', borderBottom: '1px solid #333', flexShrink: 0 },
   chatOverviewBackBtn: { background: 'none', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', cursor: 'pointer' },
@@ -1731,6 +2023,7 @@ const styles = {
   voiceTranscriptPreview: { position: 'absolute', bottom: '80px', left: '16px', right: '16px', backgroundColor: 'rgba(0,0,0,0.8)', padding: '8px 16px', borderRadius: '12px', color: '#ff6688', fontSize: '14px', fontStyle: 'italic', border: '1px solid rgba(255,0,60,0.3)', textAlign: 'center' },
   msgActions: { display: 'flex', gap: '4px', justifyContent: 'flex-end', marginTop: '4px', opacity: 0.6 },
   msgActionBtn: { background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: '4px' },
+
   profileContainer: { backgroundColor: '#000', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', margin: 0 },
   profileCard: { width: '100%', maxWidth: '420px', backgroundColor: '#111', border: '2px solid #ff003c', borderRadius: '12px', padding: '28px' },
   profileTitle: { color: '#ff003c', textAlign: 'center', marginBottom: '24px', fontSize: '22px' },
@@ -1744,6 +2037,7 @@ const styles = {
   profileBtnRow: { display: 'flex', gap: '12px', marginTop: '12px' },
   createBtn: { flex: 1, padding: '14px', backgroundColor: '#ff003c', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer' },
   cancelBtn: { padding: '14px 20px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '15px', cursor: 'pointer' },
+
   sidebarOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 998 },
   sidebar: { position: 'fixed', top: 0, left: 0, bottom: 0, width: '380px', maxWidth: '90vw', backgroundColor: '#0a0000', borderRight: '2px solid #ff003c', zIndex: 999, overflowY: 'auto', padding: '16px' },
   sidebarHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0', paddingBottom: '10px', borderBottom: '1px solid #333' },
@@ -1770,8 +2064,11 @@ const styles = {
   sidebarBtn: { padding: '6px 12px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' },
   dangerBtn: { padding: '6px 12px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' },
   logoutBtn: { padding: '6px 12px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' },
+
+  topRightButtons: { display: 'flex', gap: '8px', alignItems: 'center' },
   settingsButtonTop: { backgroundColor: 'rgba(0,0,0,0.6)', border: '2px solid #333', borderRadius: '30px', padding: '6px 12px', display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#fff' },
   settingsBtnPC: { backgroundColor: 'rgba(0,0,0,0.6)', border: '1px solid #333', borderRadius: '16px', padding: '4px 10px', display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#fff' },
+
   mainContentAndroid: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', height: '100vh', margin: 0, padding: 0 },
   backgroundAndroid: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 0, background: 'radial-gradient(ellipse at center, #0a0000 0%, #000 100%)' },
   ballContainer: { position: 'relative', width: '300px', height: '300px', pointerEvents: 'none', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' },
@@ -1798,6 +2095,7 @@ const styles = {
   voiceButtonActive: { backgroundColor: '#ff003c', borderColor: '#ff003c', boxShadow: '0 0 80px rgba(255,0,60,0.7)', animation: 'pulseGlow 1s ease-in-out infinite' },
   voiceLabel: { color: '#fff', fontSize: '12px', fontWeight: 'bold', letterSpacing: '1px', marginTop: '4px' },
   hamburgerBtn: { position: 'absolute', top: '25px', left: '25px', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', zIndex: 15, padding: '8px', borderRadius: '4px' },
+
   appPC: { minHeight: '100vh', height: '100vh', backgroundColor: '#000', color: '#e0e0e0', fontFamily: "'Segoe UI', 'Courier New', monospace", overflow: 'hidden', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '100vw' },
   headerPC: { padding: '6px 12px', borderBottom: '1px solid rgba(255,0,60,0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, backgroundColor: '#0a0000', flexWrap: 'wrap', gap: '4px', minHeight: '44px' },
   headerLeft: { display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' },
@@ -1859,4 +2157,4 @@ const styles = {
   inputRow: { display: 'flex', gap: '6px', marginTop: '4px', marginBottom: '6px' },
   textInputSmall: { flex: 1, padding: '6px 10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '13px', outline: 'none' },
   sendBtnSmall: { padding: '6px 12px', backgroundColor: '#ff003c', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-}
+    }
