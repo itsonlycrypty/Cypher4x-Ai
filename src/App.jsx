@@ -42,6 +42,11 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     play: 'M5 3l14 9-14 9V3z',
     externalLink: 'M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3',
     refresh: 'M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15',
+    terminal: 'M4 17l6-6-6-6M12 19h8',
+    code: 'M16 18l6-6-6-6M8 6l-6 6 6 6',
+    shield: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+    search: 'M21 21l-4.35-4.35M17 11a6 6 0 1 1-12 0 6 6 0 0 1 12 0z',
+    sparkles: 'M12 3l1.9 5.8L20 10l-6.1 1.2L12 17l-1.9-5.8L4 10l6.1-1.2L12 3z',
   }
   const path = icons[name]
   if (!path) return null
@@ -54,155 +59,255 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
 
 const TAVILY_API_KEY = "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"
 const TAVILY_URL = "https://api.tavily.com/search"
-const VERSION = "Version 20.0.0"
+const VERSION = "Version 21.0.0"
 const APP_START_TIME = Date.now()
 
 const getStorageKey = (email, pin) => `cypher4x_${email}_${pin}`
-const saveUserData = (email, pin, data) => {
-  try { localStorage.setItem(getStorageKey(email, pin), JSON.stringify(data)) } catch {}
-}
-const loadUserData = (email, pin) => {
+const saveUserData = (email, pin, data) => { try { localStorage.setItem(getStorageKey(email, pin), JSON.stringify(data)) } catch {} }
+const loadUserData = (email, pin) => { try { const raw = localStorage.getItem(getStorageKey(email, pin)); return raw ? JSON.parse(raw) : null } catch { return null } }
+const getAllUsers = () => { try { const list = localStorage.getItem('cypher4x_users'); return list ? JSON.parse(list) : [] } catch { return [] } }
+const addUser = (email, pin) => { const list = getAllUsers(); if (!list.some(u => u.email === email)) { list.push({ email, pin }); localStorage.setItem('cypher4x_users', JSON.stringify(list)) } }
+const userExists = (email, pin) => { const list = getAllUsers(); return list.some(u => u.email === email && u.pin === pin) }
+const saveAuth = (email, pin) => { try { localStorage.setItem('cypher4x_auth', JSON.stringify({ email, pin })) } catch {} }
+const getAuth = () => { try { const raw = localStorage.getItem('cypher4x_auth'); return raw ? JSON.parse(raw) : null } catch { return null } }
+const clearAuth = () => { try { localStorage.removeItem('cypher4x_auth') } catch {} }
+const getLastWelcomeDate = () => { try { return localStorage.getItem('cypher4x_welcome_date') } catch { return null } }
+const setLastWelcomeDate = (date) => { try { localStorage.setItem('cypher4x_welcome_date', date) } catch {} }
+
+// ============================================================
+// WEB SEARCH — picks the safest, most relevant site from the internet
+// ============================================================
+const TRUSTED_DOMAINS = [
+  'wikipedia.org', 'britannica.com', 'gov', 'edu', 'who.int', 'un.org',
+  'nature.com', 'science.org', 'nasa.gov', 'nih.gov', 'cdc.gov',
+  'bbc.com', 'reuters.com', 'apnews.com', 'nytimes.com', 'theguardian.com',
+  'github.com', 'stackoverflow.com', 'mozilla.org', 'w3.org', 'ietf.org',
+  'developer.mozilla.org', 'python.org', 'reactjs.org', 'nodejs.org',
+]
+
+const isTrustedDomain = (url) => {
+  if (!url) return false
   try {
-    const raw = localStorage.getItem(getStorageKey(email, pin))
-    return raw ? JSON.parse(raw) : null
-  } catch { return null }
-}
-const getAllUsers = () => {
-  try {
-    const list = localStorage.getItem('cypher4x_users')
-    return list ? JSON.parse(list) : []
-  } catch { return [] }
-}
-const addUser = (email, pin) => {
-  const list = getAllUsers()
-  if (!list.some(u => u.email === email)) {
-    list.push({ email, pin })
-    localStorage.setItem('cypher4x_users', JSON.stringify(list))
-  }
-}
-const userExists = (email, pin) => {
-  const list = getAllUsers()
-  return list.some(u => u.email === email && u.pin === pin)
-}
-const saveAuth = (email, pin) => {
-  try { localStorage.setItem('cypher4x_auth', JSON.stringify({ email, pin })) } catch {}
-}
-const getAuth = () => {
-  try {
-    const raw = localStorage.getItem('cypher4x_auth')
-    return raw ? JSON.parse(raw) : null
-  } catch { return null }
-}
-const clearAuth = () => {
-  try { localStorage.removeItem('cypher4x_auth') } catch {}
-}
-const getLastWelcomeDate = () => {
-  try { return localStorage.getItem('cypher4x_welcome_date') } catch { return null }
-}
-const setLastWelcomeDate = (date) => {
-  try { localStorage.setItem('cypher4x_welcome_date', date) } catch {}
+    const host = new URL(url).hostname.toLowerCase()
+    return TRUSTED_DOMAINS.some(d => host.includes(d))
+  } catch { return false }
 }
 
+// General web search — returns best answer + safest related link
 const searchWeb = async (query) => {
   if (!TAVILY_API_KEY) return { error: "Tavily API key not configured." }
   try {
     const res = await fetch(TAVILY_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${TAVILY_API_KEY}`
-      },
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${TAVILY_API_KEY}` },
       body: JSON.stringify({
         query: query,
-        search_depth: "basic",
+        search_depth: "advanced",
         include_answer: true,
         include_images: false,
-        max_results: 5
+        include_raw_content: false,
+        max_results: 6,
       })
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
-    return { answer: data.answer || data.results?.map(r => r.content).join("\n\n") || "No results found." }
+    const results = data.results || []
+    // Pick safest result
+    const safest = results.find(r => isTrustedDomain(r.url)) || results[0]
+    return {
+      answer: data.answer || results.map(r => r.content).join("\n\n") || "No results found.",
+      safestUrl: safest?.url || null,
+      safestTitle: safest?.title || null,
+      allResults: results.slice(0, 4).map(r => ({ title: r.title, url: r.url })),
+    }
   } catch (error) {
     return { error: error.message }
   }
 }
 
-// Command execution handler
-const executeCommand = (query) => {
-  const lower = query.toLowerCase().trim()
-  let url = null
-  let response = null
-
-  if (lower.startsWith('open ')) {
-    const target = lower.replace('open ', '').trim()
-    const siteMap = {
-      'youtube': 'https://youtube.com',
-      'google': 'https://google.com',
-      'facebook': 'https://facebook.com',
-      'twitter': 'https://twitter.com',
-      'x': 'https://x.com',
-      'instagram': 'https://instagram.com',
-      'whatsapp': 'https://web.whatsapp.com',
-      'gmail': 'https://mail.google.com',
-      'maps': 'https://maps.google.com',
-      'calculator': 'https://www.google.com/search?q=calculator',
-      'weather': 'https://www.google.com/search?q=weather',
-      'news': 'https://news.google.com',
-      'github': 'https://github.com',
-      'reddit': 'https://reddit.com',
-      'linkedin': 'https://linkedin.com',
-      'netflix': 'https://netflix.com',
-      'spotify': 'https://open.spotify.com',
-      'chatgpt': 'https://chat.openai.com',
-      'tiktok': 'https://tiktok.com',
-      'pinterest': 'https://pinterest.com',
-      'amazon': 'https://amazon.com',
-      'wikipedia': 'https://wikipedia.org',
-    }
-    if (siteMap[target]) url = siteMap[target]
-    else if (target.includes('.') && !target.includes(' ')) url = `https://${target}`
-    else url = `https://www.google.com/search?q=${encodeURIComponent(target)}`
-    if (url) {
-      window.open(url, '_blank')
-      response = `Opening ${target} for you! 🚀`
-    }
-  } else if (lower.startsWith('search ')) {
-    const term = lower.replace('search ', '').trim()
-    url = `https://www.google.com/search?q=${encodeURIComponent(term)}`
-    window.open(url, '_blank')
-    response = `Searching for "${term}"... 🔍`
-  } else if (lower.startsWith('play ')) {
-    const song = lower.replace('play ', '').trim()
-    url = `https://www.youtube.com/results?search_query=${encodeURIComponent(song)}`
-    window.open(url, '_blank')
-    response = `Playing "${song}" on YouTube! 🎵`
-  } else if (lower === 'time' || lower.includes('what time') || lower.includes('current time')) {
-    response = `The current time is ${new Date().toLocaleTimeString()}. ⏰`
-  } else if (lower === 'date' || lower.includes('what date') || lower.includes('today')) {
-    response = `Today is ${new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. 📅`
-  } else if (lower.includes('calculate') || lower.match(/^[\d\s+\-*/().]+$/)) {
-    try {
-      const expr = lower.replace('calculate', '').trim()
-      // Safe eval for simple math
-      const result = Function(`"use strict"; return (${expr})`)()
-      if (typeof result === 'number') response = `The answer is ${result}. 🧮`
-    } catch (e) {}
-  }
-
-  return response ? { response } : null
+// Privacy-first anonymous search (no tracking)
+const openAnonymousSearch = (query) => {
+  const url = `https://duckduckgo.com/?q=${encodeURIComponent(query)}&kae=d&kp=-2`
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
+// Secret/Anonymous mode — opens DuckDuckGo in a new tab
+const openSecretSearch = (query) => {
+  const url = `https://duckduckgo.com/?q=${encodeURIComponent(query)}&kae=d`
+  const win = window.open(url, '_blank', 'noopener,noreferrer,width=1000,height=700')
+  if (win) win.focus()
+}
+
+// ============================================================
+// APP DEEP-LINK SYSTEM — opens native apps on user's device
+// ============================================================
+const APP_MAP = {
+  whatsapp: { scheme: 'whatsapp://', web: 'https://web.whatsapp.com', name: 'WhatsApp' },
+  instagram: { scheme: 'instagram://', web: 'https://instagram.com', name: 'Instagram' },
+  facebook: { scheme: 'fb://', web: 'https://facebook.com', name: 'Facebook' },
+  twitter: { scheme: 'twitter://', web: 'https://twitter.com', name: 'Twitter' },
+  telegram: { scheme: 'tg://', web: 'https://web.telegram.org', name: 'Telegram' },
+  youtube: { scheme: 'vnd.youtube://', web: 'https://youtube.com', name: 'YouTube' },
+  spotify: { scheme: 'spotify://', web: 'https://open.spotify.com', name: 'Spotify' },
+  gmail: { scheme: 'googlegmail://', web: 'https://mail.google.com', name: 'Gmail' },
+  maps: { scheme: 'geo:', web: 'https://maps.google.com', name: 'Maps' },
+  camera: { scheme: 'camera://', web: null, name: 'Camera' },
+  phone: { scheme: 'tel:', web: null, name: 'Phone' },
+  sms: { scheme: 'sms:', web: null, name: 'Messages' },
+  music: { scheme: 'music://', web: null, name: 'Music' },
+  calendar: { scheme: 'calshow://', web: 'https://calendar.google.com', name: 'Calendar' },
+  settings: { scheme: 'app-settings:', web: null, name: 'Settings' },
+}
+
+const openApp = (appKey, extra = '') => {
+  const app = APP_MAP[appKey]
+  if (!app) return { ok: false, message: `I don't have an app registered for "${appKey}".` }
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+  if (isMobile && app.scheme) {
+    // Try deep link first — browser will fall back if not installed
+    const deepLink = app.scheme + extra
+    try {
+      window.location.href = deepLink
+      return { ok: true, message: `Opening ${app.name}...` }
+    } catch (e) {}
+  }
+  if (app.web) {
+    window.open(app.web + extra, '_blank', 'noopener,noreferrer')
+    return { ok: true, message: `Opening ${app.name} in browser...` }
+  }
+  return { ok: false, message: `${app.name} can only be opened from a mobile device with the app installed.` }
+}
+
+// WhatsApp-specific helper (group / chat / send)
+const openWhatsAppGroup = (groupName) => {
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+  if (isMobile) {
+    window.location.href = `whatsapp://send?text=`
+    setTimeout(() => { window.location.href = `https://wa.me/?text=${encodeURIComponent('Group: ' + groupName)}` }, 800)
+    return `Opening WhatsApp. Search for the group "${groupName}" — I can't deep-link to a specific group chat directly (privacy).`
+  }
+  window.open('https://web.whatsapp.com', '_blank', 'noopener,noreferrer')
+  return `WhatsApp Web opened. Please search for "${groupName}" in your chats.`
+}
+
+// ============================================================
+// CODE GENERATION DETECTION
+// ============================================================
+const isCodeRequest = (query) => {
+  const q = query.toLowerCase()
+  const codeKeywords = ['generate code', 'write code', 'create code', 'make code', 'build code',
+    'code for', 'code to', 'function in', 'javascript', 'python', 'react', 'html', 'css', 'java', 'c++',
+    'sql', 'node', 'bash', 'shell', 'code snippet', 'program', 'script', 'algorithm']
+  return codeKeywords.some(k => q.includes(k))
+}
+
+// ============================================================
+// TERMINAL COMMAND PARSER (safe, simulated)
+// ============================================================
+const runTerminalCommand = (cmd) => {
+  const parts = cmd.trim().split(/\s+/)
+  const base = parts[0]?.toLowerCase()
+  const args = parts.slice(1)
+
+  switch (base) {
+    case 'help':
+      return `CYPHER4X Terminal — Available commands:
+  help              Show this help
+  clear             Clear terminal
+  date              Show current date & time
+  whoami            Show current user
+  echo <text>       Print text
+  calc <expr>       Calculate expression (e.g. calc 2+2*3)
+  ls                List files (simulated)
+  pwd               Print working directory
+  open <site>       Open a website
+  search <term>     Web search
+  fortune           Random fortune
+  neofetch          System info
+  ping <host>       Simulated ping
+  weather           Open weather in browser
+  matrix            Fun animation hint`
+    case 'clear': return '__CLEAR__'
+    case 'date': return new Date().toString()
+    case 'whoami': return profile?.username || 'guest@cypher4x'
+    case 'echo': return args.join(' ')
+    case 'pwd': return '/home/cypher4x'
+    case 'ls': return 'Documents  Downloads  Pictures  Projects  README.md  cypher4x.config'
+    case 'calc':
+      try { return String(Function(`"use strict"; return (${args.join(' ')})`)()) }
+      catch { return 'Error: invalid expression' }
+    case 'open':
+      if (args[0]) { window.open(`https://${args[0]}`, '_blank', 'noopener,noreferrer'); return `Opening https://${args[0]}...` }
+      return 'Usage: open <site>'
+    case 'search':
+      if (args.length) { openAnonymousSearch(args.join(' ')); return `Searching: ${args.join(' ')}` }
+      return 'Usage: search <term>'
+    case 'fortune': {
+      const fortunes = ['You will write excellent code today.', 'A bug is just a feature in disguise.', 'The best way to predict the future is to invent it.', 'Simplicity is the ultimate sophistication.', 'Talk is cheap. Show me the code.']
+      return fortunes[Math.floor(Math.random() * fortunes.length)]
+    }
+    case 'neofetch':
+      return `    ██████╗██╗   ██╗██████╗ ██╗  ██╗███████╗██████╗ ██╗  ██╗
+   ██╔════╝╚██╗ ██╔╝██╔══██╗██║  ██║██╔════╝██╔══██╗╚██╗██╔╝
+   ██║      ╚████╔╝ ██████╔╝███████║█████╗  ██████╔╝ ╚███╔╝ 
+   ██║       ╚██╔╝  ██╔═══╝ ██╔══██║██╔══╝  ██╔══██╗ ██╔██╗ 
+   ╚██████╗   ██║   ██║     ██║  ██║███████╗██║  ██║██╔╝ ██╗
+    ╚═════╝   ╚═╝   ╚═╝     ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝
+   OS: CYPHER4X Web v${VERSION}
+   Shell: csh 1.0
+   Terminal: Web-TTY
+   Uptime: ${formatUptimeStr(stats.uptime)}`
+    case 'ping': {
+      if (!args[0]) return 'Usage: ping <host>'
+      return `PING ${args[0]} (simulated): 4 packets transmitted, 4 received, 0% loss`
+    }
+    case 'weather':
+      window.open('https://www.google.com/search?q=weather', '_blank', 'noopener,noreferrer')
+      return 'Opening weather...'
+    case 'matrix':
+      return 'Wake up, Neo... 🟢 (fun mode — try installing cmatrix on a real Linux shell)'
+    default:
+      return `csh: command not found: ${base}. Type 'help' for available commands.`
+  }
+}
+
+const formatUptimeStr = (seconds) => {
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  const s = seconds % 60
+  return `${h}h ${m}m ${s}s`
+}
+
+// ============================================================
+// AI ABILITIES (display list)
+// ============================================================
+const AI_ABILITIES = [
+  { icon: '🌐', title: 'Web Search', desc: 'Search the internet for any information' },
+  { icon: '🔒', title: 'Anonymous Search', desc: 'Privacy-first search via DuckDuckGo' },
+  { icon: '📱', title: 'Open Apps', desc: 'Launch WhatsApp, Instagram, YouTube & more' },
+  { icon: '💬', title: 'WhatsApp Groups', desc: 'Open WhatsApp and reach your groups' },
+  { icon: '🧮', title: 'Calculations', desc: 'Compute math expressions' },
+  { icon: '⏰', title: 'Time & Date', desc: 'Get current time and date' },
+  { icon: '💻', title: 'Code Generation', desc: 'Generate JavaScript, Python, and more' },
+  { icon: '⌨️', title: 'Terminal', desc: 'Run simulated shell commands' },
+  { icon: '🎵', title: 'Play Media', desc: 'Open YouTube or Spotify with your query' },
+  { icon: '🗣️', title: 'Voice Control', desc: 'Speak to CYPHER4X hands-free' },
+  { icon: '🖼️', title: 'File Upload', desc: 'Share images, videos, and docs' },
+  { icon: '🎨', title: 'Custom Background', desc: 'Personalise your CYPHER4X screen' },
+  { icon: '🧠', title: 'Personality', desc: 'Polite, Concise, Clear, Comprehensive, Custom' },
+  { icon: '🛡️', title: 'Safe Links', desc: 'Prefers trusted domains (Wikipedia, gov, edu...)' },
+]
+
+// ============================================================
+// RED BALL
+// ============================================================
 const RedBall = ({ isSpeaking = false }) => (
   <div style={styles.ballContainer}>
     <div style={styles.ring1} />
     <div style={styles.ring2} />
     <div style={styles.ring3} />
     <div style={styles.ball3DContainer}>
-      <div style={{
-        ...styles.ball3D,
-        ...(isSpeaking ? styles.ball3DSpeaking : {})
-      }}>
+      <div style={{ ...styles.ball3D, ...(isSpeaking ? styles.ball3DSpeaking : {}) }}>
         <div style={styles.ballHighlight} />
         <div style={styles.ballInnerGlow} />
       </div>
@@ -249,6 +354,9 @@ export default function App() {
     language: 'en',
     voiceSpeed: 1,
     personality: 'polite',
+    secretMode: false,
+    overlayButton: false,
+    safeLinks: true,
   })
   const [showChatOverview, setShowChatOverview] = useState(false)
   const [chatOverviewInput, setChatOverviewInput] = useState('')
@@ -279,13 +387,26 @@ export default function App() {
   })
   const [events, setEvents] = useState([])
   const [reminders, setReminders] = useState([])
+
+  // New feature states
+  const [showTerminal, setShowTerminal] = useState(false)
+  const [terminalLines, setTerminalLines] = useState([
+    { type: 'info', text: 'CYPHER4X Terminal v1.0 — type "help" for commands' },
+  ])
+  const [terminalInput, setTerminalInput] = useState('')
+  const [showAbilities, setShowAbilities] = useState(false)
+  const [overlayActive, setOverlayActive] = useState(false)
+  const [overlayListening, setOverlayListening] = useState(false)
+  const overlayRecognitionRef = useRef(null)
+
   const synthRef = useRef(typeof window !== "undefined" ? window.speechSynthesis : null)
   const recognitionRef = useRef(null)
   const msgCounter = useRef(0)
   const fileInputRef = useRef(null)
   const bgInputRef = useRef(null)
+  const terminalEndRef = useRef(null)
 
-  // BOOT TYPEWRITER - types both CYPHER4X and credit
+  // BOOT TYPEWRITER
   useEffect(() => {
     if (!isBooting) return
     const title = "CYPHER4X"
@@ -296,45 +417,29 @@ export default function App() {
 
     const interval = setInterval(() => {
       if (phase === 'title') {
-        if (titleIndex <= title.length) {
-          setBootTypedText(title.slice(0, titleIndex))
-          titleIndex++
-        } else {
-          phase = 'pause'
-          setTimeout(() => { phase = 'credit' }, 500)
-        }
+        if (titleIndex <= title.length) { setBootTypedText(title.slice(0, titleIndex)); titleIndex++ }
+        else { phase = 'pause'; setTimeout(() => { phase = 'credit' }, 500) }
       } else if (phase === 'credit') {
-        if (creditIndex <= credit.length) {
-          setBootTypedCredit(credit.slice(0, creditIndex))
-          creditIndex++
-        } else {
+        if (creditIndex <= credit.length) { setBootTypedCredit(credit.slice(0, creditIndex)); creditIndex++ }
+        else {
           clearInterval(interval)
           setTimeout(() => {
             setIsBooting(false)
             const auth = getAuth()
             if (auth && userExists(auth.email, auth.pin)) {
-              setEmail(auth.email)
-              setPin(auth.pin)
-              loginUser(auth.email, auth.pin)
+              setEmail(auth.email); setPin(auth.pin); loginUser(auth.email, auth.pin)
             } else {
-              setUserMode('guest')
-              setGuestMessageCount(0)
-              // Show personality selection on first entry
+              setUserMode('guest'); setGuestMessageCount(0)
               const savedPersonality = localStorage.getItem('cypher4x_personality')
-              if (!savedPersonality) {
-                setShowPersonalityModal(true)
-              } else {
-                setAiPersonality(savedPersonality)
-              }
+              if (!savedPersonality) setShowPersonalityModal(true)
+              else setAiPersonality(savedPersonality)
               const today = new Date().toDateString()
               const lastWelcome = getLastWelcomeDate()
               if (lastWelcome !== today && settings.welcomeEnabled && savedPersonality) {
                 setLastWelcomeDate(today)
-                setShowWelcomeOverlay(true)
-                setWelcomeStep('greeting')
+                setShowWelcomeOverlay(true); setWelcomeStep('greeting')
                 const msg = "Hello User! I'm CYPHER4X, your friendly AI assistant. How are you feeling today?"
-                setWelcomeMessage(msg)
-                speakText(msg)
+                setWelcomeMessage(msg); speakText(msg)
               }
             }
           }, 800)
@@ -344,112 +449,74 @@ export default function App() {
     return () => clearInterval(interval)
   }, [isBooting, settings.welcomeEnabled])
 
+  // Terminal autoscroll
+  useEffect(() => { terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [terminalLines])
+
   const handleAuthSubmit = () => {
-    if (!email || !pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
-      setAuthError("Please enter a valid email and 4-digit PIN.")
-      return
-    }
+    if (!email || !pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) { setAuthError("Please enter a valid email and 4-digit PIN."); return }
     if (showLogin) {
-      if (userExists(email, pin)) {
-        loginUser(email, pin)
-        setShowAuthModal(false)
-      } else {
-        setAuthError("No account found. Please sign up.")
-      }
+      if (userExists(email, pin)) { loginUser(email, pin); setShowAuthModal(false) }
+      else setAuthError("No account found. Please sign up.")
     } else {
-      if (userExists(email, pin)) {
-        setAuthError("Account already exists. Please log in.")
-        return
-      }
+      if (userExists(email, pin)) { setAuthError("Account already exists. Please log in."); return }
       addUser(email, pin)
       const emptyData = {
         profile: null, conversation: [], commandHistory: [], events: [], reminders: [],
         faceRecognition: false, biometricAuth: false, voiceGender: 'female', viewMode: 'android',
         personality: 'polite', backgroundImage: null,
-        settings: { welcomeEnabled: true, autoStartVoice: true, language: 'en', voiceSpeed: 1, personality: 'polite' }
+        settings: { welcomeEnabled: true, autoStartVoice: true, language: 'en', voiceSpeed: 1, personality: 'polite', secretMode: false, overlayButton: false, safeLinks: true }
       }
-      saveUserData(email, pin, emptyData)
-      loginUser(email, pin)
-      setShowAuthModal(false)
+      saveUserData(email, pin, emptyData); loginUser(email, pin); setShowAuthModal(false)
     }
   }
 
   const loginUser = (email, pin) => {
-    saveAuth(email, pin)
-    setUserMode('loggedin')
-    loadUserDataByEmail(email, pin)
-    setAuthError('')
-    setGuestMessageCount(0)
+    saveAuth(email, pin); setUserMode('loggedin'); loadUserDataByEmail(email, pin)
+    setAuthError(''); setGuestMessageCount(0)
   }
 
   const loadUserDataByEmail = (email, pin) => {
     const data = loadUserData(email, pin)
     if (data) {
-      setProfile(data.profile || null)
-      setConversation(data.conversation || [])
-      setCommandHistory(data.commandHistory || [])
-      setEvents(data.events || [])
-      setReminders(data.reminders || [])
-      setFaceRecognition(data.faceRecognition || false)
-      setBiometricAuth(data.biometricAuth || false)
-      setVoiceGender(data.voiceGender || 'female')
-      setViewMode(data.viewMode || 'android')
-      setAiPersonality(data.personality || 'polite')
+      setProfile(data.profile || null); setConversation(data.conversation || [])
+      setCommandHistory(data.commandHistory || []); setEvents(data.events || [])
+      setReminders(data.reminders || []); setFaceRecognition(data.faceRecognition || false)
+      setBiometricAuth(data.biometricAuth || false); setVoiceGender(data.voiceGender || 'female')
+      setViewMode(data.viewMode || 'android'); setAiPersonality(data.personality || 'polite')
       setBackgroundImage(data.backgroundImage || null)
       if (data.settings) setSettings(data.settings)
       msgCounter.current = (data.conversation || []).length + 1
       const today = new Date().toDateString()
       const lastWelcome = getLastWelcomeDate()
       if (lastWelcome !== today && settings.welcomeEnabled) {
-        setLastWelcomeDate(today)
-        setShowWelcomeOverlay(true)
-        setWelcomeStep('greeting')
+        setLastWelcomeDate(today); setShowWelcomeOverlay(true); setWelcomeStep('greeting')
         const name = data.profile?.name || 'User'
         const msg = `Hello ${name}! I'm CYPHER4X, your friendly AI assistant. How are you feeling today?`
-        setWelcomeMessage(msg)
-        speakText(msg)
+        setWelcomeMessage(msg); speakText(msg)
       } else {
         const name = data.profile?.name || 'User'
         const greet = `Welcome back, ${name}! I'm CYPHER4X. How can I help you today?`
         const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: greet, time: Date.now() }
-        setConversation(prev => [...prev, assistantMsg])
-        speakText(greet)
+        setConversation(prev => [...prev, assistantMsg]); speakText(greet)
       }
     }
   }
 
   const saveCurrentUserData = () => {
     if (userMode !== 'loggedin') return
-    const data = {
-      profile, conversation, commandHistory, events, reminders,
-      faceRecognition, biometricAuth, voiceGender, viewMode,
-      personality: aiPersonality, backgroundImage, settings
-    }
+    const data = { profile, conversation, commandHistory, events, reminders, faceRecognition, biometricAuth, voiceGender, viewMode, personality: aiPersonality, backgroundImage, settings }
     saveUserData(email, pin, data)
   }
 
-  useEffect(() => {
-    if (userMode === 'loggedin') saveCurrentUserData()
-  }, [profile, conversation, commandHistory, events, reminders, faceRecognition, biometricAuth, voiceGender, viewMode, aiPersonality, backgroundImage, settings])
+  useEffect(() => { if (userMode === 'loggedin') saveCurrentUserData() }, [profile, conversation, commandHistory, events, reminders, faceRecognition, biometricAuth, voiceGender, viewMode, aiPersonality, backgroundImage, settings])
 
   const handleLogout = () => {
     if (!confirm("Logout from this account?")) return
-    clearAuth()
-    setUserMode('guest')
-    setProfile(null)
-    setConversation([])
-    setCommandHistory([])
-    setEvents([])
-    setReminders([])
-    setFaceRecognition(false)
-    setBiometricAuth(false)
-    setVoiceGender('female')
-    setViewMode('android')
-    setSidebarOpen(false)
-    setGuestMessageCount(0)
-    setShowWelcomeOverlay(false)
-    setShowAuthModal(false)
-    msgCounter.current = 0
+    clearAuth(); setUserMode('guest'); setProfile(null); setConversation([])
+    setCommandHistory([]); setEvents([]); setReminders([]); setFaceRecognition(false)
+    setBiometricAuth(false); setVoiceGender('female'); setViewMode('android')
+    setSidebarOpen(false); setGuestMessageCount(0); setShowWelcomeOverlay(false)
+    setShowAuthModal(false); msgCounter.current = 0
   }
 
   const incrementGuestMessage = () => {
@@ -472,25 +539,16 @@ export default function App() {
     recognition.maxAlternatives = 1
     recognition.onstart = () => { setIsListening(true); setInterimTranscript('') }
     recognition.onend = () => {
-      setIsListening(false)
-      setInterimTranscript('')
-      if (!isOneOff && isFullscreenCall) {
-        try { recognition.start() } catch (e) {}
-      }
+      setIsListening(false); setInterimTranscript('')
+      if (!isOneOff && isFullscreenCall) { try { recognition.start() } catch (e) {} }
     }
     recognition.onerror = (event) => {
       console.warn('Speech recognition error', event.error)
       if (event.error === 'not-allowed') {
         alert('Please allow microphone access in your browser settings.')
-        setIsFullscreenCall(false)
-        setIsCallActive(false)
-        setRecordingMode(false)
-        setIsListening(false)
-        return
+        setIsFullscreenCall(false); setIsCallActive(false); setRecordingMode(false); setIsListening(false); return
       }
-      if (!isOneOff && isFullscreenCall) {
-        setTimeout(() => { try { recognition.start() } catch (e) {} }, 500)
-      }
+      if (!isOneOff && isFullscreenCall) setTimeout(() => { try { recognition.start() } catch (e) {} }, 500)
     }
     recognition.onresult = async (event) => {
       let final = '', interim = ''
@@ -499,14 +557,8 @@ export default function App() {
         if (result.isFinal) final += result[0].transcript
         else interim += result[0].transcript
       }
-      if (final) {
-        setInterimTranscript('')
-        setRecordingMode(false)
-        if (onFinal) onFinal(final)
-        else await processUserQuery(final)
-      } else if (interim) {
-        setInterimTranscript(interim)
-      }
+      if (final) { setInterimTranscript(''); setRecordingMode(false); if (onFinal) onFinal(final); else await processUserQuery(final) }
+      else if (interim) setInterimTranscript(interim)
     }
     return recognition
   }, [isFullscreenCall])
@@ -523,46 +575,131 @@ export default function App() {
       utterance.onend = () => { setIsAISpeaking(false); if (onEnd) onEnd() }
       utterance.onerror = () => { setIsAISpeaking(false); if (onEnd) onEnd() }
       synthRef.current.speak(utterance)
-    } catch (e) {
-      setIsAISpeaking(false)
-      if (onEnd) onEnd()
-    }
+    } catch (e) { setIsAISpeaking(false); if (onEnd) onEnd() }
   }, [voiceGender, settings.voiceSpeed])
 
   const getPersonalityPrefix = () => {
     switch (aiPersonality) {
-      case 'concise': return '[Short answer] '
+      case 'concise': return '[Short] '
       case 'comprehensive': return '[Detailed] '
-      case 'polite': return ''
-      case 'clear': return ''
       default: return ''
     }
   }
 
+  // ============================================================
+  // COMMAND EXECUTION (general web + apps + secret)
+  // ============================================================
+  const executeCommand = (query) => {
+    const lower = query.toLowerCase().trim()
+
+    // --- App open commands ---
+    const appMatch = lower.match(/^open (?:my )?(whatsapp|instagram|facebook|twitter|telegram|youtube|spotify|gmail|maps|camera|phone|sms|calendar|settings)(?:\s+(?:and\s+open\s+my\s+group\s+named\s+)?(.+))?$/)
+    if (appMatch) {
+      const appKey = appMatch[1]
+      const extra = appMatch[2]
+      if (appKey === 'whatsapp' && extra) return { response: openWhatsAppGroup(extra) }
+      const r = openApp(appKey)
+      return { response: r.message }
+    }
+
+    // --- WhatsApp group direct ---
+    if (lower.includes('whatsapp') && lower.includes('group')) {
+      const g = query.match(/group\s+named\s+([^\n,.]+)/i) || query.match(/group\s+([^\n,.]+)/i)
+      const groupName = g ? g[1].trim() : 'your group'
+      return { response: openWhatsAppGroup(groupName) }
+    }
+
+    // --- Secret / anonymous mode ---
+    if ((lower.startsWith('secret ') || lower.startsWith('anonymous ')) && settings.secretMode) {
+      const term = query.replace(/^(secret|anonymous)\s+/i, '')
+      openSecretSearch(term)
+      return { response: `Anonymous search opened for "${term}". Your query stays private. 🔒` }
+    }
+
+    // --- General web search with safe link pick ---
+    if (lower.startsWith('web ') || lower.startsWith('search web ')) {
+      const term = query.replace(/^(web|search web)\s+/i, '')
+      openAnonymousSearch(term)
+      return { response: `Searching the web (privacy mode) for "${term}"...` }
+    }
+
+    if (lower.startsWith('open website ')) {
+      const domain = query.replace(/^open website\s+/i, '').trim()
+      const url = domain.includes('.') ? `https://${domain}` : `https://www.${domain}.com`
+      window.open(url, '_blank', 'noopener,noreferrer')
+      return { response: `Opening ${domain}...` }
+    }
+
+    if (lower.startsWith('open ')) {
+      const target = lower.replace('open ', '').trim()
+      const siteMap = {
+        youtube: 'https://youtube.com', google: 'https://google.com',
+        facebook: 'https://facebook.com', twitter: 'https://twitter.com', x: 'https://x.com',
+        instagram: 'https://instagram.com', gmail: 'https://mail.google.com',
+        maps: 'https://maps.google.com', news: 'https://news.google.com',
+        github: 'https://github.com', reddit: 'https://reddit.com',
+        linkedin: 'https://linkedin.com', netflix: 'https://netflix.com',
+        spotify: 'https://open.spotify.com', wikipedia: 'https://wikipedia.org',
+        duckduckgo: 'https://duckduckgo.com', brave: 'https://search.brave.com',
+      }
+      let url
+      if (siteMap[target]) url = siteMap[target]
+      else if (target.includes('.') && !target.includes(' ')) url = `https://${target}`
+      else url = settings.secretMode ? `https://duckduckgo.com/?q=${encodeURIComponent(target)}` : `https://www.google.com/search?q=${encodeURIComponent(target)}`
+      window.open(url, '_blank', 'noopener,noreferrer')
+      return { response: `Opening ${target}...` }
+    }
+
+    if (lower.startsWith('play ')) {
+      const song = lower.replace('play ', '').trim()
+      const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(song)}`
+      window.open(url, '_blank', 'noopener,noreferrer')
+      return { response: `Playing "${song}" on YouTube! 🎵` }
+    }
+
+    if (lower === 'time' || lower.includes('what time')) return { response: `The current time is ${new Date().toLocaleTimeString()}. ⏰` }
+    if (lower === 'date' || lower.includes('what date') || lower === 'today') return { response: `Today is ${new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. 📅` }
+
+    if (lower.startsWith('calc ') || lower.includes('calculate')) {
+      try {
+        const expr = lower.replace('calculate', '').replace('calc', '').trim()
+        const result = Function(`"use strict"; return (${expr})`)()
+        if (typeof result === 'number') return { response: `The answer is ${result}. 🧮` }
+      } catch (e) {}
+    }
+
+    return null
+  }
+
+  // ============================================================
+  // MAIN QUERY PROCESSOR
+  // ============================================================
   const processUserQuery = useCallback(async (query) => {
     if (!query || isProcessing) return
     if (userMode === 'guest') incrementGuestMessage()
-    setIsProcessing(true)
-    setInterimTranscript('')
-    setRecordingMode(false)
+    setIsProcessing(true); setInterimTranscript(''); setRecordingMode(false)
 
     const userMsg = { id: ++msgCounter.current, role: 'user', content: query, time: Date.now() }
     setConversation(prev => [...prev, userMsg])
     setCommandHistory(prev => [...prev, { command: query, timestamp: Date.now() }])
 
-    // Check for commands first
+    // If code request → auto switch to overview chat
+    if (isCodeRequest(query)) {
+      setShowChatOverview(true)
+    }
+
+    // Command execution
     const cmdResult = executeCommand(query)
     if (cmdResult) {
       const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: cmdResult.response, time: Date.now() }
       setConversation(prev => [...prev, assistantMsg])
       speakText(cmdResult.response)
-      setIsProcessing(false)
-      return
+      setIsProcessing(false); return
     }
 
     const lower = query.toLowerCase()
     const casualPhrases = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', "what's up", 'sup', 'yo', 'howdy', 'hey there']
-    if (casualPhrases.some(phrase => lower.includes(phrase))) {
+    if (casualPhrases.some(p => lower.includes(p))) {
       const casualReplies = [
         "Hey there! How can I brighten your day today?",
         "Hi! So glad to hear your voice. What can I do for you?",
@@ -573,10 +710,8 @@ export default function App() {
       ]
       const reply = casualReplies[Math.floor(Math.random() * casualReplies.length)]
       const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
-      setConversation(prev => [...prev, assistantMsg])
-      speakText(reply)
-      setIsProcessing(false)
-      return
+      setConversation(prev => [...prev, assistantMsg]); speakText(reply)
+      setIsProcessing(false); return
     }
 
     if (lower.includes('how are you') || lower.includes('how do you feel') || lower.includes('feeling')) {
@@ -588,136 +723,87 @@ export default function App() {
       ]
       const reply = emotionalReplies[Math.floor(Math.random() * emotionalReplies.length)]
       const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
-      setConversation(prev => [...prev, assistantMsg])
-      speakText(reply)
-      setIsProcessing(false)
-      return
+      setConversation(prev => [...prev, assistantMsg]); speakText(reply)
+      setIsProcessing(false); return
     }
 
+    // General web search — picks safest result
     const result = await searchWeb(query)
-    let reply = result.error ? `Search error: ${result.error}` : (result.answer || "I couldn't find an answer to that.")
-    if (!result.error && reply.length > 10) {
-      const intros = [
-        "I found this for you: ",
-        "Here's what I discovered: ",
-        "Great question! The answer is: ",
-        "Let me share what I know: ",
-        "Based on my search, "
-      ]
-      reply = getPersonalityPrefix() + intros[Math.floor(Math.random() * intros.length)] + reply
+    let reply = ''
+    if (result.error) {
+      reply = `Search error: ${result.error}`
+    } else {
+      reply = result.answer || "I couldn't find an answer to that."
+      if (result.safestUrl && settings.safeLinks) {
+        reply += `\n\n🔗 Recommended source: ${result.safestUrl}`
+      }
+      reply = getPersonalityPrefix() + reply
     }
     const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
     setConversation(prev => [...prev, assistantMsg])
-    speakText(reply)
+    speakText(reply.replace(/🔗.*$/, ''))
     setIsProcessing(false)
-  }, [isProcessing, speakText, userMode, aiPersonality])
+  }, [isProcessing, speakText, userMode, aiPersonality, settings.safeLinks, settings.secretMode])
 
+  // ============================================================
+  // OVERVIEW CHAT VOICE
+  // ============================================================
   const setupOverviewRecognition = useCallback(() => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert("Your browser doesn't support speech recognition.")
-      return null
-    }
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-    const recognition = new SpeechRecognition()
-    recognition.continuous = false
-    recognition.interimResults = true
-    recognition.lang = 'en-US'
-    recognition.onstart = () => {
-      setChatOverviewListening(true)
-      setIsRecordingVoice(true)
-      setVoicePaused(false)
-      setVoiceTranscript('')
-    }
-    recognition.onend = () => {
-      setChatOverviewListening(false)
-      setIsRecordingVoice(false)
-    }
-    recognition.onerror = () => {
-      setChatOverviewListening(false)
-      setIsRecordingVoice(false)
-    }
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) { alert("Speech recognition not supported."); return null }
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
+    const recognition = new SR()
+    recognition.continuous = false; recognition.interimResults = true; recognition.lang = 'en-US'
+    recognition.onstart = () => { setChatOverviewListening(true); setIsRecordingVoice(true); setVoicePaused(false); setVoiceTranscript('') }
+    recognition.onend = () => { setChatOverviewListening(false); setIsRecordingVoice(false) }
+    recognition.onerror = () => { setChatOverviewListening(false); setIsRecordingVoice(false) }
     recognition.onresult = (event) => {
       let final = '', interim = ''
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i]
-        if (result.isFinal) final += result[0].transcript
-        else interim += result[0].transcript
+        const r = event.results[i]
+        if (r.isFinal) final += r[0].transcript; else interim += r[0].transcript
       }
-      if (final) setVoiceTranscript(final)
-      else if (interim) setVoiceTranscript(interim)
+      if (final) setVoiceTranscript(final); else if (interim) setVoiceTranscript(interim)
     }
     return recognition
   }, [])
 
   const startVoiceRecording = useCallback(() => {
     if (isRecordingVoice || chatOverviewListening) return
-    if (!chatOverviewRecognitionRef.current) {
-      chatOverviewRecognitionRef.current = setupOverviewRecognition()
-    }
-    if (chatOverviewRecognitionRef.current) {
-      try {
-        chatOverviewRecognitionRef.current.start()
-        setVoiceTranscript('')
-      } catch (e) {}
-    }
+    if (!chatOverviewRecognitionRef.current) chatOverviewRecognitionRef.current = setupOverviewRecognition()
+    if (chatOverviewRecognitionRef.current) { try { chatOverviewRecognitionRef.current.start(); setVoiceTranscript('') } catch (e) {} }
   }, [isRecordingVoice, chatOverviewListening, setupOverviewRecognition])
 
   const pauseVoiceRecording = useCallback(() => {
     if (chatOverviewRecognitionRef.current && chatOverviewListening) {
-      try {
-        chatOverviewRecognitionRef.current.stop()
-        setVoicePaused(true)
-        setChatOverviewListening(false)
-        setIsRecordingVoice(false)
-      } catch (e) {}
+      try { chatOverviewRecognitionRef.current.stop(); setVoicePaused(true); setChatOverviewListening(false); setIsRecordingVoice(false) } catch (e) {}
     }
   }, [chatOverviewListening])
 
   const resumeVoiceRecording = useCallback(() => {
     if (voicePaused && chatOverviewRecognitionRef.current) {
-      try {
-        chatOverviewRecognitionRef.current.start()
-        setVoicePaused(false)
-        setChatOverviewListening(true)
-        setIsRecordingVoice(true)
-      } catch (e) {}
+      try { chatOverviewRecognitionRef.current.start(); setVoicePaused(false); setChatOverviewListening(true); setIsRecordingVoice(true) } catch (e) {}
     }
   }, [voicePaused])
 
   const deleteVoiceRecording = useCallback(() => {
-    if (chatOverviewRecognitionRef.current) {
-      try { chatOverviewRecognitionRef.current.stop() } catch (e) {}
-    }
-    setVoiceTranscript('')
-    setChatOverviewListening(false)
-    setIsRecordingVoice(false)
-    setVoicePaused(false)
+    if (chatOverviewRecognitionRef.current) { try { chatOverviewRecognitionRef.current.stop() } catch (e) {} }
+    setVoiceTranscript(''); setChatOverviewListening(false); setIsRecordingVoice(false); setVoicePaused(false)
   }, [])
 
   const sendVoiceRecording = useCallback(() => {
     const text = voiceTranscript.trim()
     if (!text || isProcessing) return
-    setVoiceTranscript('')
-    setChatOverviewListening(false)
-    setIsRecordingVoice(false)
-    setVoicePaused(false)
-    if (chatOverviewRecognitionRef.current) {
-      try { chatOverviewRecognitionRef.current.stop() } catch (e) {}
-    }
+    setVoiceTranscript(''); setChatOverviewListening(false); setIsRecordingVoice(false); setVoicePaused(false)
+    if (chatOverviewRecognitionRef.current) { try { chatOverviewRecognitionRef.current.stop() } catch (e) {} }
     processUserQuery(text)
   }, [voiceTranscript, isProcessing, processUserQuery])
 
-  useEffect(() => {
-    if (voiceTranscript && !chatOverviewListening) {
-      setChatOverviewInput(voiceTranscript)
-    }
-  }, [voiceTranscript, chatOverviewListening])
+  useEffect(() => { if (voiceTranscript && !chatOverviewListening) setChatOverviewInput(voiceTranscript) }, [voiceTranscript, chatOverviewListening])
 
   const sendOverviewText = useCallback(() => {
     const text = chatOverviewInput.trim()
     if (!text || isProcessing) return
-    setChatOverviewInput('')
-    processUserQuery(text)
+    setChatOverviewInput(''); processUserQuery(text)
   }, [chatOverviewInput, isProcessing, processUserQuery])
 
   const handleOverviewFileShare = useCallback((e) => {
@@ -727,13 +813,7 @@ export default function App() {
     if (file.size > 20 * 1024 * 1024) { alert("File too large! Max 20MB."); return }
     const reader = new FileReader()
     reader.onloadend = () => {
-      const fileData = {
-        id: ++msgCounter.current,
-        role: 'user',
-        content: `📎 ${file.name}`,
-        time: Date.now(),
-        file: { name: file.name, type: file.type, data: reader.result, size: file.size }
-      }
+      const fileData = { id: ++msgCounter.current, role: 'user', content: `📎 ${file.name}`, time: Date.now(), file: { name: file.name, type: file.type, data: reader.result, size: file.size } }
       setConversation(prev => [...prev, fileData])
       setCommandHistory(prev => [...prev, { command: `📎 ${file.name}`, timestamp: Date.now() }])
       const reply = `Received your file: ${file.name} (${(file.size / 1024).toFixed(1)} KB). I can't process it directly, but I'm happy to help!`
@@ -741,34 +821,22 @@ export default function App() {
       setConversation(prev => [...prev, assistantMsg])
       if (chatOverviewVoiceEnabled) speakText(reply)
     }
-    reader.readAsDataURL(file)
-    e.target.value = ''
+    reader.readAsDataURL(file); e.target.value = ''
   }, [speakText, chatOverviewVoiceEnabled])
 
   const handleEditMessage = useCallback((msgId) => {
     const msg = conversation.find(m => m.id === msgId)
     if (!msg || msg.role !== 'user') return
     const newContent = prompt("Edit your message:", msg.content)
-    if (newContent !== null && newContent.trim()) {
-      setConversation(prev => prev.map(m => m.id === msgId ? { ...m, content: newContent.trim() } : m))
-    }
+    if (newContent !== null && newContent.trim()) setConversation(prev => prev.map(m => m.id === msgId ? { ...m, content: newContent.trim() } : m))
   }, [conversation])
 
-  const handleDeleteMessage = useCallback((msgId) => {
-    if (!confirm("Delete this message?")) return
-    setConversation(prev => prev.filter(m => m.id !== msgId))
-  }, [])
+  const handleDeleteMessage = useCallback((msgId) => { if (!confirm("Delete this message?")) return; setConversation(prev => prev.filter(m => m.id !== msgId)) }, [])
 
   const handleShareMessage = useCallback(async (msg) => {
     const content = msg.content
-    if (navigator.share) {
-      try { await navigator.share({ title: 'CYPHER4X Message', text: content }) } catch (e) {}
-    } else {
-      try {
-        await navigator.clipboard.writeText(content)
-        alert('Message copied to clipboard!')
-      } catch (e) { alert('Could not share/copy message.') }
-    }
+    if (navigator.share) { try { await navigator.share({ title: 'CYPHER4X Message', text: content }) } catch (e) {} }
+    else { try { await navigator.clipboard.writeText(content); alert('Message copied to clipboard!') } catch (e) { alert('Could not share/copy message.') } }
   }, [])
 
   const handleFileShare = useCallback((e) => {
@@ -778,41 +846,25 @@ export default function App() {
     if (file.size > 20 * 1024 * 1024) { alert("File too large! Max 20MB."); return }
     const reader = new FileReader()
     reader.onloadend = () => {
-      const fileData = {
-        id: ++msgCounter.current,
-        role: 'user',
-        content: `📎 ${file.name}`,
-        time: Date.now(),
-        file: { name: file.name, type: file.type, data: reader.result, size: file.size }
-      }
+      const fileData = { id: ++msgCounter.current, role: 'user', content: `📎 ${file.name}`, time: Date.now(), file: { name: file.name, type: file.type, data: reader.result, size: file.size } }
       setConversation(prev => [...prev, fileData])
       setCommandHistory(prev => [...prev, { command: `📎 ${file.name}`, timestamp: Date.now() }])
-      const reply = `I received your file: ${file.name} (${(file.size / 1024).toFixed(1)} KB). I can't process the content directly, but I'm happy to help if you have questions about it!`
+      const reply = `I received your file: ${file.name} (${(file.size / 1024).toFixed(1)} KB). I can't process the content directly, but I'm happy to help!`
       const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
-      setConversation(prev => [...prev, assistantMsg])
-      speakText(reply)
+      setConversation(prev => [...prev, assistantMsg]); speakText(reply)
     }
-    reader.readAsDataURL(file)
-    e.target.value = ''
+    reader.readAsDataURL(file); e.target.value = ''
   }, [speakText])
 
   const toggleFullscreenCall = useCallback(() => {
     if (isFullscreenCall) {
-      setIsFullscreenCall(false)
-      setIsCallActive(false)
+      setIsFullscreenCall(false); setIsCallActive(false)
       if (recognitionRef.current) { try { recognitionRef.current.stop() } catch (e) {} }
-      setIsListening(false)
-      setInterimTranscript('')
-      synthRef.current?.cancel()
-      setIsAISpeaking(false)
+      setIsListening(false); setInterimTranscript('')
+      synthRef.current?.cancel(); setIsAISpeaking(false)
     } else {
-      setIsFullscreenCall(true)
-      setIsCallActive(true)
-      if (!recognitionRef.current) {
-        recognitionRef.current = setupSpeechRecognition(false, (finalTranscript) => {
-          processUserQuery(finalTranscript)
-        })
-      }
+      setIsFullscreenCall(true); setIsCallActive(true)
+      if (!recognitionRef.current) recognitionRef.current = setupSpeechRecognition(false, (t) => processUserQuery(t))
       if (recognitionRef.current) {
         try {
           recognitionRef.current.start()
@@ -821,11 +873,7 @@ export default function App() {
           const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: greeting, time: Date.now() }
           setConversation(prev => [...prev, assistantMsg])
         } catch (e) {}
-      } else {
-        alert('Speech recognition not available.')
-        setIsFullscreenCall(false)
-        setIsCallActive(false)
-      }
+      } else { alert('Speech recognition not available.'); setIsFullscreenCall(false); setIsCallActive(false) }
     }
   }, [isFullscreenCall, setupSpeechRecognition, speakText, processUserQuery])
 
@@ -837,94 +885,57 @@ export default function App() {
 
   const startRecording = useCallback(() => {
     if (isRecording || isProcessing || isFullscreenCall) return
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert("Your browser doesn't support speech recognition.")
-      return
-    }
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) { alert("Speech recognition not supported."); return }
     setRecordingMode(true)
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)()
-    recognition.continuous = false
-    recognition.interimResults = true
-    recognition.lang = 'en-US'
-    recognition.onstart = () => {
-      setIsRecording(true)
-      setIsListening(true)
-      setInterimTranscript('')
-    }
-    recognition.onend = () => {
-      setIsRecording(false)
-      setIsListening(false)
-    }
+    recognition.continuous = false; recognition.interimResults = true; recognition.lang = 'en-US'
+    recognition.onstart = () => { setIsRecording(true); setIsListening(true); setInterimTranscript('') }
+    recognition.onend = () => { setIsRecording(false); setIsListening(false) }
     recognition.onerror = (event) => {
-      setIsRecording(false)
-      setRecordingMode(false)
-      setIsListening(false)
-      if (event.error === 'not-allowed') {
-        alert('Please allow microphone access in your browser settings.')
-      } else {
-        alert('Speech recognition error: ' + event.error)
-      }
+      setIsRecording(false); setRecordingMode(false); setIsListening(false)
+      if (event.error === 'not-allowed') alert('Please allow microphone access.')
+      else alert('Speech recognition error: ' + event.error)
     }
     recognition.onresult = async (event) => {
       let final = '', interim = ''
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i]
-        if (result.isFinal) final += result[0].transcript
-        else interim += result[0].transcript
+        const r = event.results[i]
+        if (r.isFinal) final += r[0].transcript; else interim += r[0].transcript
       }
-      if (final) {
-        setInterimTranscript('')
-        setRecordingMode(false)
-        await processUserQuery(final)
-      } else if (interim) {
-        setInterimTranscript(interim)
-      }
+      if (final) { setInterimTranscript(''); setRecordingMode(false); await processUserQuery(final) }
+      else if (interim) setInterimTranscript(interim)
     }
     recognitionRef.current = recognition
-    try {
-      recognition.start()
-    } catch (e) {
-      alert('Failed to start recording: ' + e.message)
-      setRecordingMode(false)
-    }
+    try { recognition.start() } catch (e) { alert('Failed: ' + e.message); setRecordingMode(false) }
   }, [isRecording, isProcessing, isFullscreenCall, processUserQuery])
 
   const sendInterim = useCallback(() => {
     if (!interimTranscript.trim() || isProcessing) return
     const text = interimTranscript.trim()
-    setInterimTranscript('')
-    setRecordingMode(false)
+    setInterimTranscript(''); setRecordingMode(false)
     if (recognitionRef.current) { try { recognitionRef.current.stop() } catch (e) {} }
     processUserQuery(text)
   }, [interimTranscript, isProcessing, processUserQuery])
 
   const cancelRecording = useCallback(() => {
-    setInterimTranscript('')
-    setRecordingMode(false)
-    setIsRecording(false)
-    setIsListening(false)
+    setInterimTranscript(''); setRecordingMode(false); setIsRecording(false); setIsListening(false)
     if (recognitionRef.current) { try { recognitionRef.current.stop() } catch (e) {} }
   }, [])
 
   const sendTextMessage = useCallback(() => {
     const text = inputText.trim()
     if (!text || isProcessing) return
-    setInputText('')
-    processUserQuery(text)
+    setInputText(''); processUserQuery(text)
   }, [inputText, isProcessing, processUserQuery])
 
   const handleWelcomeDecision = useCallback((choice) => {
     setWelcomeStep('decision')
-    let reply = ''
-    if (choice === 'fine') {
-      reply = "That's great to hear! I'm so happy you're feeling well. How can I make your day even better today?"
-    } else {
-      reply = "I'm sorry to hear that. I'm here for you. Would you like to talk about it or maybe I can help you with something to cheer you up?"
-    }
+    let reply = choice === 'fine'
+      ? "That's great to hear! I'm so happy you're feeling well. How can I make your day even better today?"
+      : "I'm sorry to hear that. I'm here for you. Would you like to talk about it or maybe I can help you with something to cheer you up?"
     const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
-    setConversation(prev => [...prev, assistantMsg])
-    speakText(reply)
-    setTimeout(() => { setShowWelcomeOverlay(false) }, 3000)
+    setConversation(prev => [...prev, assistantMsg]); speakText(reply)
+    setTimeout(() => setShowWelcomeOverlay(false), 3000)
   }, [speakText])
 
   const handlePersonalitySelect = (personalityId) => {
@@ -935,12 +946,9 @@ export default function App() {
     const today = new Date().toDateString()
     const lastWelcome = getLastWelcomeDate()
     if (lastWelcome !== today && settings.welcomeEnabled) {
-      setLastWelcomeDate(today)
-      setShowWelcomeOverlay(true)
-      setWelcomeStep('greeting')
+      setLastWelcomeDate(today); setShowWelcomeOverlay(true); setWelcomeStep('greeting')
       const msg = "Hello User! I'm CYPHER4X, your friendly AI assistant. How are you feeling today?"
-      setWelcomeMessage(msg)
-      speakText(msg)
+      setWelcomeMessage(msg); speakText(msg)
     }
   }
 
@@ -954,19 +962,55 @@ export default function App() {
     reader.readAsDataURL(file)
   }
 
-  const resetBackground = () => {
-    setBackgroundImage(null)
-    if (bgInputRef.current) bgInputRef.current.value = ''
-  }
+  const resetBackground = () => { setBackgroundImage(null); if (bgInputRef.current) bgInputRef.current.value = '' }
 
   const toggleView = useCallback(() => {
-    setViewMode(prev => {
-      const newMode = prev === 'android' ? 'pc' : 'android'
-      if (newMode === 'pc') setShowRotateOverlay(true)
-      return newMode
-    })
+    setViewMode(prev => { const n = prev === 'android' ? 'pc' : 'android'; if (n === 'pc') setShowRotateOverlay(true); return n })
     setSidebarOpen(false)
   }, [])
+
+  // Terminal submit
+  const submitTerminal = (e) => {
+    e.preventDefault()
+    if (!terminalInput.trim()) return
+    const cmd = terminalInput.trim()
+    const output = runTerminalCommand(cmd)
+    if (output === '__CLEAR__') { setTerminalLines([{ type: 'info', text: 'Terminal cleared.' }]) }
+    else {
+      setTerminalLines(prev => [...prev, { type: 'cmd', text: `$ ${cmd}` }, { type: 'out', text: output }])
+    }
+    setTerminalInput('')
+  }
+
+  // ============================================================
+  // IN-APP OVERLAY (browser-side simulation of a floating assistant)
+  // ============================================================
+  const toggleOverlay = () => {
+    const newState = !overlayActive
+    setOverlayActive(newState)
+    if (newState) {
+      // Start listening
+      if (!overlayRecognitionRef.current) {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) { alert("Speech not supported."); setOverlayActive(false); return }
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition
+        const rec = new SR()
+        rec.continuous = false; rec.interimResults = false; rec.lang = 'en-US'
+        rec.onstart = () => setOverlayListening(true)
+        rec.onend = () => setOverlayListening(false)
+        rec.onerror = () => setOverlayListening(false)
+        rec.onresult = (event) => {
+          const transcript = event.results[0][0].transcript
+          setOverlayActive(false)
+          processUserQuery(transcript)
+        }
+        overlayRecognitionRef.current = rec
+      }
+      try { overlayRecognitionRef.current.start() } catch (e) {}
+    } else {
+      try { overlayRecognitionRef.current?.stop() } catch (e) {}
+      setOverlayListening(false)
+    }
+  }
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -996,51 +1040,24 @@ export default function App() {
 
   const saveProfile = useCallback(() => {
     if (!profileForm.name.trim() || !profileForm.username.trim()) { alert("Name & Username required!"); return }
-    const newProfile = {
-      ...profileForm,
-      username: profileForm.username.toLowerCase().replace(/[^a-z0-9_]/g, ''),
-      updatedAt: new Date().toISOString()
-    }
-    setProfile(newProfile)
-    setEditingProfile(false)
-    const welcome = `Profile updated, ${newProfile.name}!`
-    speakText(welcome)
+    const newProfile = { ...profileForm, username: profileForm.username.toLowerCase().replace(/[^a-z0-9_]/g, ''), updatedAt: new Date().toISOString() }
+    setProfile(newProfile); setEditingProfile(false); speakText(`Profile updated, ${newProfile.name}!`)
   }, [profileForm, speakText])
 
   const openEditProfile = useCallback(() => {
-    setProfileForm({
-      name: profile?.name || "",
-      username: profile?.username || "",
-      avatar: profile?.avatar || "",
-      bio: profile?.bio || ""
-    })
-    setEditingProfile(true)
-    setSidebarOpen(false)
+    setProfileForm({ name: profile?.name || "", username: profile?.username || "", avatar: profile?.avatar || "", bio: profile?.bio || "" })
+    setEditingProfile(true); setSidebarOpen(false)
   }, [profile])
 
   const resetAllData = useCallback(() => {
     if (!confirm("Reset ALL data for this account?")) return
     if (userMode === 'loggedin') {
-      const emptyData = {
-        profile: null, conversation: [], commandHistory: [], events: [], reminders: [],
-        faceRecognition: false, biometricAuth: false, voiceGender: 'female', viewMode: 'android',
-        personality: 'polite', backgroundImage: null,
-        settings: { welcomeEnabled: true, autoStartVoice: true, language: 'en', voiceSpeed: 1, personality: 'polite' }
-      }
+      const emptyData = { profile: null, conversation: [], commandHistory: [], events: [], reminders: [], faceRecognition: false, biometricAuth: false, voiceGender: 'female', viewMode: 'android', personality: 'polite', backgroundImage: null, settings: { welcomeEnabled: true, autoStartVoice: true, language: 'en', voiceSpeed: 1, personality: 'polite', secretMode: false, overlayButton: false, safeLinks: true } }
       saveUserData(email, pin, emptyData)
     }
-    setProfile(null)
-    setConversation([])
-    setCommandHistory([])
-    setEvents([])
-    setReminders([])
-    setFaceRecognition(false)
-    setBiometricAuth(false)
-    setVoiceGender('female')
-    setViewMode('android')
-    setBackgroundImage(null)
-    setAiPersonality('polite')
-    setSidebarOpen(false)
+    setProfile(null); setConversation([]); setCommandHistory([]); setEvents([]); setReminders([])
+    setFaceRecognition(false); setBiometricAuth(false); setVoiceGender('female'); setViewMode('android')
+    setBackgroundImage(null); setAiPersonality('polite'); setSidebarOpen(false)
   }, [userMode, email, pin])
 
   const clearConversation = useCallback(() => setConversation([]), [])
@@ -1049,43 +1066,34 @@ export default function App() {
     const data = { conversation, commandHistory, events, reminders, profile, exportedAt: new Date().toISOString() }
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `cypher4x_export_${Date.now()}.json`
-    a.click()
+    const a = document.createElement('a'); a.href = url; a.download = `cypher4x_export_${Date.now()}.json`; a.click()
     URL.revokeObjectURL(url)
   }, [conversation, commandHistory, events, reminders, profile])
 
   const formatUptime = (seconds) => {
-    const h = Math.floor(seconds / 3600)
-    const m = Math.floor((seconds % 3600) / 60)
-    const s = seconds % 60
+    const h = Math.floor(seconds / 3600), m = Math.floor((seconds % 3600) / 60), s = seconds % 60
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
   }
   const formatTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
-  // BOOT SCREEN
+  // ============================================================
+  // RENDER: BOOT SCREEN
+  // ============================================================
   if (isBooting) {
     return (
       <div style={styles.bootContainer}>
         <style>{`@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }`}</style>
         <div style={styles.bootBackground} />
         <div style={styles.bootContent}>
-          <h1 style={styles.bootTitle}>
-            {bootTypedText}
-            <span style={styles.bootCursor}>|</span>
-          </h1>
+          <h1 style={styles.bootTitle}>{bootTypedText}<span style={styles.bootCursor}>|</span></h1>
           <p style={styles.bootSubtitle}>Advanced AI System</p>
-          <div style={styles.bootCredit}>
-            {bootTypedCredit}
-            {bootTypedCredit.length > 0 && bootTypedCredit.length < 38 && <span style={styles.bootCursor}>|</span>}
-          </div>
+          <div style={styles.bootCredit}>{bootTypedCredit}{bootTypedCredit.length > 0 && bootTypedCredit.length < 38 && <span style={styles.bootCursor}>|</span>}</div>
         </div>
       </div>
     )
   }
 
-  // PERSONALITY SELECTION MODAL (FIRST ENTRY)
+  // PERSONALITY SELECTION
   if (showPersonalityModal) {
     return (
       <div style={styles.personalityOverlay}>
@@ -1094,15 +1102,8 @@ export default function App() {
           <p style={styles.personalitySubtitle}>Choose your AI personality</p>
           <div style={styles.personalityGrid}>
             {PERSONALITIES.map(p => (
-              <button
-                key={p.id}
-                onClick={() => handlePersonalitySelect(p.id)}
-                style={{
-                  ...styles.personalityOption,
-                  borderColor: aiPersonality === p.id ? '#ff003c' : '#333',
-                  backgroundColor: aiPersonality === p.id ? 'rgba(255,0,60,0.15)' : '#1a1a1a',
-                }}
-              >
+              <button key={p.id} onClick={() => handlePersonalitySelect(p.id)}
+                style={{ ...styles.personalityOption, borderColor: aiPersonality === p.id ? '#ff003c' : '#333', backgroundColor: aiPersonality === p.id ? 'rgba(255,0,60,0.15)' : '#1a1a1a' }}>
                 <span style={styles.personalityIcon}>{p.icon}</span>
                 <span style={styles.personalityLabel}>{p.label}</span>
                 <span style={styles.personalityDesc}>{p.desc}</span>
@@ -1110,13 +1111,7 @@ export default function App() {
             ))}
           </div>
           {aiPersonality === 'custom' && (
-            <input
-              type="text"
-              placeholder="Describe how you want me to talk..."
-              value={customPersonality}
-              onChange={(e) => setCustomPersonality(e.target.value)}
-              style={styles.personalityInput}
-            />
+            <input type="text" placeholder="Describe how you want me to talk..." value={customPersonality} onChange={(e) => setCustomPersonality(e.target.value)} style={styles.personalityInput} />
           )}
           <p style={styles.personalityHint}>You can change this anytime in Settings</p>
         </div>
@@ -1131,8 +1126,8 @@ export default function App() {
           <h2 style={styles.guestLimitTitle}>Free Trial Limit Reached</h2>
           <p style={styles.guestLimitText}>You've used all 5 free messages. Please login or sign up to continue chatting with CYPHER4X.</p>
           <div style={styles.guestLimitButtons}>
-            <button onClick={() => { setShowGuestLimit(false); setShowLogin(true); setShowAuthModal(true); }} style={styles.guestLimitLoginBtn}>Login</button>
-            <button onClick={() => { setShowGuestLimit(false); setShowLogin(false); setShowAuthModal(true); }} style={styles.guestLimitSignupBtn}>Sign Up</button>
+            <button onClick={() => { setShowGuestLimit(false); setShowLogin(true); setShowAuthModal(true) }} style={styles.guestLimitLoginBtn}>Login</button>
+            <button onClick={() => { setShowGuestLimit(false); setShowLogin(false); setShowAuthModal(true) }} style={styles.guestLimitSignupBtn}>Sign Up</button>
           </div>
         </div>
       </div>
@@ -1143,10 +1138,7 @@ export default function App() {
     return (
       <div style={styles.welcomeOverlay}>
         <div style={styles.welcomeCard}>
-          {/* Red ball hidden after user selects an option */}
-          {welcomeStep === 'greeting' && (
-            <div style={styles.welcomeBall}><RedBall isSpeaking={isAISpeaking} /></div>
-          )}
+          {welcomeStep === 'greeting' && <div style={styles.welcomeBall}><RedBall isSpeaking={isAISpeaking} /></div>}
           <div style={styles.welcomeMessageText}>{welcomeMessage}</div>
           {welcomeStep === 'greeting' && (
             <div style={styles.welcomeButtons}>
@@ -1154,9 +1146,7 @@ export default function App() {
               <button onClick={() => handleWelcomeDecision('fine')} style={styles.welcomeBtnFine}>I'm fine</button>
             </div>
           )}
-          {welcomeStep === 'decision' && (
-            <div style={styles.welcomeDecisionText}>Thank you for sharing. I'm here to help you.</div>
-          )}
+          {welcomeStep === 'decision' && <div style={styles.welcomeDecisionText}>Thank you for sharing. I'm here to help you.</div>}
         </div>
       </div>
     )
@@ -1175,9 +1165,7 @@ export default function App() {
           <button onClick={handleAuthSubmit} style={styles.authBtn}>{showLogin ? 'Login' : 'Create Account'}</button>
           <div style={styles.authSwitch}>
             <span>{showLogin ? "Don't have an account?" : "Already have an account?"}</span>
-            <button onClick={() => { setShowLogin(!showLogin); setAuthError('') }} style={styles.authSwitchBtn}>
-              {showLogin ? 'Sign Up' : 'Login'}
-            </button>
+            <button onClick={() => { setShowLogin(!showLogin); setAuthError('') }} style={styles.authSwitchBtn}>{showLogin ? 'Sign Up' : 'Login'}</button>
           </div>
         </div>
       </div>
@@ -1198,34 +1186,35 @@ export default function App() {
         `}</style>
         <div style={styles.settingsHeaderFull}>
           <h1 style={styles.settingsTitleFull}>Settings</h1>
-          <button onClick={() => setShowSettings(false)} style={styles.settingsCloseFull}>
-            <Icon name="close" size={28} color="#fff" />
-          </button>
+          <button onClick={() => setShowSettings(false)} style={styles.settingsCloseFull}><Icon name="close" size={28} color="#fff" /></button>
         </div>
         <div style={styles.settingsBodyFull}>
           <div style={styles.settingsSection}>
             <h3 style={styles.settingsSectionTitle}>General</h3>
             <div style={styles.settingItem}>
               <span>Welcome Messages</span>
-              <label className="toggle-switch">
-                <input type="checkbox" checked={settings.welcomeEnabled} onChange={(e) => setSettings({ ...settings, welcomeEnabled: e.target.checked })} />
-                <span className="toggle-slider"></span>
-              </label>
+              <label className="toggle-switch"><input type="checkbox" checked={settings.welcomeEnabled} onChange={(e) => setSettings({ ...settings, welcomeEnabled: e.target.checked })} /><span className="toggle-slider"></span></label>
             </div>
             <div style={styles.settingItem}>
               <span>Auto-start Voice</span>
-              <label className="toggle-switch">
-                <input type="checkbox" checked={settings.autoStartVoice} onChange={(e) => setSettings({ ...settings, autoStartVoice: e.target.checked })} />
-                <span className="toggle-slider"></span>
-              </label>
+              <label className="toggle-switch"><input type="checkbox" checked={settings.autoStartVoice} onChange={(e) => setSettings({ ...settings, autoStartVoice: e.target.checked })} /><span className="toggle-slider"></span></label>
+            </div>
+            <div style={styles.settingItem}>
+              <span>Safe Links (prefer trusted sites)</span>
+              <label className="toggle-switch"><input type="checkbox" checked={settings.safeLinks} onChange={(e) => setSettings({ ...settings, safeLinks: e.target.checked })} /><span className="toggle-slider"></span></label>
+            </div>
+            <div style={styles.settingItem}>
+              <span>Secret Mode (DuckDuckGo default)</span>
+              <label className="toggle-switch"><input type="checkbox" checked={settings.secretMode} onChange={(e) => setSettings({ ...settings, secretMode: e.target.checked })} /><span className="toggle-slider"></span></label>
+            </div>
+            <div style={styles.settingItem}>
+              <span>Floating Assistant Button</span>
+              <label className="toggle-switch"><input type="checkbox" checked={settings.overlayButton} onChange={(e) => setSettings({ ...settings, overlayButton: e.target.checked })} /><span className="toggle-slider"></span></label>
             </div>
             <div style={styles.settingItem}>
               <span>Language</span>
               <select value={settings.language} onChange={(e) => setSettings({ ...settings, language: e.target.value })} style={styles.settingsSelect}>
-                <option value="en">English</option>
-                <option value="es">Spanish</option>
-                <option value="fr">French</option>
-                <option value="de">German</option>
+                <option value="en">English</option><option value="es">Spanish</option><option value="fr">French</option><option value="de">German</option>
               </select>
             </div>
           </div>
@@ -1240,8 +1229,7 @@ export default function App() {
             <div style={styles.settingItem}>
               <span>Voice Gender</span>
               <select value={voiceGender} onChange={(e) => setVoiceGender(e.target.value)} style={styles.settingsSelect}>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
+                <option value="male">Male</option><option value="female">Female</option>
               </select>
             </div>
           </div>
@@ -1250,19 +1238,8 @@ export default function App() {
             <h3 style={styles.settingsSectionTitle}>AI Personality</h3>
             <div style={styles.personalityGridSettings}>
               {PERSONALITIES.map(p => (
-                <button
-                  key={p.id}
-                  onClick={() => {
-                    setAiPersonality(p.id)
-                    setSettings({ ...settings, personality: p.id })
-                    localStorage.setItem('cypher4x_personality', p.id)
-                  }}
-                  style={{
-                    ...styles.personalityOptionSmall,
-                    borderColor: aiPersonality === p.id ? '#ff003c' : '#333',
-                    backgroundColor: aiPersonality === p.id ? 'rgba(255,0,60,0.15)' : '#1a1a1a',
-                  }}
-                >
+                <button key={p.id} onClick={() => { setAiPersonality(p.id); setSettings({ ...settings, personality: p.id }); localStorage.setItem('cypher4x_personality', p.id) }}
+                  style={{ ...styles.personalityOptionSmall, borderColor: aiPersonality === p.id ? '#ff003c' : '#333', backgroundColor: aiPersonality === p.id ? 'rgba(255,0,60,0.15)' : '#1a1a1a' }}>
                   <span style={{ fontSize: '20px' }}>{p.icon}</span>
                   <span style={{ fontSize: '12px', color: '#fff', fontWeight: 'bold' }}>{p.label}</span>
                 </button>
@@ -1273,24 +1250,16 @@ export default function App() {
           <div style={styles.settingsSection}>
             <h3 style={styles.settingsSectionTitle}>Background</h3>
             <div style={styles.backgroundControls}>
-              <label style={styles.uploadBtn}>
-                <Icon name="image" size={18} color="#fff" />
-                <span>Choose Image</span>
-                <input ref={bgInputRef} type="file" accept="image/*" onChange={handleBackgroundChange} style={{ display: 'none' }} />
-              </label>
-              {backgroundImage && (
-                <button onClick={resetBackground} style={styles.resetBtn}>
-                  <Icon name="refresh" size={18} color="#fff" />
-                  <span>Reset</span>
-                </button>
-              )}
+              <label style={styles.uploadBtn}><Icon name="image" size={18} color="#fff" /><span>Choose Image</span><input ref={bgInputRef} type="file" accept="image/*" onChange={handleBackgroundChange} style={{ display: 'none' }} /></label>
+              {backgroundImage && <button onClick={resetBackground} style={styles.resetBtn}><Icon name="refresh" size={18} color="#fff" /><span>Reset</span></button>}
             </div>
-            {backgroundImage && (
-              <div style={styles.bgPreview}>
-                <img src={backgroundImage} alt="Background preview" style={styles.bgPreviewImg} />
-              </div>
-            )}
-            <p style={styles.bgHint}>The Red Ball will remain visible on top of your background.</p>
+            {backgroundImage && <div style={styles.bgPreview}><img src={backgroundImage} alt="Background preview" style={styles.bgPreviewImg} /></div>}
+            <p style={styles.bgHint}>The Red Ball remains on top. Background applies to Android & PC views.</p>
+          </div>
+
+          <div style={styles.settingsSection}>
+            <h3 style={styles.settingsSectionTitle}>Note on AI Overlay</h3>
+            <p style={styles.bgHint}>Browser apps cannot float over other apps. For true overlay, build CYPHER4X with React Native / Android Studio using SYSTEM_ALERT_WINDOW permission. The toggle above enables a floating button inside this app.</p>
           </div>
         </div>
         <button onClick={() => setShowSettings(false)} style={styles.settingsDoneFull}>Done</button>
@@ -1301,20 +1270,14 @@ export default function App() {
   if (isFullscreenCall) {
     return (
       <div style={styles.fullscreenCallOverlay}>
-        <button onClick={toggleFullscreenCall} style={styles.returnBtn}>
-          <Icon name="arrowLeft" size={28} color="#fff" /> Return
-        </button>
+        <button onClick={toggleFullscreenCall} style={styles.returnBtn}><Icon name="arrowLeft" size={28} color="#fff" /> Return</button>
         <div style={styles.fullscreenCallContentNoBall}>
           <div style={styles.fullscreenListeningStatus}>
             {isListening ? <div style={styles.fullscreenListeningDot} /> : isAISpeaking ? <div style={styles.fullscreenSpeakingDot} /> : null}
-            <span style={styles.fullscreenStatusText}>
-              {isListening ? 'Listening...' : isAISpeaking ? 'Speaking...' : 'Tap mic to talk'}
-            </span>
+            <span style={styles.fullscreenStatusText}>{isListening ? 'Listening...' : isAISpeaking ? 'Speaking...' : 'Tap mic to talk'}</span>
           </div>
           {interimTranscript && <div style={styles.fullscreenTranscript}>{interimTranscript}</div>}
-          <button onClick={interruptAndListen} style={styles.fullscreenMicBtn} disabled={isProcessing}>
-            <Icon name="mic" size={48} color="#fff" />
-          </button>
+          <button onClick={interruptAndListen} style={styles.fullscreenMicBtn} disabled={isProcessing}><Icon name="mic" size={48} color="#fff" /></button>
         </div>
       </div>
     )
@@ -1332,13 +1295,62 @@ export default function App() {
     )
   }
 
+  // TERMINAL FULLSCREEN
+  if (showTerminal) {
+    return (
+      <div style={styles.terminalFullscreen}>
+        <div style={styles.terminalHeader}>
+          <button onClick={() => setShowTerminal(false)} style={styles.terminalBackBtn}><Icon name="arrowLeft" size={22} color="#fff" /> Back</button>
+          <span style={styles.terminalTitle}>csh — CYPHER4X Terminal</span>
+          <button onClick={() => setTerminalLines([{ type: 'info', text: 'Terminal cleared.' }])} style={styles.terminalClearBtn}>Clear</button>
+        </div>
+        <div style={styles.terminalBody}>
+          {terminalLines.map((line, i) => (
+            <pre key={i} style={{
+              ...styles.terminalLine,
+              color: line.type === 'cmd' ? '#4f8' : line.type === 'info' ? '#ff6688' : '#ddd',
+              fontWeight: line.type === 'cmd' ? 'bold' : 'normal',
+            }}>{line.text}</pre>
+          ))}
+          <div ref={terminalEndRef} />
+        </div>
+        <form onSubmit={submitTerminal} style={styles.terminalInputRow}>
+          <span style={styles.terminalPrompt}>$</span>
+          <input value={terminalInput} onChange={(e) => setTerminalInput(e.target.value)} placeholder="Type a command (try: help)" style={styles.terminalInput} autoFocus />
+          <button type="submit" style={styles.terminalSendBtn}><Icon name="send" size={16} color="#fff" /></button>
+        </form>
+      </div>
+    )
+  }
+
+  // ABILITIES FULLSCREEN
+  if (showAbilities) {
+    return (
+      <div style={styles.abilitiesFullscreen}>
+        <div style={styles.settingsHeaderFull}>
+          <h1 style={styles.settingsTitleFull}>AI Abilities</h1>
+          <button onClick={() => setShowAbilities(false)} style={styles.settingsCloseFull}><Icon name="close" size={28} color="#fff" /></button>
+        </div>
+        <div style={styles.abilitiesBody}>
+          {AI_ABILITIES.map((a, i) => (
+            <div key={i} style={styles.abilityCard}>
+              <span style={styles.abilityIcon}>{a.icon}</span>
+              <div style={{ flex: 1 }}>
+                <div style={styles.abilityTitle}>{a.title}</div>
+                <div style={styles.abilityDesc}>{a.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   if (showChatOverview) {
     return (
       <div style={styles.chatOverviewContainer}>
         <div style={styles.chatOverviewHeader}>
-          <button onClick={() => setShowChatOverview(false)} style={styles.chatOverviewBackBtn}>
-            <Icon name="arrowLeft" size={24} color="#fff" /> Back
-          </button>
+          <button onClick={() => setShowChatOverview(false)} style={styles.chatOverviewBackBtn}><Icon name="arrowLeft" size={24} color="#fff" /> Back</button>
           <span style={styles.chatOverviewTitle}>Chat with AI</span>
           <button onClick={() => setChatOverviewVoiceEnabled(!chatOverviewVoiceEnabled)} style={styles.chatOverviewVoiceToggle}>
             <Icon name={chatOverviewVoiceEnabled ? 'volume2' : 'volumeX'} size={20} color="#fff" />
@@ -1347,89 +1359,46 @@ export default function App() {
         <div style={styles.chatOverviewMessages}>
           {conversation.length === 0 && <div style={styles.chatOverviewEmpty}>Start chatting with AI!</div>}
           {conversation.map(msg => (
-            <div key={msg.id} style={{
-              ...styles.chatOverviewMsg,
-              alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-              backgroundColor: msg.role === 'user' ? '#ff003c' : '#1a1a1a',
-            }}>
+            <div key={msg.id} style={{ ...styles.chatOverviewMsg, alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', backgroundColor: msg.role === 'user' ? '#ff003c' : '#1a1a1a' }}>
               <span style={styles.chatOverviewMsgText}>{msg.content}</span>
               {msg.file && (
                 <div style={styles.filePreviewPC}>
                   {msg.file.type.startsWith('image/') && <img src={msg.file.data} alt={msg.file.name} style={{ maxWidth: '100%', maxHeight: '80px', borderRadius: '4px', marginTop: '4px' }} />}
                   {msg.file.type.startsWith('video/') && <video controls style={{ maxWidth: '100%', maxHeight: '80px', borderRadius: '4px', marginTop: '4px' }}><source src={msg.file.data} type={msg.file.type} /></video>}
-                  {!msg.file.type.startsWith('image/') && !msg.file.type.startsWith('video/') && (
-                    <div style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>📎 {msg.file.name}</div>
-                  )}
+                  {!msg.file.type.startsWith('image/') && !msg.file.type.startsWith('video/') && <div style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>📎 {msg.file.name}</div>}
                 </div>
               )}
               <span style={styles.chatOverviewMsgTime}>{formatTime(msg.time)}</span>
               <div style={styles.msgActions}>
-                {msg.role === 'user' && (
-                  <button onClick={() => handleEditMessage(msg.id)} style={styles.msgActionBtn} title="Edit">
-                    <Icon name="edit" size={14} color="#888" />
-                  </button>
-                )}
-                <button onClick={() => handleDeleteMessage(msg.id)} style={styles.msgActionBtn} title="Delete">
-                  <Icon name="trash" size={14} color="#888" />
-                </button>
-                <button onClick={() => handleShareMessage(msg)} style={styles.msgActionBtn} title="Share">
-                  <Icon name="copy" size={14} color="#888" />
-                </button>
+                {msg.role === 'user' && <button onClick={() => handleEditMessage(msg.id)} style={styles.msgActionBtn} title="Edit"><Icon name="edit" size={14} color="#888" /></button>}
+                <button onClick={() => handleDeleteMessage(msg.id)} style={styles.msgActionBtn} title="Delete"><Icon name="trash" size={14} color="#888" /></button>
+                <button onClick={() => handleShareMessage(msg)} style={styles.msgActionBtn} title="Share"><Icon name="copy" size={14} color="#888" /></button>
               </div>
             </div>
           ))}
-          {isProcessing && (
-            <div style={{ ...styles.chatOverviewMsg, alignSelf: 'flex-start', backgroundColor: '#1a1a1a' }}>
-              <span style={styles.chatOverviewMsgText}>Thinking...</span>
-            </div>
-          )}
+          {isProcessing && <div style={{ ...styles.chatOverviewMsg, alignSelf: 'flex-start', backgroundColor: '#1a1a1a' }}><span style={styles.chatOverviewMsgText}>Thinking...</span></div>}
         </div>
         <div style={styles.chatOverviewInputRowRaised}>
-          <input
-            type="text"
-            value={chatOverviewInput}
-            onChange={(e) => setChatOverviewInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && sendOverviewText()}
-            placeholder="Type a message..."
-            style={styles.chatOverviewInput}
-            disabled={isProcessing}
-          />
+          <input type="text" value={chatOverviewInput} onChange={(e) => setChatOverviewInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && sendOverviewText()} placeholder="Type a message..." style={styles.chatOverviewInput} disabled={isProcessing} />
           <div style={styles.voiceControls}>
             {!isRecordingVoice && !voicePaused ? (
-              <button onClick={startVoiceRecording} style={styles.chatOverviewMicBtn} title="Record voice">
-                <Icon name="mic" size={20} color="#fff" />
-              </button>
+              <button onClick={startVoiceRecording} style={styles.chatOverviewMicBtn} title="Record voice"><Icon name="mic" size={20} color="#fff" /></button>
             ) : (
               <>
                 {voicePaused ? (
-                  <button onClick={resumeVoiceRecording} style={styles.chatOverviewMicBtn} title="Resume">
-                    <Icon name="play" size={20} color="#4f8" />
-                  </button>
+                  <button onClick={resumeVoiceRecording} style={styles.chatOverviewMicBtn} title="Resume"><Icon name="play" size={20} color="#4f8" /></button>
                 ) : (
-                  <button onClick={pauseVoiceRecording} style={styles.chatOverviewMicBtn} title="Pause">
-                    <Icon name="pause" size={20} color="#ff003c" />
-                  </button>
+                  <button onClick={pauseVoiceRecording} style={styles.chatOverviewMicBtn} title="Pause"><Icon name="pause" size={20} color="#ff003c" /></button>
                 )}
-                <button onClick={deleteVoiceRecording} style={styles.chatOverviewMicBtn} title="Delete recording">
-                  <Icon name="trash" size={20} color="#ff003c" />
-                </button>
-                <button onClick={sendVoiceRecording} style={styles.chatOverviewSendBtn} title="Send recording" disabled={isProcessing || !voiceTranscript.trim()}>
-                  <Icon name="send" size={20} color="#fff" />
-                </button>
+                <button onClick={deleteVoiceRecording} style={styles.chatOverviewMicBtn} title="Delete"><Icon name="trash" size={20} color="#ff003c" /></button>
+                <button onClick={sendVoiceRecording} style={styles.chatOverviewSendBtn} title="Send" disabled={isProcessing || !voiceTranscript.trim()}><Icon name="send" size={20} color="#fff" /></button>
               </>
             )}
           </div>
-          <label style={styles.chatOverviewAttachBtn}>
-            <Icon name="file" size={20} color="#fff" />
-            <input type="file" accept="image/*,video/*,.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx" onChange={handleOverviewFileShare} style={{ display: 'none' }} />
-          </label>
-          <button onClick={sendOverviewText} style={styles.chatOverviewSendBtn} disabled={isProcessing}>
-            <Icon name="send" size={20} color="#fff" />
-          </button>
+          <label style={styles.chatOverviewAttachBtn}><Icon name="file" size={20} color="#fff" /><input type="file" accept="image/*,video/*,.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx" onChange={handleOverviewFileShare} style={{ display: 'none' }} /></label>
+          <button onClick={sendOverviewText} style={styles.chatOverviewSendBtn} disabled={isProcessing}><Icon name="send" size={20} color="#fff" /></button>
         </div>
-        {voiceTranscript && !chatOverviewListening && (
-          <div style={styles.voiceTranscriptPreview}>"{voiceTranscript}"</div>
-        )}
+        {voiceTranscript && !chatOverviewListening && <div style={styles.voiceTranscriptPreview}>"{voiceTranscript}"</div>}
       </div>
     )
   }
@@ -1440,11 +1409,7 @@ export default function App() {
         <div style={styles.profileCard}>
           <h1 style={styles.profileTitle}>EDIT PROFILE</h1>
           <div style={styles.avatarUploadArea} onClick={() => fileInputRef.current?.click()}>
-            {profileForm.avatar ? (
-              <img src={profileForm.avatar} alt="Avatar" style={styles.avatarPreview} />
-            ) : (
-              <span style={styles.avatarIcon}><Icon name="camera" size={32} color="#ff003c" /><br />Tap to select</span>
-            )}
+            {profileForm.avatar ? <img src={profileForm.avatar} alt="Avatar" style={styles.avatarPreview} /> : <span style={styles.avatarIcon}><Icon name="camera" size={32} color="#ff003c" /><br />Tap to select</span>}
           </div>
           <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} />
           <div style={styles.inputGroup}>
@@ -1468,6 +1433,9 @@ export default function App() {
     )
   }
 
+  // ============================================================
+  // ANDROID VIEW
+  // ============================================================
   if (viewMode === 'android') {
     return (
       <div style={styles.appAndroid}>
@@ -1487,49 +1455,40 @@ export default function App() {
                 </div>
               </div>
               <div style={styles.sidebarSection}>
+                <h3 style={styles.sectionTitle}><Icon name="sparkles" size={16} color="#ff003c" /> QUICK TOOLS</h3>
+                <button onClick={() => { setSidebarOpen(false); setShowAbilities(true) }} style={styles.toolBtn}><Icon name="sparkles" size={16} color="#fff" /> AI Abilities</button>
+                <button onClick={() => { setSidebarOpen(false); setShowTerminal(true) }} style={styles.toolBtn}><Icon name="terminal" size={16} color="#fff" /> Terminal</button>
+                <button onClick={() => { setSidebarOpen(false); setShowSettings(true) }} style={styles.toolBtn}><Icon name="cog" size={16} color="#fff" /> Settings</button>
+              </div>
+              <div style={styles.sidebarSection}>
                 <h3 style={styles.sectionTitle}><Icon name="chart" size={16} color="#ff003c" /> SYSTEM STATS</h3>
                 <div style={styles.statsCard}>
                   <div style={styles.statRow}><span style={styles.statLabel}><Icon name="hourglass" size={14} color="#888" /> Uptime</span><span style={styles.statValue}>{formatUptime(stats.uptime)}</span></div>
                   <div style={styles.statRow}><span style={styles.statLabel}><Icon name="cpu" size={14} color="#888" /> CPU Usage</span><span style={styles.statValue}>{stats.cpuUsage}%</span></div>
                   <div style={styles.statRow}><span style={styles.statLabel}><Icon name="cpu" size={14} color="#888" /> CPU Temp</span><span style={styles.statValue}>{stats.cpuTemp}°C</span></div>
-                  <div style={styles.statRow}><span style={styles.statLabel}><Icon name="memory" size={14} color="#888" /> RAM Usage</span><span style={styles.statValue}>{stats.ramUsage.toFixed(1)} GB</span></div>
+                  <div style={styles.statRow}><span style={styles.statLabel}><Icon name="memory" size={14} color="#888" /> RAM</span><span style={styles.statValue}>{stats.ramUsage.toFixed(1)} GB</span></div>
                   <div style={styles.statRow}><span style={styles.statLabel}><Icon name="save" size={14} color="#888" /> Storage</span><span style={styles.statValue}>{stats.storageUsed}/{stats.storageTotal} GB</span></div>
                   <div style={styles.statRow}><span style={styles.statLabel}><Icon name="network" size={14} color="#888" /> Network</span><span style={styles.statValue}>{stats.networkSpeed} Mbps</span></div>
                 </div>
               </div>
               <div style={styles.sidebarSection}>
                 <h3 style={styles.sectionTitle}><Icon name="settings" size={16} color="#ff003c" /> AI CONFIG</h3>
-                <div style={styles.settingRow}><span style={styles.settingLabel}>AI Engine</span><span style={styles.settingValue}>TAVILY</span></div>
-                <div style={styles.settingRow}><span style={styles.settingLabel}>Personality</span><span style={styles.settingValue}>{PERSONALITIES.find(p => p.id === aiPersonality)?.label || 'Polite'}</span></div>
-                <div style={styles.settingRow}>
-                  <span style={styles.settingLabel}>Voice Gender</span>
-                  <select value={voiceGender} onChange={(e) => setVoiceGender(e.target.value)} style={styles.selectInput}>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                  </select>
-                </div>
-                <div style={styles.settingRow}>
-                  <span style={styles.settingLabel}>Status</span>
-                  <span style={{ color: isListening ? '#4f8' : isRecording ? '#ff003c' : '#888', fontWeight: 'bold' }}>
-                    {isListening ? 'Listening' : isRecording ? 'Recording' : 'Standby'}
-                  </span>
-                </div>
+                <div style={styles.settingRow}><span style={styles.settingLabel}>Engine</span><span style={styles.settingValue}>TAVILY</span></div>
+                <div style={styles.settingRow}><span style={styles.settingLabel}>Personality</span><span style={styles.settingValue}>{PERSONALITIES.find(p => p.id === aiPersonality)?.label}</span></div>
+                <div style={styles.settingRow}><span style={styles.settingLabel}>Secret Mode</span><span style={styles.settingValue}>{settings.secretMode ? 'ON' : 'OFF'}</span></div>
+                <div style={styles.settingRow}><span style={styles.settingLabel}>Safe Links</span><span style={styles.settingValue}>{settings.safeLinks ? 'ON' : 'OFF'}</span></div>
               </div>
               <div style={styles.sidebarSection}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <h3 style={styles.sectionTitle}><Icon name="chat" size={16} color="#ff003c" /> CONVERSATION</h3>
-                  <button onClick={() => setShowChatOverview(true)} style={styles.overviewBtn}>
-                    <Icon name="desktop" size={14} color="#fff" /> Overview
-                  </button>
+                  <button onClick={() => setShowChatOverview(true)} style={styles.overviewBtn}><Icon name="desktop" size={14} color="#fff" /> Overview</button>
                 </div>
                 <div style={styles.conversationLogPC}>
                   {conversation.length === 0 && <p style={styles.dashEmptyPC}>No conversation yet</p>}
                   {conversation.slice(-6).map(msg => (
                     <div key={msg.id} style={styles.convItemPC}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontWeight: msg.role === 'user' ? 'bold' : 'normal', color: msg.role === 'user' ? '#ddd' : '#ff003c' }}>
-                          {msg.role === 'user' ? profile?.name || 'You' : 'CYPHER4X'}
-                        </span>
+                        <span style={{ fontWeight: msg.role === 'user' ? 'bold' : 'normal', color: msg.role === 'user' ? '#ddd' : '#ff003c' }}>{msg.role === 'user' ? profile?.name || 'You' : 'CYPHER4X'}</span>
                         <span style={styles.convTimePC}>{formatTime(msg.time)}</span>
                       </div>
                       <span style={styles.convTextPC}>{msg.content}</span>
@@ -1538,17 +1497,12 @@ export default function App() {
                 </div>
                 <div style={styles.inputRow}>
                   <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && sendTextMessage()} placeholder="Type a message..." style={styles.textInputSmall} />
-                  <button onClick={sendTextMessage} style={styles.sendBtnSmall} disabled={isProcessing}>
-                    <Icon name="send" size={16} color="#fff" />
-                  </button>
+                  <button onClick={sendTextMessage} style={styles.sendBtnSmall} disabled={isProcessing}><Icon name="send" size={16} color="#fff" /></button>
                 </div>
                 <div style={styles.commandActionsPC}>
                   <button onClick={clearConversation} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear</button>
                   <button onClick={exportChat} style={styles.dashBtnPC}><Icon name="save" size={14} color="#fff" /> Export</button>
-                  <label style={styles.attachBtnPC}>
-                    <Icon name="file" size={14} color="#fff" /> Attach
-                    <input type="file" accept="image/*,video/*,.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx" onChange={handleFileShare} style={{ display: 'none' }} />
-                  </label>
+                  <label style={styles.attachBtnPC}><Icon name="file" size={14} color="#fff" /> Attach<input type="file" accept="image/*,video/*,.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx" onChange={handleFileShare} style={{ display: 'none' }} /></label>
                 </div>
               </div>
               <div style={styles.sidebarSection}>
@@ -1556,10 +1510,7 @@ export default function App() {
                 <div style={styles.commandHistoryPC}>
                   {commandHistory.length === 0 && <p style={styles.dashEmptyPC}>No commands yet</p>}
                   {commandHistory.slice(-6).reverse().map((cmd, i) => (
-                    <div key={i} style={styles.cmdItemPC}>
-                      <span style={styles.cmdTimePC}>{formatTime(cmd.timestamp)}</span>
-                      <span style={styles.cmdTextPC}>{cmd.command}</span>
-                    </div>
+                    <div key={i} style={styles.cmdItemPC}><span style={styles.cmdTimePC}>{formatTime(cmd.timestamp)}</span><span style={styles.cmdTextPC}>{cmd.command}</span></div>
                   ))}
                 </div>
                 <button onClick={clearCommands} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear All</button>
@@ -1567,9 +1518,7 @@ export default function App() {
               <div style={styles.sidebarSection}>
                 <h3 style={styles.sectionTitle}><Icon name="user" size={16} color="#ff003c" /> PROFILE</h3>
                 <div style={styles.profileCardSidebar}>
-                  <div style={styles.profileAvatarWrapper}>
-                    {profile?.avatar ? <img src={profile.avatar} alt="Avatar" style={styles.profileAvatar} /> : <div style={styles.profileAvatarPlaceholder}>{profile?.name?.charAt(0) || "?"}</div>}
-                  </div>
+                  <div style={styles.profileAvatarWrapper}>{profile?.avatar ? <img src={profile.avatar} alt="Avatar" style={styles.profileAvatar} /> : <div style={styles.profileAvatarPlaceholder}>{profile?.name?.charAt(0) || "?"}</div>}</div>
                   <div style={styles.profileInfo}>
                     <div style={styles.profileName}>{profile?.name || "User"}</div>
                     <div style={styles.profileHandle}><Icon name="atSign" size={12} color="#888" />{profile?.username || "anonymous"}</div>
@@ -1579,7 +1528,7 @@ export default function App() {
                 {userMode === 'loggedin' ? (
                   <button onClick={handleLogout} style={styles.logoutBtn}><Icon name="close" size={14} color="#fff" /> Logout</button>
                 ) : (
-                  <button onClick={() => { setShowAuthModal(true); setShowLogin(true); }} style={styles.sidebarBtn}><Icon name="settings" size={14} color="#fff" /> Login</button>
+                  <button onClick={() => { setShowAuthModal(true); setShowLogin(true) }} style={styles.sidebarBtn}><Icon name="settings" size={14} color="#fff" /> Login</button>
                 )}
               </div>
               <div style={styles.sidebarSection}>
@@ -1590,12 +1539,7 @@ export default function App() {
           </>
         )}
 
-        <div style={{
-          ...styles.mainContentAndroid,
-          backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}>
+        <div style={{ ...styles.mainContentAndroid, backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
           <div style={styles.backgroundAndroid}>
             <RedBall isSpeaking={isAISpeaking} />
             <div style={styles.faceTitleAndroid}>CYPHER4X</div>
@@ -1604,14 +1548,11 @@ export default function App() {
           <div style={styles.topBarAndroid}>
             <div style={{ width: '80px' }} />
             <div style={styles.topRightButtons}>
-              {/* Call button FIRST, then Settings */}
               <button onClick={toggleFullscreenCall} style={styles.callButtonTopRight}>
                 <Icon name="phone" size={24} color={isCallActive ? "#4f8" : "#ff003c"} />
                 <span style={styles.callLabelTop}>{isFullscreenCall ? 'ACTIVE' : 'CALL'}</span>
               </button>
-              <button onClick={() => setShowSettings(true)} style={styles.settingsButtonTop}>
-                <Icon name="cog" size={20} color="#fff" />
-              </button>
+              <button onClick={() => setShowSettings(true)} style={styles.settingsButtonTop}><Icon name="cog" size={20} color="#fff" /></button>
             </div>
           </div>
 
@@ -1621,55 +1562,52 @@ export default function App() {
                 <div style={styles.listeningDot} />
                 <span style={styles.listeningText}>Listening...</span>
                 {interimTranscript && <span style={styles.interimText}>"{interimTranscript}"</span>}
-                {interimTranscript && (
-                  <button onClick={sendInterim} style={styles.sendInterimBtn} disabled={isProcessing}>
-                    <Icon name="send" size={16} color="#fff" /><span>Send</span>
-                  </button>
-                )}
+                {interimTranscript && <button onClick={sendInterim} style={styles.sendInterimBtn} disabled={isProcessing}><Icon name="send" size={16} color="#fff" /><span>Send</span></button>}
               </>
-            ) : isProcessing ? (
-              <span style={styles.listeningText}>Processing...</span>
-            ) : isRecording ? (
-              <>
-                <div style={{ ...styles.listeningDot, backgroundColor: '#ff003c', boxShadow: '0 0 20px #ff003c' }} />
-                <span style={styles.listeningText}>Recording...</span>
-                {interimTranscript && <span style={styles.interimText}>"{interimTranscript}"</span>}
-                {interimTranscript && (
-                  <>
-                    <button onClick={sendInterim} style={styles.sendInterimBtn} disabled={isProcessing}>
-                      <Icon name="send" size={16} color="#fff" /><span>Send</span>
-                    </button>
-                    <button onClick={cancelRecording} style={styles.cancelInterimBtn}>
-                      <Icon name="close" size={18} color="#ff003c" />
-                    </button>
-                  </>
-                )}
-              </>
-            ) : null}
+            ) : isProcessing ? <span style={styles.listeningText}>Processing...</span>
+              : isRecording ? (
+                <>
+                  <div style={{ ...styles.listeningDot, backgroundColor: '#ff003c', boxShadow: '0 0 20px #ff003c' }} />
+                  <span style={styles.listeningText}>Recording...</span>
+                  {interimTranscript && <span style={styles.interimText}>"{interimTranscript}"</span>}
+                  {interimTranscript && (
+                    <>
+                      <button onClick={sendInterim} style={styles.sendInterimBtn} disabled={isProcessing}><Icon name="send" size={16} color="#fff" /><span>Send</span></button>
+                      <button onClick={cancelRecording} style={styles.cancelInterimBtn}><Icon name="close" size={18} color="#ff003c" /></button>
+                    </>
+                  )}
+                </>
+              ) : null}
           </div>
 
           <div style={styles.voiceButtonContainer}>
-            <button
-              onClick={startRecording}
-              disabled={isRecording || isProcessing || isFullscreenCall}
-              style={{ ...styles.voiceButton, ...(isRecording ? styles.voiceButtonActive : {}) }}
-            >
+            <button onClick={startRecording} disabled={isRecording || isProcessing || isFullscreenCall}
+              style={{ ...styles.voiceButton, ...(isRecording ? styles.voiceButtonActive : {}) }}>
               <Icon name="mic" size={40} color="#fff" />
-              <span style={styles.voiceLabel}>
-                {isRecording ? 'Recording...' : isProcessing ? 'Processing...' : 'Tap to Speak'}
-              </span>
+              <span style={styles.voiceLabel}>{isRecording ? 'Recording...' : isProcessing ? 'Processing...' : 'Tap to Speak'}</span>
             </button>
           </div>
 
-          <button onClick={() => setSidebarOpen(true)} style={{ ...styles.hamburgerBtn, zIndex: 15 }}>
-            <Icon name="menu" size={28} color="#ff003c" />
-          </button>
+          <button onClick={() => setSidebarOpen(true)} style={{ ...styles.hamburgerBtn, zIndex: 15 }}><Icon name="menu" size={28} color="#ff003c" /></button>
+
+          {/* Floating assistant button (in-app) */}
+          {settings.overlayButton && (
+            <button onClick={toggleOverlay} style={{
+              ...styles.floatingBtn,
+              backgroundColor: overlayActive ? '#ff003c' : 'rgba(0,0,0,0.7)',
+              borderColor: overlayActive ? '#ff003c' : '#333',
+            }} title="Floating Assistant">
+              <Icon name={overlayListening ? 'mic' : 'sparkles'} size={22} color={overlayActive ? '#fff' : '#ff003c'} />
+            </button>
+          )}
         </div>
       </div>
     )
   }
 
+  // ============================================================
   // PC VIEW
+  // ============================================================
   return (
     <div style={styles.appPC}>
       <header style={styles.headerPC}>
@@ -1678,21 +1616,18 @@ export default function App() {
           <span style={styles.versionBadgePC}>{VERSION}</span>
         </div>
         <div style={styles.headerRight}>
-          {/* Call button FIRST, then Settings */}
           <button onClick={toggleFullscreenCall} style={{ ...styles.callBtnPC, ...(isFullscreenCall ? styles.callBtnPCActive : {}) }}>
             <Icon name="phone" size={18} color={isFullscreenCall ? "#4f8" : "#ff003c"} />
             <span>{isFullscreenCall ? 'ACTIVE' : 'CALL'}</span>
           </button>
-          <button onClick={() => setShowSettings(true)} style={styles.settingsBtnPC}>
-            <Icon name="cog" size={20} color="#fff" />
-          </button>
+          <button onClick={() => setShowSettings(true)} style={styles.settingsBtnPC}><Icon name="cog" size={20} color="#fff" /></button>
+          <button onClick={() => setShowTerminal(true)} style={styles.settingsBtnPC}><Icon name="terminal" size={20} color="#fff" /></button>
+          <button onClick={() => setShowAbilities(true)} style={styles.settingsBtnPC}><Icon name="sparkles" size={20} color="#fff" /></button>
           <button onClick={startRecording} disabled={isRecording || isProcessing || isFullscreenCall} style={{ ...styles.voiceBtnPC, ...(isRecording ? styles.voiceBtnPCActive : {}) }}>
             <Icon name="mic" size={20} color={isRecording ? "#fff" : "#ff003c"} />
             <span>{isRecording ? 'Recording...' : isProcessing ? 'Processing...' : 'Tap to Speak'}</span>
           </button>
-          <button onClick={() => setSidebarOpen(true)} style={styles.menuBtnPC}>
-            <Icon name="menu" size={24} color="#ff003c" />
-          </button>
+          <button onClick={() => setSidebarOpen(true)} style={styles.menuBtnPC}><Icon name="menu" size={24} color="#ff003c" /></button>
         </div>
       </header>
 
@@ -1700,75 +1635,36 @@ export default function App() {
         <div style={styles.pcSidebar}>
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="chart" size={16} color="#ff003c" /> SYSTEM STATS</h3>
-            <div style={styles.pcSidebarRow}><span>CPU Usage</span><span style={{ color: stats.cpuUsage > 80 ? '#ff003c' : '#4f8' }}>{stats.cpuUsage}%</span></div>
-            <div style={styles.pcSidebarRow}><span>CPU Temp</span><span style={{ color: stats.cpuTemp > 80 ? '#ff003c' : '#ff6688' }}>{stats.cpuTemp}°C</span></div>
-            <div style={styles.pcSidebarRow}><span>RAM Usage</span><span style={{ color: stats.ramUsage > 8 ? '#ff003c' : '#ff6688' }}>{stats.ramUsage.toFixed(1)} GB</span></div>
+            <div style={styles.pcSidebarRow}><span>CPU</span><span style={{ color: stats.cpuUsage > 80 ? '#ff003c' : '#4f8' }}>{stats.cpuUsage}%</span></div>
+            <div style={styles.pcSidebarRow}><span>Temp</span><span>{stats.cpuTemp}°C</span></div>
+            <div style={styles.pcSidebarRow}><span>RAM</span><span>{stats.ramUsage.toFixed(1)} GB</span></div>
             <div style={styles.pcSidebarRow}><span>Storage</span><span>{stats.storageUsed}/{stats.storageTotal} GB</span></div>
-            <div style={styles.pcSidebarRow}><span>Network</span><span style={{ color: parseFloat(stats.networkSpeed) < 1 ? '#ff003c' : '#4f8' }}>{stats.networkSpeed} Mbps</span></div>
+            <div style={styles.pcSidebarRow}><span>Network</span><span>{stats.networkSpeed} Mbps</span></div>
             <div style={styles.pcSidebarRow}><span>Uptime</span><span>{formatUptime(stats.uptime)}</span></div>
           </div>
           <div style={styles.pcSidebarSection}>
-            <h3 style={styles.pcSidebarTitle}><Icon name="settings" size={16} color="#ff003c" /> AI CONFIGURATION</h3>
-            <div style={styles.pcSidebarRow}><span>AI Engine</span><span>TAVILY</span></div>
-            <div style={styles.pcSidebarRow}><span>Personality</span><span>{PERSONALITIES.find(p => p.id === aiPersonality)?.label || 'Polite'}</span></div>
-            <div style={styles.pcSidebarRow}>
-              <span>Voice</span>
-              <select value={voiceGender} onChange={(e) => setVoiceGender(e.target.value)} style={styles.selectInputPC}>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-              </select>
-            </div>
-            <div style={styles.pcSidebarRow}>
-              <span>Status</span>
-              <span style={{ color: isListening ? '#4f8' : isRecording ? '#ff003c' : '#888', fontWeight: 'bold' }}>
-                {isListening ? 'Listening' : isRecording ? 'Recording' : 'Standby'}
-              </span>
-            </div>
+            <h3 style={styles.pcSidebarTitle}><Icon name="settings" size={16} color="#ff003c" /> AI CONFIG</h3>
+            <div style={styles.pcSidebarRow}><span>Engine</span><span>TAVILY</span></div>
+            <div style={styles.pcSidebarRow}><span>Personality</span><span>{PERSONALITIES.find(p => p.id === aiPersonality)?.label}</span></div>
+            <div style={styles.pcSidebarRow}><span>Secret</span><span>{settings.secretMode ? 'ON' : 'OFF'}</span></div>
+            <div style={styles.pcSidebarRow}><span>Safe Links</span><span>{settings.safeLinks ? 'ON' : 'OFF'}</span></div>
           </div>
           <div style={styles.pcSidebarSection}>
-            <h3 style={styles.pcSidebarTitle}><Icon name="faceId" size={16} color="#ff003c" /> SECURITY</h3>
-            <div style={styles.pcSidebarRow}>
-              <span>Face Recognition</span>
-              <div style={styles.toggleGroupPC}>
-                <button onClick={() => setFaceRecognition(true)} style={{ ...styles.toggleBtnPC, ...(faceRecognition ? styles.toggleBtnPCO : {}) }}>Enable</button>
-                <button onClick={() => setFaceRecognition(false)} style={{ ...styles.toggleBtnPC, ...(!faceRecognition ? styles.toggleBtnPCF : {}) }}>Disable</button>
-              </div>
-            </div>
-            <div style={styles.pcSidebarRow}>
-              <span>Biometric Auth</span>
-              <div style={styles.toggleGroupPC}>
-                <button onClick={() => setBiometricAuth(true)} style={{ ...styles.toggleBtnPC, ...(biometricAuth ? styles.toggleBtnPCO : {}) }}>Enable</button>
-                <button onClick={() => setBiometricAuth(false)} style={{ ...styles.toggleBtnPC, ...(!biometricAuth ? styles.toggleBtnPCF : {}) }}>Disable</button>
-              </div>
-            </div>
-          </div>
-          <div style={styles.pcSidebarSection}>
-            <h3 style={styles.pcSidebarTitle}><Icon name="calendar" size={16} color="#ff003c" /> TODAY'S EVENTS</h3>
-            {events.length === 0 ? <p style={styles.dashEmptyPC}>No events scheduled</p> : events.map((evt, i) => (
-              <div key={i} style={styles.pcSidebarRow}><span>{evt.title}</span><span style={styles.eventTimePC}>{evt.time}</span></div>
-            ))}
-          </div>
-          <div style={styles.pcSidebarSection}>
-            <h3 style={styles.pcSidebarTitle}><Icon name="clock" size={16} color="#ff003c" /> REMINDERS</h3>
-            {reminders.length === 0 ? <p style={styles.dashEmptyPC}>No reminders set</p> : reminders.map((rem, i) => (
-              <div key={i} style={styles.pcSidebarRow}><span>{rem.text}</span><span style={styles.eventTimePC}>{rem.time}</span></div>
-            ))}
+            <h3 style={styles.pcSidebarTitle}><Icon name="sparkles" size={16} color="#ff003c" /> TOOLS</h3>
+            <button onClick={() => setShowTerminal(true)} style={styles.toolBtnSmall}><Icon name="terminal" size={14} color="#fff" /> Terminal</button>
+            <button onClick={() => setShowAbilities(true)} style={styles.toolBtnSmall}><Icon name="sparkles" size={14} color="#fff" /> Abilities</button>
           </div>
           <div style={styles.pcSidebarSection}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
               <h3 style={styles.pcSidebarTitle}><Icon name="chat" size={16} color="#ff003c" /> CONVERSATION</h3>
-              <button onClick={() => setShowChatOverview(true)} style={styles.overviewBtn}>
-                <Icon name="desktop" size={14} color="#fff" /> Overview
-              </button>
+              <button onClick={() => setShowChatOverview(true)} style={styles.overviewBtn}><Icon name="desktop" size={14} color="#fff" /> Overview</button>
             </div>
             <div style={styles.conversationLogPC}>
               {conversation.length === 0 && <p style={styles.dashEmptyPC}>No conversation yet</p>}
               {conversation.slice(-6).map(msg => (
                 <div key={msg.id} style={styles.convItemPC}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: msg.role === 'user' ? 'bold' : 'normal', color: msg.role === 'user' ? '#ddd' : '#ff003c' }}>
-                      {msg.role === 'user' ? profile?.name || 'You' : 'CYPHER4X'}
-                    </span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontWeight: msg.role === 'user' ? 'bold' : 'normal', color: msg.role === 'user' ? '#ddd' : '#ff003c' }}>{msg.role === 'user' ? profile?.name || 'You' : 'CYPHER4X'}</span>
                     <span style={styles.convTimePC}>{formatTime(msg.time)}</span>
                   </div>
                   <span style={styles.convTextPC}>{msg.content}</span>
@@ -1777,42 +1673,18 @@ export default function App() {
             </div>
             <div style={styles.inputRow}>
               <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && sendTextMessage()} placeholder="Type a message..." style={styles.textInputSmall} />
-              <button onClick={sendTextMessage} style={styles.sendBtnSmall} disabled={isProcessing}>
-                <Icon name="send" size={16} color="#fff" />
-              </button>
+              <button onClick={sendTextMessage} style={styles.sendBtnSmall} disabled={isProcessing}><Icon name="send" size={16} color="#fff" /></button>
             </div>
             <div style={styles.commandActionsPC}>
               <button onClick={clearConversation} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear</button>
               <button onClick={exportChat} style={styles.dashBtnPC}><Icon name="save" size={14} color="#fff" /> Export</button>
-              <label style={styles.attachBtnPC}>
-                <Icon name="file" size={14} color="#fff" /> Attach
-                <input type="file" accept="image/*,video/*,.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx" onChange={handleFileShare} style={{ display: 'none' }} />
-              </label>
+              <label style={styles.attachBtnPC}><Icon name="file" size={14} color="#fff" /> Attach<input type="file" accept="image/*,video/*,.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx" onChange={handleFileShare} style={{ display: 'none' }} /></label>
             </div>
-          </div>
-          <div style={styles.pcSidebarSection}>
-            <h3 style={styles.pcSidebarTitle}><Icon name="clock" size={16} color="#ff003c" /> COMMAND HISTORY</h3>
-            <div style={styles.commandHistoryPC}>
-              {commandHistory.length === 0 && <p style={styles.dashEmptyPC}>No commands yet</p>}
-              {commandHistory.slice(-6).reverse().map((cmd, i) => (
-                <div key={i} style={styles.cmdItemPC}>
-                  <span style={styles.cmdTimePC}>{formatTime(cmd.timestamp)}</span>
-                  <span style={styles.cmdTextPC}>{cmd.command}</span>
-                </div>
-              ))}
-            </div>
-            <button onClick={clearCommands} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear All</button>
-          </div>
-          <div style={styles.pcSidebarSection}>
-            <h3 style={styles.pcSidebarTitle}><Icon name="desktop" size={16} color="#ff003c" /> VIEW MODE</h3>
-            <button onClick={toggleView} style={styles.toggleBtnPC2}>Switch to Android</button>
           </div>
           <div style={styles.pcSidebarSection}>
             <h3 style={styles.pcSidebarTitle}><Icon name="user" size={16} color="#ff003c" /> PROFILE</h3>
             <div style={styles.profileCardSidebarPC}>
-              <div style={styles.profileAvatarWrapperPC}>
-                {profile?.avatar ? <img src={profile.avatar} alt="Avatar" style={styles.profileAvatarPC} /> : <div style={styles.profileAvatarPlaceholderPC}>{profile?.name?.charAt(0) || "?"}</div>}
-              </div>
+              <div style={styles.profileAvatarWrapperPC}>{profile?.avatar ? <img src={profile.avatar} alt="Avatar" style={styles.profileAvatarPC} /> : <div style={styles.profileAvatarPlaceholderPC}>{profile?.name?.charAt(0) || "?"}</div>}</div>
               <div style={styles.profileInfoPC}>
                 <div style={styles.profileNamePC}>{profile?.name || "User"}</div>
                 <div style={styles.profileHandlePC}><Icon name="atSign" size={12} color="#888" />{profile?.username || "anonymous"}</div>
@@ -1822,56 +1694,43 @@ export default function App() {
             {userMode === 'loggedin' ? (
               <button onClick={handleLogout} style={styles.logoutBtnPC}><Icon name="close" size={14} color="#fff" /> Logout</button>
             ) : (
-              <button onClick={() => { setShowAuthModal(true); setShowLogin(true); }} style={styles.sidebarBtnPC}><Icon name="settings" size={14} color="#fff" /> Login</button>
+              <button onClick={() => { setShowAuthModal(true); setShowLogin(true) }} style={styles.sidebarBtnPC}><Icon name="settings" size={14} color="#fff" /> Login</button>
             )}
           </div>
           <div style={styles.pcSidebarSection}>
-            <h3 style={styles.pcSidebarTitle}><Icon name="alertTriangle" size={16} color="#ff003c" /> DANGER ZONE</h3>
             <button onClick={resetAllData} style={styles.dangerBtnPC}><Icon name="trash" size={14} color="#fff" /> Reset All Data</button>
           </div>
         </div>
 
-        <div style={{
-          ...styles.pcMain,
-          backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}>
-          <div style={styles.pcBallContainer}>
-            <RedBall isSpeaking={isAISpeaking} />
-          </div>
+        <div style={{ ...styles.pcMain, backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+          <div style={styles.pcBallContainer}><RedBall isSpeaking={isAISpeaking} /></div>
           <div style={styles.pcListeningContainer}>
             {isListening ? (
               <>
                 <div style={styles.listeningDot} />
                 <span style={styles.listeningText}>Listening...</span>
                 {interimTranscript && <span style={styles.interimText}>"{interimTranscript}"</span>}
-                {interimTranscript && (
-                  <button onClick={sendInterim} style={styles.sendInterimBtn} disabled={isProcessing}>
-                    <Icon name="send" size={16} color="#fff" /><span>Send</span>
-                  </button>
-                )}
+                {interimTranscript && <button onClick={sendInterim} style={styles.sendInterimBtn} disabled={isProcessing}><Icon name="send" size={16} color="#fff" /><span>Send</span></button>}
               </>
-            ) : isProcessing ? (
-              <span style={styles.listeningText}>Processing...</span>
-            ) : isRecording ? (
-              <>
-                <div style={{ ...styles.listeningDot, backgroundColor: '#ff003c', boxShadow: '0 0 20px #ff003c' }} />
-                <span style={styles.listeningText}>Recording...</span>
-                {interimTranscript && <span style={styles.interimText}>"{interimTranscript}"</span>}
-                {interimTranscript && (
-                  <>
-                    <button onClick={sendInterim} style={styles.sendInterimBtn} disabled={isProcessing}>
-                      <Icon name="send" size={16} color="#fff" /><span>Send</span>
-                    </button>
-                    <button onClick={cancelRecording} style={styles.cancelInterimBtn}>
-                      <Icon name="close" size={18} color="#ff003c" />
-                    </button>
-                  </>
-                )}
-              </>
-            ) : null}
+            ) : isProcessing ? <span style={styles.listeningText}>Processing...</span>
+              : isRecording ? (
+                <>
+                  <div style={{ ...styles.listeningDot, backgroundColor: '#ff003c', boxShadow: '0 0 20px #ff003c' }} />
+                  <span style={styles.listeningText}>Recording...</span>
+                  {interimTranscript && <span style={styles.interimText}>"{interimTranscript}"</span>}
+                </>
+              ) : null}
           </div>
+          {settings.overlayButton && (
+            <button onClick={toggleOverlay} style={{
+              ...styles.floatingBtn,
+              backgroundColor: overlayActive ? '#ff003c' : 'rgba(0,0,0,0.7)',
+              borderColor: overlayActive ? '#ff003c' : '#333',
+              bottom: '30px', right: '30px',
+            }} title="Floating Assistant">
+              <Icon name={overlayListening ? 'mic' : 'sparkles'} size={22} color={overlayActive ? '#fff' : '#ff003c'} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -1893,9 +1752,7 @@ export default function App() {
             <div style={styles.sidebarSectionPC}>
               <h3 style={styles.sectionTitlePC}><Icon name="user" size={16} color="#ff003c" /> PROFILE</h3>
               <div style={styles.profileCardSidebarPC}>
-                <div style={styles.profileAvatarWrapperPC}>
-                  {profile?.avatar ? <img src={profile.avatar} alt="Avatar" style={styles.profileAvatarPC} /> : <div style={styles.profileAvatarPlaceholderPC}>{profile?.name?.charAt(0) || "?"}</div>}
-                </div>
+                <div style={styles.profileAvatarWrapperPC}>{profile?.avatar ? <img src={profile.avatar} alt="Avatar" style={styles.profileAvatarPC} /> : <div style={styles.profileAvatarPlaceholderPC}>{profile?.name?.charAt(0) || "?"}</div>}</div>
                 <div style={styles.profileInfoPC}>
                   <div style={styles.profileNamePC}>{profile?.name || "User"}</div>
                   <div style={styles.profileHandlePC}><Icon name="atSign" size={12} color="#888" />{profile?.username || "anonymous"}</div>
@@ -1916,20 +1773,20 @@ export default function App() {
 
 const styles = {
   appAndroid: { minHeight: '100vh', height: '100vh', backgroundColor: '#000', color: '#e0e0e0', fontFamily: "'Segoe UI', 'Courier New', monospace", overflow: 'hidden', margin: 0, padding: 0 },
-  bootContainer: { backgroundColor: '#000', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', fontFamily: "'Courier New', monospace", margin: 0, padding: 0 },
+  bootContainer: { backgroundColor: '#000', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', fontFamily: "'Courier New', monospace" },
   bootBackground: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'radial-gradient(ellipse at center, #1a0000 0%, #000 70%)', zIndex: 0 },
   bootContent: { position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: '500px', padding: '20px' },
   bootTitle: { fontSize: 'clamp(48px, 12vw, 72px)', fontWeight: 'bold', color: '#ff003c', textShadow: '0 0 40px #ff003c, 0 0 80px #ff003c44', letterSpacing: '8px', margin: '0 0 10px', fontFamily: "'Courier New', monospace", minHeight: '80px' },
   bootCursor: { display: 'inline-block', animation: 'blink 0.7s step-end infinite', color: '#ff003c' },
   bootSubtitle: { fontSize: 'clamp(14px, 2vw, 20px)', color: '#ff6688', letterSpacing: '4px', marginBottom: '40px', opacity: 0.8 },
-  bootCredit: { color: '#ff6688', fontSize: '14px', marginTop: '20px', opacity: 0.7, letterSpacing: '1px', fontFamily: "'Courier New', monospace", borderTop: '1px solid rgba(255,0,60,0.2)', paddingTop: '16px', minHeight: '30px' },
+  bootCredit: { color: '#ff6688', fontSize: '14px', marginTop: '20px', opacity: 0.7, letterSpacing: '1px', borderTop: '1px solid rgba(255,0,60,0.2)', paddingTop: '16px', minHeight: '30px' },
 
   personalityOverlay: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: '#000', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflowY: 'auto' },
   personalityCard: { width: '100%', maxWidth: '700px', backgroundColor: '#111', border: '2px solid #ff003c', borderRadius: '16px', padding: '30px', textAlign: 'center' },
   personalityTitle: { color: '#ff003c', fontSize: '36px', letterSpacing: '6px', margin: '0 0 8px', fontFamily: "'Courier New', monospace" },
   personalitySubtitle: { color: '#ff6688', fontSize: '16px', marginBottom: '24px' },
   personalityGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '20px' },
-  personalityOption: { padding: '16px 12px', border: '2px solid #333', borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', transition: 'all 0.2s' },
+  personalityOption: { padding: '16px 12px', border: '2px solid #333', borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' },
   personalityIcon: { fontSize: '28px' },
   personalityLabel: { color: '#fff', fontWeight: 'bold', fontSize: '15px' },
   personalityDesc: { color: '#888', fontSize: '11px', textAlign: 'center' },
@@ -1967,23 +1824,20 @@ const styles = {
   settingsFullscreen: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: '#000', zIndex: 100000, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
   settingsHeaderFull: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #333', backgroundColor: '#0a0000', flexShrink: 0 },
   settingsTitleFull: { color: '#ff003c', fontSize: '24px', margin: 0, letterSpacing: '2px' },
-  settingsCloseFull: { background: 'none', border: 'none', cursor: 'pointer', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  settingsCloseFull: { background: 'none', border: 'none', cursor: 'pointer', padding: '8px', display: 'flex' },
   settingsBodyFull: { flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '24px' },
   settingsSection: { borderBottom: '1px solid #1a1a1a', paddingBottom: '20px' },
   settingsSectionTitle: { color: '#ff003c', fontSize: '14px', margin: '0 0 16px 0', letterSpacing: '1px', textTransform: 'uppercase' },
   settingsDoneFull: { padding: '16px', backgroundColor: '#ff003c', color: '#fff', border: 'none', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', flexShrink: 0 },
-
   personalityGridSettings: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '8px' },
-  personalityOptionSmall: { padding: '12px 8px', border: '2px solid #333', borderRadius: '8px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', transition: 'all 0.2s' },
-
+  personalityOptionSmall: { padding: '12px 8px', border: '2px solid #333', borderRadius: '8px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' },
   backgroundControls: { display: 'flex', gap: '10px', flexWrap: 'wrap' },
   uploadBtn: { padding: '10px 16px', backgroundColor: '#ff003c', color: '#fff', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 'bold' },
   resetBtn: { padding: '10px 16px', backgroundColor: '#333', color: '#fff', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 'bold', border: 'none' },
   bgPreview: { marginTop: '12px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #333' },
   bgPreviewImg: { width: '100%', maxHeight: '150px', objectFit: 'cover', display: 'block' },
-  bgHint: { color: '#666', fontSize: '12px', marginTop: '8px', fontStyle: 'italic' },
-
-  settingItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#fff', fontSize: '15px', marginBottom: '14px' },
+  bgHint: { color: '#666', fontSize: '12px', marginTop: '8px', fontStyle: 'italic', lineHeight: '1.5' },
+  settingItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#fff', fontSize: '15px', marginBottom: '14px', gap: '10px' },
   settingsSelect: { padding: '6px 12px', backgroundColor: '#000', border: '1px solid #444', color: '#fff', borderRadius: '6px', fontSize: '14px' },
   settingsRange: { width: '140px', accentColor: '#ff003c' },
   settingsValue: { color: '#ff6688', minWidth: '40px', textAlign: 'right', fontWeight: 'bold' },
@@ -2003,17 +1857,36 @@ const styles = {
   fullscreenTranscript: { color: '#ff6688', fontSize: '16px', fontStyle: 'italic', padding: '8px 20px', backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: '12px', maxWidth: '90%', textAlign: 'center', border: '1px solid rgba(255,0,60,0.2)', minHeight: '40px' },
   fullscreenMicBtn: { width: 'clamp(70px, 14vw, 100px)', height: 'clamp(70px, 14vw, 100px)', borderRadius: '50%', backgroundColor: '#ff003c', border: '3px solid #ff003c', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 60px rgba(255,0,60,0.4)' },
 
-  chatOverviewContainer: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: '#000', zIndex: 99994, display: 'flex', flexDirection: 'column', paddingBottom: 'env(safe-area-inset-bottom, 10px)', overflow: 'hidden' },
+  terminalFullscreen: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: '#0a0a0a', zIndex: 100001, display: 'flex', flexDirection: 'column' },
+  terminalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', backgroundColor: '#111', borderBottom: '1px solid #333' },
+  terminalBackBtn: { background: 'none', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '15px' },
+  terminalTitle: { color: '#4f8', fontSize: '15px', fontFamily: "'Courier New', monospace", fontWeight: 'bold' },
+  terminalClearBtn: { background: 'none', border: '1px solid #333', color: '#888', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' },
+  terminalBody: { flex: 1, overflowY: 'auto', padding: '16px', backgroundColor: '#000', fontFamily: "'Courier New', monospace", fontSize: '13px', lineHeight: '1.5' },
+  terminalLine: { margin: '2px 0', whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
+  terminalInputRow: { display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', backgroundColor: '#111', borderTop: '1px solid #333' },
+  terminalPrompt: { color: '#4f8', fontWeight: 'bold', fontSize: '16px', fontFamily: "'Courier New', monospace" },
+  terminalInput: { flex: 1, padding: '8px 12px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '14px', fontFamily: "'Courier New', monospace", outline: 'none' },
+  terminalSendBtn: { padding: '8px 14px', backgroundColor: '#ff003c', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center' },
+
+  abilitiesFullscreen: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: '#000', zIndex: 100001, display: 'flex', flexDirection: 'column' },
+  abilitiesBody: { flex: 1, overflowY: 'auto', padding: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '12px' },
+  abilityCard: { display: 'flex', alignItems: 'center', gap: '12px', padding: '14px', backgroundColor: '#111', border: '1px solid #333', borderRadius: '10px' },
+  abilityIcon: { fontSize: '26px', flexShrink: 0 },
+  abilityTitle: { color: '#fff', fontWeight: 'bold', fontSize: '15px', marginBottom: '2px' },
+  abilityDesc: { color: '#888', fontSize: '12px', lineHeight: '1.4' },
+
+  chatOverviewContainer: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: '#000', zIndex: 99994, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
   chatOverviewHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', backgroundColor: '#111', borderBottom: '1px solid #333', flexShrink: 0 },
   chatOverviewBackBtn: { background: 'none', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', cursor: 'pointer' },
   chatOverviewTitle: { color: '#ff003c', fontSize: '18px', fontWeight: 'bold' },
   chatOverviewVoiceToggle: { background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '4px' },
-  chatOverviewMessages: { flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: 'calc(100vh - 160px)' },
+  chatOverviewMessages: { flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '8px' },
   chatOverviewEmpty: { color: '#666', textAlign: 'center', fontSize: '16px', marginTop: '40px' },
   chatOverviewMsg: { maxWidth: '80%', padding: '10px 14px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative' },
-  chatOverviewMsgText: { color: '#fff', fontSize: '14px', wordBreak: 'break-word' },
+  chatOverviewMsgText: { color: '#fff', fontSize: '14px', wordBreak: 'break-word', whiteSpace: 'pre-wrap' },
   chatOverviewMsgTime: { fontSize: '10px', color: '#888', alignSelf: 'flex-end' },
-  chatOverviewInputRowRaised: { display: 'flex', gap: '8px', padding: '12px 16px', paddingBottom: 'max(30px, env(safe-area-inset-bottom, 50px))', backgroundColor: '#111', borderTop: '1px solid #333', flexShrink: 0, alignItems: 'center', marginTop: '10px', position: 'relative' },
+  chatOverviewInputRowRaised: { display: 'flex', gap: '8px', padding: '12px 16px', paddingBottom: 'max(30px, env(safe-area-inset-bottom, 50px))', backgroundColor: '#111', borderTop: '1px solid #333', flexShrink: 0, alignItems: 'center' },
   chatOverviewInput: { flex: 1, padding: '10px 14px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '20px', fontSize: '14px', outline: 'none' },
   chatOverviewMicBtn: { background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '8px', borderRadius: '50%', backgroundColor: 'rgba(255,0,60,0.2)' },
   chatOverviewAttachBtn: { background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '8px', borderRadius: '50%', backgroundColor: 'rgba(255,0,60,0.2)', display: 'flex', alignItems: 'center' },
@@ -2024,7 +1897,7 @@ const styles = {
   msgActions: { display: 'flex', gap: '4px', justifyContent: 'flex-end', marginTop: '4px', opacity: 0.6 },
   msgActionBtn: { background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: '4px' },
 
-  profileContainer: { backgroundColor: '#000', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', margin: 0 },
+  profileContainer: { backgroundColor: '#000', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' },
   profileCard: { width: '100%', maxWidth: '420px', backgroundColor: '#111', border: '2px solid #ff003c', borderRadius: '12px', padding: '28px' },
   profileTitle: { color: '#ff003c', textAlign: 'center', marginBottom: '24px', fontSize: '22px' },
   avatarUploadArea: { width: '130px', height: '130px', borderRadius: '50%', border: '3px dashed #ff003c', margin: '0 auto 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: '#1a1a1a' },
@@ -2040,16 +1913,17 @@ const styles = {
 
   sidebarOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 998 },
   sidebar: { position: 'fixed', top: 0, left: 0, bottom: 0, width: '380px', maxWidth: '90vw', backgroundColor: '#0a0000', borderRight: '2px solid #ff003c', zIndex: 999, overflowY: 'auto', padding: '16px' },
-  sidebarHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0', paddingBottom: '10px', borderBottom: '1px solid #333' },
+  sidebarHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', paddingBottom: '10px', borderBottom: '1px solid #333' },
   sidebarTitle: { color: '#ff003c', fontSize: '18px', fontWeight: 'bold', margin: 0, fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '8px' },
-  closeBtn: { backgroundColor: 'transparent', border: 'none', color: '#888', fontSize: '20px', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' },
+  closeBtn: { backgroundColor: 'transparent', border: 'none', color: '#888', fontSize: '20px', cursor: 'pointer', padding: '4px', display: 'flex' },
   sidebarSection: { marginBottom: '12px' },
   sectionTitle: { color: '#ff003c', fontSize: '14px', margin: '0 0 8px 0', paddingBottom: '4px', borderBottom: '1px solid #333', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '6px' },
   settingRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' },
   settingLabel: { fontSize: '13px', color: '#ddd' },
   settingValue: { fontSize: '13px', color: '#ff6688' },
-  selectInput: { padding: '4px 8px', backgroundColor: '#000', border: '1px solid #444', color: '#fff', borderRadius: '4px', fontSize: '12px' },
   toggleBtn: { padding: '4px 12px', borderRadius: '3px', border: 'none', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', backgroundColor: '#333', color: '#fff' },
+  toolBtn: { padding: '8px 12px', backgroundColor: '#1a1a1a', color: '#fff', border: '1px solid #333', borderRadius: '6px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 'bold' },
+  toolBtnSmall: { padding: '5px 10px', backgroundColor: '#1a1a1a', color: '#fff', border: '1px solid #333', borderRadius: '4px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 'bold' },
   statsCard: { border: '1px solid #ff003c40', borderRadius: '6px', padding: '10px 12px', backgroundColor: '#0a0a0a' },
   statRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 0', fontSize: '12px' },
   statLabel: { color: '#aaa', display: 'flex', alignItems: 'center', gap: '4px' },
@@ -2069,6 +1943,8 @@ const styles = {
   settingsButtonTop: { backgroundColor: 'rgba(0,0,0,0.6)', border: '2px solid #333', borderRadius: '30px', padding: '6px 12px', display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#fff' },
   settingsBtnPC: { backgroundColor: 'rgba(0,0,0,0.6)', border: '1px solid #333', borderRadius: '16px', padding: '4px 10px', display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#fff' },
 
+  floatingBtn: { position: 'absolute', bottom: '150px', right: '25px', width: '56px', height: '56px', borderRadius: '50%', border: '2px solid', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.5)', transition: 'all 0.3s ease' },
+
   mainContentAndroid: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', height: '100vh', margin: 0, padding: 0 },
   backgroundAndroid: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 0, background: 'radial-gradient(ellipse at center, #0a0000 0%, #000 100%)' },
   ballContainer: { position: 'relative', width: '300px', height: '300px', pointerEvents: 'none', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' },
@@ -2077,7 +1953,7 @@ const styles = {
   ball3DSpeaking: { boxShadow: `inset -20px -20px 40px rgba(80, 0, 20, 0.8), inset 15px 15px 30px rgba(255, 180, 200, 0.5), 0 0 80px rgba(255, 0, 60, 0.8), 0 0 150px rgba(255, 0, 60, 0.5), 0 0 220px rgba(255, 0, 60, 0.25)`, animation: 'rotateGlobe 25s linear infinite, ballPulse 1.2s ease-in-out infinite' },
   ballHighlight: { position: 'absolute', top: '18%', left: '22%', width: '35%', height: '25%', borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(255,255,255,0.6) 0%, transparent 70%)', filter: 'blur(4px)', pointerEvents: 'none' },
   ballInnerGlow: { position: 'absolute', top: '15%', left: '15%', width: '70%', height: '70%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,100,140,0.2) 0%, transparent 60%)', pointerEvents: 'none' },
-  ring1: { position: 'absolute', top: '50%', left: '50%', width: '240px', height: '240px', marginLeft: '-120px', marginTop: '-120px', borderRadius: '50%', border: '2px solid rgba(255,0,60,0.25)', animation: 'spinRing 12s linear infinite', boxShadow: '0 0 30px rgba(255,0,60,0.05)' },
+  ring1: { position: 'absolute', top: '50%', left: '50%', width: '240px', height: '240px', marginLeft: '-120px', marginTop: '-120px', borderRadius: '50%', border: '2px solid rgba(255,0,60,0.25)', animation: 'spinRing 12s linear infinite' },
   ring2: { position: 'absolute', top: '50%', left: '50%', width: '280px', height: '280px', marginLeft: '-140px', marginTop: '-140px', borderRadius: '50%', border: '1px solid rgba(255,0,60,0.12)', animation: 'spinRing 18s linear infinite reverse' },
   ring3: { position: 'absolute', top: '50%', left: '50%', width: '200px', height: '200px', marginLeft: '-100px', marginTop: '-100px', borderRadius: '50%', border: '1px dashed rgba(255,0,60,0.15)', animation: 'spinRing 8s linear infinite' },
   faceTitleAndroid: { position: 'absolute', bottom: '35%', fontSize: 'clamp(42px, 6vw, 68px)', fontWeight: 'bold', color: '#ff003c', textShadow: '0 0 40px #ff003c, 0 0 80px #ff003c66, 0 0 120px #ff003c33', letterSpacing: '10px', textAlign: 'center', width: '100%', zIndex: 2, animation: 'pulseText 2.5s ease-in-out infinite', fontFamily: "'Courier New', monospace" },
@@ -2115,11 +1991,6 @@ const styles = {
   pcMain: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', backgroundColor: '#050505', overflow: 'hidden', height: '100%', padding: '10px' },
   pcBallContainer: { position: 'relative', width: 'clamp(160px, 25vw, 300px)', height: 'clamp(160px, 25vw, 300px)', pointerEvents: 'none', marginBottom: '10px' },
   pcListeningContainer: { display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(0,0,0,0.5)', padding: '4px 16px', borderRadius: '30px', border: '1px solid rgba(255,0,60,0.2)', backdropFilter: 'blur(10px)', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '90%' },
-  selectInputPC: { padding: '2px 6px', backgroundColor: '#000', border: '1px solid #444', color: '#fff', borderRadius: '3px', fontSize: '11px' },
-  toggleGroupPC: { display: 'flex', gap: '4px' },
-  toggleBtnPC: { padding: '2px 8px', border: '1px solid #444', borderRadius: '3px', backgroundColor: 'transparent', color: '#888', cursor: 'pointer', fontSize: '10px' },
-  toggleBtnPCO: { borderColor: '#4f8', color: '#4f8', backgroundColor: '#0a2a0a' },
-  toggleBtnPCF: { borderColor: '#ff003c', color: '#ff003c', backgroundColor: '#2a0a0a' },
   conversationLogPC: { maxHeight: '120px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '6px' },
   convItemPC: { display: 'flex', flexDirection: 'column', padding: '4px 8px', backgroundColor: '#111', borderRadius: '4px', borderLeft: '2px solid #ff003c' },
   convTextPC: { fontSize: '12px', color: '#ddd', wordBreak: 'break-word', marginTop: '2px' },
@@ -2138,7 +2009,7 @@ const styles = {
   sidebarPC: { position: 'fixed', top: 0, right: 0, bottom: 0, width: '280px', maxWidth: '85vw', backgroundColor: '#0a0000', borderLeft: '2px solid #ff003c', zIndex: 999, overflowY: 'auto', padding: '16px' },
   sidebarHeaderPC: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '8px', borderBottom: '1px solid #333' },
   sidebarTitlePC: { color: '#ff003c', fontSize: '16px', fontWeight: 'bold', margin: 0, fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '6px' },
-  closeBtnPC: { backgroundColor: 'transparent', border: 'none', color: '#888', fontSize: '20px', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' },
+  closeBtnPC: { backgroundColor: 'transparent', border: 'none', color: '#888', fontSize: '20px', cursor: 'pointer', padding: '4px', display: 'flex' },
   sidebarSectionPC: { marginBottom: '16px' },
   sectionTitlePC: { color: '#ff003c', fontSize: '13px', margin: '0 0 8px 0', paddingBottom: '4px', borderBottom: '1px solid #333', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '6px' },
   settingRowPC: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' },
@@ -2157,4 +2028,4 @@ const styles = {
   inputRow: { display: 'flex', gap: '6px', marginTop: '4px', marginBottom: '6px' },
   textInputSmall: { flex: 1, padding: '6px 10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '13px', outline: 'none' },
   sendBtnSmall: { padding: '6px 12px', backgroundColor: '#ff003c', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-    }
+      }
