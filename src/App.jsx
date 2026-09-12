@@ -53,7 +53,7 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
 
 const TAVILY_API_KEY = "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"
 const TAVILY_URL = "https://api.tavily.com/search"
-const VERSION = "Version 21.0.0"
+const VERSION = "Version 22.0.0"
 const APP_START_TIME = Date.now()
 
 const getStorageKey = (email, pin) => `cypher4x_${email}_${pin}`
@@ -65,64 +65,285 @@ const userExists = (email, pin) => { const list = getAllUsers(); return list.som
 const saveAuth = (email, pin) => { try { localStorage.setItem('cypher4x_auth', JSON.stringify({ email, pin })) } catch {} }
 const getAuth = () => { try { const raw = localStorage.getItem('cypher4x_auth'); return raw ? JSON.parse(raw) : null } catch { return null } }
 const clearAuth = () => { try { localStorage.removeItem('cypher4x_auth') } catch {} }
-const getLastWelcomeDate = () => { try { return localStorage.getItem('cypher4x_welcome_date') } catch { return null } }
-const setLastWelcomeDate = (date) => { try { localStorage.setItem('cypher4x_welcome_date', date) } catch {} }
 
 const isMobileDevice = () => /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+const isAndroid = () => /Android/i.test(navigator.userAgent)
 
+// ============ APP DEEP-LINK SYSTEM ============
 const APP_MAP = {
-  whatsapp:  { universal: 'https://wa.me/',                        web: 'https://web.whatsapp.com',      name: 'WhatsApp' },
-  instagram: { universal: 'https://instagram.com/',                web: 'https://instagram.com',         name: 'Instagram' },
-  facebook:  { universal: 'https://facebook.com/',                 web: 'https://facebook.com',          name: 'Facebook' },
-  twitter:   { universal: 'https://twitter.com/',                  web: 'https://twitter.com',           name: 'Twitter' },
-  telegram:  { universal: 'https://t.me/',                         web: 'https://web.telegram.org',      name: 'Telegram' },
-  youtube:   { universal: 'https://youtube.com/',                  web: 'https://youtube.com',           name: 'YouTube' },
-  spotify:   { universal: 'https://open.spotify.com/',             web: 'https://open.spotify.com',      name: 'Spotify' },
-  gmail:     { universal: 'https://mail.google.com/',              web: 'https://mail.google.com',       name: 'Gmail' },
-  maps:      { universal: 'https://maps.google.com/',              web: 'https://maps.google.com',       name: 'Maps' },
-  netflix:   { universal: 'https://netflix.com/',                  web: 'https://netflix.com',           name: 'Netflix' },
-  linkedin:  { universal: 'https://linkedin.com/',                 web: 'https://linkedin.com',          name: 'LinkedIn' },
-  reddit:    { universal: 'https://reddit.com/',                   web: 'https://reddit.com',            name: 'Reddit' },
-  tiktok:    { universal: 'https://tiktok.com/',                   web: 'https://tiktok.com',            name: 'TikTok' },
-  amazon:    { universal: 'https://amazon.com/',                   web: 'https://amazon.com',            name: 'Amazon' },
-  wikipedia: { universal: 'https://wikipedia.org/',                web: 'https://wikipedia.org',         name: 'Wikipedia' },
-  github:    { universal: 'https://github.com/',                   web: 'https://github.com',            name: 'GitHub' },
+  whatsapp: { name: 'WhatsApp', pkg: 'com.whatsapp', scheme: 'whatsapp', universal: 'https://wa.me/', web: 'https://web.whatsapp.com' },
+  whatsappbusiness: { name: 'WhatsApp Business', pkg: 'com.whatsapp.w4b', scheme: 'whatsapp', universal: 'https://wa.me/', web: 'https://web.whatsapp.com' },
+  instagram: { name: 'Instagram', pkg: 'com.instagram.android', scheme: 'instagram', universal: 'https://instagram.com/', web: 'https://instagram.com' },
+  facebook: { name: 'Facebook', pkg: 'com.facebook.katana', scheme: 'fb', universal: 'https://facebook.com/', web: 'https://facebook.com' },
+  twitter: { name: 'Twitter', pkg: 'com.twitter.android', scheme: 'twitter', universal: 'https://twitter.com/', web: 'https://twitter.com' },
+  telegram: { name: 'Telegram', pkg: 'org.telegram.messenger', scheme: 'tg', universal: 'https://t.me/', web: 'https://web.telegram.org' },
+  youtube: { name: 'YouTube', pkg: 'com.google.android.youtube', scheme: 'vnd.youtube', universal: 'https://youtube.com/', web: 'https://youtube.com' },
+  spotify: { name: 'Spotify', pkg: 'com.spotify.music', scheme: 'spotify', universal: 'https://open.spotify.com/', web: 'https://open.spotify.com' },
+  gmail: { name: 'Gmail', pkg: 'com.google.android.gm', scheme: 'googlegmail', universal: 'https://mail.google.com/', web: 'https://mail.google.com' },
+  maps: { name: 'Maps', pkg: 'com.google.android.apps.maps', scheme: 'geo', universal: 'https://maps.google.com/', web: 'https://maps.google.com' },
+  netflix: { name: 'Netflix', pkg: 'com.netflix.mediaclient', scheme: 'nflx', universal: 'https://netflix.com/', web: 'https://netflix.com' },
+  linkedin: { name: 'LinkedIn', pkg: 'com.linkedin.android', scheme: 'linkedin', universal: 'https://linkedin.com/', web: 'https://linkedin.com' },
+  reddit: { name: 'Reddit', pkg: 'com.reddit.frontpage', scheme: 'reddit', universal: 'https://reddit.com/', web: 'https://reddit.com' },
+  tiktok: { name: 'TikTok', pkg: 'com.zhiliaoapp.musically', scheme: 'snssdk1233', universal: 'https://tiktok.com/', web: 'https://tiktok.com' },
+  amazon: { name: 'Amazon', pkg: 'com.amazon.mShop.android.shopping', scheme: null, universal: 'https://amazon.com/', web: 'https://amazon.com' },
+  wikipedia: { name: 'Wikipedia', pkg: null, scheme: null, universal: 'https://wikipedia.org/', web: 'https://wikipedia.org' },
+  github: { name: 'GitHub', pkg: null, scheme: null, universal: 'https://github.com/', web: 'https://github.com' },
 }
 
 const openApp = (appKey, extraPath = '') => {
   const app = APP_MAP[appKey]
   if (!app) return `I don't have "${appKey}" registered. Try WhatsApp, Instagram, YouTube, etc.`
-  const universalUrl = app.universal + extraPath
+
+  if (isAndroid() && app.pkg) {
+    // Android intent:// — most reliable way to open a specific app
+    const path = extraPath || ''
+    const intentUrl = `intent://${path}#Intent;scheme=${app.scheme};package=${app.pkg};S.browser_fallback_url=${encodeURIComponent(app.universal)};end`
+    try {
+      window.location.href = intentUrl
+      return `Opening ${app.name}... If the app doesn't open, please install ${app.name} from the Play Store.`
+    } catch (e) {}
+  }
+
   if (isMobileDevice()) {
-    const w = window.open(universalUrl, '_blank', 'noopener,noreferrer')
+    // iOS / generic mobile → universal link
+    const url = app.universal + extraPath
+    const w = window.open(url, '_blank', 'noopener,noreferrer')
     if (!w) {
       const a = document.createElement('a')
-      a.href = universalUrl; a.target = '_blank'; a.rel = 'noopener noreferrer'
+      a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'
       document.body.appendChild(a); a.click(); document.body.removeChild(a)
     }
     return `Opening ${app.name}... If the app doesn't open, install it from your app store.`
   }
+
+  // Desktop → web version
   window.open(app.web, '_blank', 'noopener,noreferrer')
   return `Opening ${app.name} in your browser...`
 }
 
 const openWhatsAppGroup = (groupName) => {
   const text = `Looking for group: ${groupName}`
+  if (isAndroid()) {
+    const intentUrl = `intent://send?text=${encodeURIComponent(text)}#Intent;scheme=whatsapp;package=com.whatsapp;end`
+    window.location.href = intentUrl
+    return `Opening WhatsApp. Tap the search icon and type "${groupName}" to open your group.`
+  }
   if (isMobileDevice()) {
-    const url = `https://wa.me/?text=${encodeURIComponent(text)}`
-    const w = window.open(url, '_blank', 'noopener,noreferrer')
-    if (!w) {
-      const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'
-      document.body.appendChild(a); a.click(); document.body.removeChild(a)
-    }
-    return `Opening WhatsApp. Tap the search icon and type "${groupName}" to open your group — WhatsApp doesn't allow deep-linking to a specific group for privacy.`
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer')
+    return `Opening WhatsApp. Search for "${groupName}" in your chats.`
   }
   window.open('https://web.whatsapp.com', '_blank', 'noopener,noreferrer')
   return `WhatsApp Web opened. Search for "${groupName}" in your chat list.`
 }
 
+// ============ PERSONALITY SYSTEM ============
+const PERSONALITIES = [
+  { id: 'polite', label: 'Polite', desc: 'Always respectful and courteous', icon: '🤝' },
+  { id: 'concise', label: 'Concise', desc: 'Short, direct, to the point', icon: '⚡' },
+  { id: 'clear', label: 'Clear', desc: 'Simple, easy to understand', icon: '💡' },
+  { id: 'comprehensive', label: 'Comprehensive', desc: 'Detailed, thorough answers', icon: '📚' },
+  { id: 'custom', label: 'Custom', desc: 'AI learns your communication style', icon: '🎨' },
+]
+
+const analyzeUserStyle = (messages) => {
+  const userMsgs = messages.filter(m => m.role === 'user').map(m => m.content).filter(m => m.length > 0)
+  if (userMsgs.length < 3) return null
+  const avgLen = userMsgs.reduce((a, m) => a + m.length, 0) / userMsgs.length
+  const emojiCount = userMsgs.filter(m => /[\u{1F300}-\u{1F9FF}\u{2600}-\u{27BF}]/u.test(m)).length
+  const formalCount = userMsgs.filter(m => /\b(please|thank you|kindly|could you|would you|may i)\b/i.test(m)).length
+  const excitedCount = userMsgs.filter(m => /!/.test(m)).length
+  return {
+    short: avgLen < 40,
+    long: avgLen > 120,
+    emoji: emojiCount / userMsgs.length > 0.3,
+    formal: formalCount / userMsgs.length > 0.3,
+    excited: excitedCount / userMsgs.length > 0.4,
+    count: userMsgs.length,
+  }
+}
+
+const applyPersonality = (reply, personality, customStyle) => {
+  if (!reply) return reply
+  const clean = reply.replace(/^(I found this for you:|Here's what I discovered:|Great question! The answer is:|Let me share what I know:|Based on my search,|Certainly!|\[Short\]|\[Detailed\])\s*/i, '').trim()
+
+  switch (personality) {
+    case 'concise': {
+      const sentences = clean.split(/(?<=[.!?])\s+/).filter(Boolean)
+      return sentences.slice(0, 2).join(' ') || clean
+    }
+    case 'polite':
+      return `Certainly! ${clean}`
+    case 'clear':
+      return `Here's a clear answer:\n\n${clean}`
+    case 'comprehensive':
+      return `Let me give you a thorough answer:\n\n${clean}\n\nWould you like me to go deeper on any part?`
+    case 'custom': {
+      if (!customStyle || !customStyle.count) return clean
+      let out = clean
+      if (customStyle.short) {
+        const sentences = clean.split(/(?<=[.!?])\s+/).filter(Boolean)
+        out = sentences.slice(0, 2).join(' ') || clean
+      }
+      if (customStyle.formal && !/^Regarding/i.test(out)) out = `Regarding your query: ${out}`
+      if (customStyle.emoji) out = `✨ ${out} 😊`
+      if (customStyle.excited && !/[!?]$/.test(out)) out = out + '!'
+      return out
+    }
+    default:
+      return clean
+  }
+}
+
+// ============ CODE GENERATOR ============
+const CODE_TEMPLATES = [
+  { match: /ai|machine learning|neural|classifier|model/i, lang: 'python', code: `# Simple AI text classifier (Python)
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+
+texts = ["I love this!", "This is great!", "I hate this.", "Terrible."]
+labels = ["positive", "positive", "negative", "negative"]
+
+vec = CountVectorizer()
+X = vec.fit_transform(texts)
+
+clf = MultinomialNB().fit(X, labels)
+
+test = vec.transform(["This is amazing!"])
+print(clf.predict(test))  # ['positive']` },
+
+  { match: /fibonacci|fib/i, lang: 'javascript', code: `// Fibonacci (JavaScript)
+function fibonacci(n) {
+  if (n <= 1) return n;
+  let a = 0, b = 1;
+  for (let i = 2; i <= n; i++) [a, b] = [b, a + b];
+  return b;
+}
+console.log(fibonacci(10)); // 55` },
+
+  { match: /sort|sorting|bubble|quick ?sort|merge ?sort/i, lang: 'javascript', code: `// Quick Sort (JavaScript)
+function quickSort(arr) {
+  if (arr.length <= 1) return arr;
+  const pivot = arr[Math.floor(arr.length / 2)];
+  const left = arr.filter(x => x < pivot);
+  const mid = arr.filter(x => x === pivot);
+  const right = arr.filter(x => x > pivot);
+  return [...quickSort(left), ...mid, ...quickSort(right)];
+}
+console.log(quickSort([5, 2, 8, 1, 9, 3]));` },
+
+  { match: /calculator|calc/i, lang: 'python', code: `# Simple Calculator (Python)
+def calculator():
+    print("Simple Calculator — type 'q' to quit")
+    while True:
+        expr = input("Enter expression (e.g. 2+3*4): ")
+        if expr.lower() == 'q': break
+        try:
+            print("Result:", eval(expr))
+        except Exception as e:
+            print("Error:", e)
+calculator()` },
+
+  { match: /todo|to-do|task list/i, lang: 'javascript', code: `// Simple Todo App (React)
+import { useState } from 'react';
+export default function Todo() {
+  const [tasks, setTasks] = useState([]);
+  const [input, setInput] = useState('');
+  const add = () => { if (input.trim()) { setTasks([...tasks, input]); setInput(''); } };
+  const remove = (i) => setTasks(tasks.filter((_, idx) => idx !== i));
+  return (
+    <div>
+      <input value={input} onChange={e => setInput(e.target.value)} />
+      <button onClick={add}>Add</button>
+      <ul>{tasks.map((t, i) => <li key={i}>{t} <button onClick={() => remove(i)}>x</button></li>)}</ul>
+    </div>
+  );
+}` },
+
+  { match: /fetch|api call|http request/i, lang: 'javascript', code: `// Fetch API (JavaScript)
+async function fetchData(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(\`HTTP \${res.status}\`);
+    return await res.json();
+  } catch (err) {
+    console.error('Fetch failed:', err);
+    return null;
+  }
+}
+fetchData('https://api.example.com/data').then(data => console.log(data));` },
+
+  { match: /hello world/i, lang: 'multi', code: `// Hello World in 5 languages
+// JavaScript:
+console.log("Hello, World!");
+
+// Python:
+// print("Hello, World!")
+
+// Java:
+// System.out.println("Hello, World!");
+
+// C:
+// printf("Hello, World!\\n");
+
+// Go:
+// fmt.Println("Hello, World!")` },
+
+  { match: /password|hash|bcrypt/i, lang: 'javascript', code: `// Password hashing (Node.js + bcrypt)
+import bcrypt from 'bcrypt';
+async function hashPassword(password) {
+  const salt = await bcrypt.genSalt(10);
+  return bcrypt.hash(password, salt);
+}
+async function verifyPassword(password, hash) {
+  return bcrypt.compare(password, hash);
+}
+// Usage:
+// const hash = await hashPassword('secret123');
+// const ok = await verifyPassword('secret123', hash);` },
+
+  { match: /login|auth|sign ?in/i, lang: 'javascript', code: `// Simple login form (React)
+import { useState } from 'react';
+export default function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const submit = async (e) => {
+    e.preventDefault();
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    console.log(data);
+  };
+  return (
+    <form onSubmit={submit}>
+      <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />
+      <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />
+      <button type="submit">Login</button>
+    </form>
+  );
+}` },
+]
+
+const generateCode = (query) => {
+  const tpl = CODE_TEMPLATES.find(t => t.match.test(query))
+  if (tpl) {
+    return `Here's a code sample for your request (${tpl.lang}):\n\n\`\`\`${tpl.lang}\n${tpl.code}\n\`\`\`\n\nYou can copy this directly. Want me to explain any line, or generate a different variant?`
+  }
+  // Fallback: generic starter snippet
+  return `Here's a starter snippet that fits your request:\n\n\`\`\`javascript\n// Starter code for: "${query}"\nfunction main() {\n  // TODO: implement logic\n  console.log('Running: ${query.replace(/'/g, "\\'")}');\n}\n\nmain();\n\`\`\`\n\nTell me the language (Python, JavaScript, Java, etc.) and I'll tailor this for you.`
+}
+
+const isCodeRequest = (query) => {
+  const q = query.toLowerCase()
+  const kws = ['generate code','write code','create code','make code','build code','code for','code to','function in','javascript','python','react','html','css','java','c++','sql','node','bash','shell','code snippet','program','script','algorithm','write an ai code','ai code']
+  return kws.some(k => q.includes(k))
+}
+
+// ============ WEB SEARCH ============
 const TRUSTED_DOMAINS = ['wikipedia.org','britannica.com','gov','edu','who.int','un.org','nature.com','science.org','nasa.gov','nih.gov','cdc.gov','bbc.com','reuters.com','apnews.com','nytimes.com','theguardian.com','github.com','stackoverflow.com','mozilla.org','w3.org','ietf.org','developer.mozilla.org','python.org','reactjs.org','nodejs.org']
-const isTrustedDomain = (url) => { if (!url) return false; try { const host = new URL(url).hostname.toLowerCase(); return TRUSTED_DOMAINS.some(d => host.includes(d)) } catch { return false } }
+const isTrustedDomain = (url) => { if (!url) return false; try { const h = new URL(url).hostname.toLowerCase(); return TRUSTED_DOMAINS.some(d => h.includes(d)) } catch { return false } }
 
 const searchWeb = async (query) => {
   if (!TAVILY_API_KEY) return { error: "Tavily API key not configured." }
@@ -138,16 +359,10 @@ const searchWeb = async (query) => {
 
 const openAnonymousSearch = (query) => { window.open(`https://duckduckgo.com/?q=${encodeURIComponent(query)}&kae=d&kp=-2`, '_blank', 'noopener,noreferrer') }
 
-const isCodeRequest = (query) => {
-  const q = query.toLowerCase()
-  const codeKeywords = ['generate code','write code','create code','make code','build code','code for','code to','function in','javascript','python','react','html','css','java','c++','sql','node','bash','shell','code snippet','program','script','algorithm']
-  return codeKeywords.some(k => q.includes(k))
-}
-
 const AI_ABILITIES = [
   { icon: '🌐', title: 'Web Search', desc: 'Search the internet for any information' },
   { icon: '🔒', title: 'Anonymous Search', desc: 'Privacy-first via DuckDuckGo' },
-  { icon: '📱', title: 'Open Apps', desc: 'Launch WhatsApp, Instagram, YouTube & more' },
+  { icon: '📱', title: 'Open Apps', desc: 'Launch WhatsApp, WhatsApp Business, Instagram & more' },
   { icon: '💬', title: 'WhatsApp Groups', desc: 'Open WhatsApp and reach your groups' },
   { icon: '🧮', title: 'Calculations', desc: 'Compute math expressions' },
   { icon: '⏰', title: 'Time & Date', desc: 'Get current time and date' },
@@ -171,14 +386,6 @@ const RedBall = ({ isSpeaking = false }) => (
   </div>
 )
 
-const PERSONALITIES = [
-  { id: 'polite', label: 'Polite', desc: 'Always respectful and courteous', icon: '🤝' },
-  { id: 'concise', label: 'Concise', desc: 'Short, direct, to the point', icon: '⚡' },
-  { id: 'clear', label: 'Clear', desc: 'Simple, easy to understand', icon: '💡' },
-  { id: 'comprehensive', label: 'Comprehensive', desc: 'Detailed, thorough answers', icon: '📚' },
-  { id: 'custom', label: 'Custom', desc: 'AI learns your communication style', icon: '🎨' },
-]
-
 export default function App() {
   const [userMode, setUserMode] = useState('guest')
   const [email, setEmail] = useState('')
@@ -197,12 +404,11 @@ export default function App() {
   const [viewMode, setViewMode] = useState('android')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(false)
-  const [welcomeStep, setWelcomeStep] = useState('greeting')
   const [welcomeMessage, setWelcomeMessage] = useState('')
   const [showSettings, setShowSettings] = useState(false)
   const [showPersonalityModal, setShowPersonalityModal] = useState(false)
   const [aiPersonality, setAiPersonality] = useState('polite')
-  const [customPersonality, setCustomPersonality] = useState('')
+  const [customStyle, setCustomStyle] = useState(null)
   const [backgroundImage, setBackgroundImage] = useState(null)
   const [settings, setSettings] = useState({ welcomeEnabled: true, autoStartVoice: true, language: 'en', voiceSpeed: 1, personality: 'polite', secretMode: false, overlayButton: false, safeLinks: true })
   const [showChatOverview, setShowChatOverview] = useState(false)
@@ -231,7 +437,6 @@ export default function App() {
   const [stats, setStats] = useState({ uptime: 0, cpuUsage: 0, cpuTemp: 0, ramUsage: 0, storageUsed: 0, storageTotal: 475, networkSpeed: 0, messages: 0 })
   const [events] = useState([])
   const [reminders] = useState([])
-
   const [showAbilities, setShowAbilities] = useState(false)
   const [overlayActive, setOverlayActive] = useState(false)
   const [overlayListening, setOverlayListening] = useState(false)
@@ -243,6 +448,7 @@ export default function App() {
   const fileInputRef = useRef(null)
   const bgInputRef = useRef(null)
 
+  // BOOT TYPEWRITER
   useEffect(() => {
     if (!isBooting) return
     const title = "CYPHER4X"
@@ -266,12 +472,15 @@ export default function App() {
               const savedPersonality = localStorage.getItem('cypher4x_personality')
               if (!savedPersonality) setShowPersonalityModal(true)
               else setAiPersonality(savedPersonality)
-              const today = new Date().toDateString()
-              const lastWelcome = getLastWelcomeDate()
-              if (lastWelcome !== today && settings.welcomeEnabled && savedPersonality) {
-                setLastWelcomeDate(today); setShowWelcomeOverlay(true); setWelcomeStep('greeting')
-                const msg = "Hello User! I'm CYPHER4X, your friendly AI assistant. How are you feeling today?"
-                setWelcomeMessage(msg); speakText(msg)
+              if (settings.welcomeEnabled) {
+                const today = new Date().toDateString()
+                const lw = localStorage.getItem('cypher4x_welcome_date')
+                if (lw !== today) {
+                  localStorage.setItem('cypher4x_welcome_date', today)
+                  setShowWelcomeOverlay(true)
+                  const msg = "Hello! I'm CYPHER4X, your AI assistant. Welcome back!"
+                  setWelcomeMessage(msg); speakText(msg)
+                }
               }
             }
           }, 800)
@@ -289,8 +498,8 @@ export default function App() {
     } else {
       if (userExists(email, pin)) { setAuthError("Account already exists. Please log in."); return }
       addUser(email, pin)
-      const emptyData = { profile: null, conversation: [], commandHistory: [], events: [], reminders: [], faceRecognition: false, biometricAuth: false, voiceGender: 'female', viewMode: 'android', personality: 'polite', backgroundImage: null, settings: { welcomeEnabled: true, autoStartVoice: true, language: 'en', voiceSpeed: 1, personality: 'polite', secretMode: false, overlayButton: false, safeLinks: true } }
-      saveUserData(email, pin, emptyData); loginUser(email, pin); setShowAuthModal(false)
+      const empty = { profile: null, conversation: [], commandHistory: [], events: [], reminders: [], faceRecognition: false, biometricAuth: false, voiceGender: 'female', viewMode: 'android', personality: 'polite', backgroundImage: null, customStyle: null, settings: { welcomeEnabled: true, autoStartVoice: true, language: 'en', voiceSpeed: 1, personality: 'polite', secretMode: false, overlayButton: false, safeLinks: true } }
+      saveUserData(email, pin, empty); loginUser(email, pin); setShowAuthModal(false)
     }
   }
   const loginUser = (email, pin) => { saveAuth(email, pin); setUserMode('loggedin'); loadUserDataByEmail(email, pin); setAuthError(''); setGuestMessageCount(0) }
@@ -302,28 +511,34 @@ export default function App() {
       setCommandHistory(data.commandHistory || []); setVoiceGender(data.voiceGender || 'female')
       setViewMode(data.viewMode || 'android'); setAiPersonality(data.personality || 'polite')
       setBackgroundImage(data.backgroundImage || null)
+      if (data.customStyle) setCustomStyle(data.customStyle)
       if (data.settings) setSettings(data.settings)
       msgCounter.current = (data.conversation || []).length + 1
-      const today = new Date().toDateString()
-      const lastWelcome = getLastWelcomeDate()
-      if (lastWelcome !== today && settings.welcomeEnabled) {
-        setLastWelcomeDate(today); setShowWelcomeOverlay(true); setWelcomeStep('greeting')
-        const name = data.profile?.name || 'User'
-        const msg = `Hello ${name}! I'm CYPHER4X, your friendly AI assistant. How are you feeling today?`
-        setWelcomeMessage(msg); speakText(msg)
-      } else {
-        const name = data.profile?.name || 'User'
-        const greet = `Welcome back, ${name}! I'm CYPHER4X. How can I help you today?`
-        const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: greet, time: Date.now() }
-        setConversation(prev => [...prev, assistantMsg]); speakText(greet)
+      if (settings.welcomeEnabled) {
+        const today = new Date().toDateString(); const lw = localStorage.getItem('cypher4x_welcome_date')
+        if (lw !== today) {
+          localStorage.setItem('cypher4x_welcome_date', today)
+          setShowWelcomeOverlay(true)
+          const name = data.profile?.name || 'User'
+          const msg = `Welcome back, ${name}! I'm CYPHER4X. How can I help you today?`
+          setWelcomeMessage(msg); speakText(msg)
+        }
       }
     }
   }
   const saveCurrentUserData = () => {
     if (userMode !== 'loggedin') return
-    saveUserData(email, pin, { profile, conversation, commandHistory, events, reminders, faceRecognition, biometricAuth, voiceGender, viewMode, personality: aiPersonality, backgroundImage, settings })
+    saveUserData(email, pin, { profile, conversation, commandHistory, events, reminders, faceRecognition, biometricAuth, voiceGender, viewMode, personality: aiPersonality, backgroundImage, customStyle, settings })
   }
-  useEffect(() => { if (userMode === 'loggedin') saveCurrentUserData() }, [profile, conversation, commandHistory, events, reminders, faceRecognition, biometricAuth, voiceGender, viewMode, aiPersonality, backgroundImage, settings])
+  useEffect(() => { if (userMode === 'loggedin') saveCurrentUserData() }, [profile, conversation, commandHistory, events, reminders, faceRecognition, biometricAuth, voiceGender, viewMode, aiPersonality, backgroundImage, customStyle, settings])
+
+  // Learn custom style whenever conversation grows
+  useEffect(() => {
+    if (aiPersonality === 'custom' && conversation.length > 3) {
+      const style = analyzeUserStyle(conversation)
+      if (style) setCustomStyle(style)
+    }
+  }, [conversation, aiPersonality])
 
   const handleLogout = () => {
     if (!confirm("Logout from this account?")) return
@@ -371,13 +586,19 @@ export default function App() {
   const executeCommand = (query) => {
     const lower = query.toLowerCase().trim()
 
+    // WhatsApp Business first (specific)
+    if (lower.includes('whatsapp business') || lower.includes('whatsapp bussiness') || lower.includes('whatsapp busines')) {
+      const grp = query.match(/group(?:\s+named)?\s+(.+)/i)
+      if (grp) return { response: openWhatsAppGroup(grp[1].trim()) }
+      return { response: openApp('whatsappbusiness') }
+    }
+
     const waGroupMatch = lower.match(/(?:open\s+)?(?:my\s+)?whatsapp.*group(?:\s+named)?\s+(.+)/i)
     if (waGroupMatch) return { response: openWhatsAppGroup(waGroupMatch[1].trim()) }
 
-    const appMatch = lower.match(/^open\s+(?:my\s+)?(whatsapp|instagram|facebook|twitter|telegram|youtube|spotify|gmail|maps|netflix|linkedin|reddit|tiktok|amazon|wikipedia|github)(?:\s+and\s+open\s+my\s+group\s+named\s+(.+))?$/)
+    const appMatch = lower.match(/^open\s+(?:my\s+)?(whatsapp|instagram|facebook|twitter|telegram|youtube|spotify|gmail|maps|netflix|linkedin|reddit|tiktok|amazon|wikipedia|github)(?:\s+(?:on\s+my\s+device)?)?(?:\s+and\s+open\s+my\s+group\s+named\s+(.+))?$/i)
     if (appMatch) {
-      const appKey = appMatch[1]
-      const groupExtra = appMatch[2]
+      const appKey = appMatch[1]; const groupExtra = appMatch[2]
       if (appKey === 'whatsapp' && groupExtra) return { response: openWhatsAppGroup(groupExtra) }
       return { response: openApp(appKey) }
     }
@@ -390,29 +611,24 @@ export default function App() {
       openAnonymousSearch(term)
       return { response: `Anonymous search opened for "${term}". 🔒` }
     }
-
     if (lower.startsWith('web ') || lower.startsWith('search web ')) {
       const term = query.replace(/^(web|search web)\s+/i, '')
       openAnonymousSearch(term)
       return { response: `Searching the web (privacy mode) for "${term}"...` }
     }
-
     if (lower.startsWith('open website ')) {
       const d = query.replace(/^open website\s+/i, '').trim()
       const url = d.includes('.') ? `https://${d}` : `https://www.${d}.com`
       window.open(url, '_blank', 'noopener,noreferrer')
       return { response: `Opening ${d}...` }
     }
-
     if (lower.startsWith('play ')) {
       const song = lower.replace('play ', '').trim()
       window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(song)}`, '_blank', 'noopener,noreferrer')
       return { response: `Playing "${song}" on YouTube! 🎵` }
     }
-
     if (lower === 'time' || lower.includes('what time')) return { response: `The current time is ${new Date().toLocaleTimeString()}. ⏰` }
     if (lower === 'date' || lower.includes('what date') || lower === 'today') return { response: `Today is ${new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. 📅` }
-
     if (lower.startsWith('calc ') || lower.includes('calculate')) {
       try { const expr = lower.replace('calculate','').replace('calc','').trim(); const res = Function(`"use strict"; return (${expr})`)(); if (typeof res === 'number') return { response: `The answer is ${res}. 🧮` } } catch (e) {}
     }
@@ -432,8 +648,19 @@ export default function App() {
 
     const cmdResult = executeCommand(query)
     if (cmdResult) {
-      const assistantMsg = { id: ++msgCounter.current, role: 'assistant', content: cmdResult.response, time: Date.now() }
-      setConversation(prev => [...prev, assistantMsg]); speakText(cmdResult.response)
+      const styled = applyPersonality(cmdResult.response, aiPersonality, customStyle)
+      const m = { id: ++msgCounter.current, role: 'assistant', content: styled, time: Date.now() }
+      setConversation(prev => [...prev, m]); speakText(styled)
+      setIsProcessing(false); return
+    }
+
+    // CODE GENERATION — bypass web search
+    if (isCodeRequest(query)) {
+      const codeReply = generateCode(query)
+      const styled = applyPersonality(codeReply, aiPersonality, customStyle)
+      const m = { id: ++msgCounter.current, role: 'assistant', content: styled, time: Date.now() }
+      setConversation(prev => [...prev, m])
+      speakText('Here is your generated code. Open the Overview to copy it.')
       setIsProcessing(false); return
     }
 
@@ -441,14 +668,14 @@ export default function App() {
     const casual = ['hello','hi','hey','good morning','good afternoon','good evening',"what's up",'sup','yo','howdy','hey there']
     if (casual.some(p => lower.includes(p))) {
       const replies = ["Hey there! How can I brighten your day today?","Hi! So glad to hear your voice. What can I do for you?","Hello! It's always a pleasure. Ready to assist!","Good to see you! What's on your mind?","Hey! Your favorite AI is here. How can I help?","Hi there! You sound great today. What's up?"]
-      const reply = replies[Math.floor(Math.random()*replies.length)]
+      const reply = applyPersonality(replies[Math.floor(Math.random()*replies.length)], aiPersonality, customStyle)
       const m = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
       setConversation(prev => [...prev, m]); speakText(reply)
       setIsProcessing(false); return
     }
     if (lower.includes('how are you') || lower.includes('how do you feel') || lower.includes('feeling')) {
       const replies = ["I'm feeling fantastic, thank you for asking! How about you?","I'm doing great! Always happy to chat with you.","I'm in top shape! Ready to tackle anything you throw at me.","Feeling wonderful! Thanks for caring."]
-      const reply = replies[Math.floor(Math.random()*replies.length)]
+      const reply = applyPersonality(replies[Math.floor(Math.random()*replies.length)], aiPersonality, customStyle)
       const m = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
       setConversation(prev => [...prev, m]); speakText(reply)
       setIsProcessing(false); return
@@ -457,13 +684,15 @@ export default function App() {
     const result = await searchWeb(query)
     let reply = result.error ? `Search error: ${result.error}` : (result.answer || "I couldn't find an answer to that.")
     if (!result.error && result.safestUrl && settings.safeLinks) reply += `\n\n🔗 Recommended source: ${result.safestUrl}`
+    reply = applyPersonality(reply, aiPersonality, customStyle)
     const m = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
     setConversation(prev => [...prev, m]); speakText(reply.replace(/🔗.*$/s, ''))
     setIsProcessing(false)
-  }, [isProcessing, speakText, userMode, aiPersonality, settings.safeLinks, settings.secretMode])
+  }, [isProcessing, speakText, userMode, aiPersonality, customStyle, settings.safeLinks, settings.secretMode])
 
+  // Overview voice
   const setupOverviewRecognition = useCallback(() => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) { alert("Speech recognition not supported."); return null }
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) { alert("Speech not supported."); return null }
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition
     const r = new SR(); r.continuous = false; r.interimResults = true; r.lang = 'en-US'
     r.onstart = () => { setChatOverviewListening(true); setIsRecordingVoice(true); setVoicePaused(false); setVoiceTranscript('') }
@@ -476,7 +705,6 @@ export default function App() {
     }
     return r
   }, [])
-
   const startVoiceRecording = useCallback(() => {
     if (isRecordingVoice || chatOverviewListening) return
     if (!chatOverviewRecognitionRef.current) chatOverviewRecognitionRef.current = setupOverviewRecognition()
@@ -581,21 +809,17 @@ export default function App() {
   const cancelRecording = useCallback(() => { setInterimTranscript(''); setRecordingMode(false); setIsRecording(false); setIsListening(false); if (recognitionRef.current) try { recognitionRef.current.stop() } catch (e) {} }, [])
   const sendTextMessage = useCallback(() => { const t = inputText.trim(); if (!t || isProcessing) return; setInputText(''); processUserQuery(t) }, [inputText, isProcessing, processUserQuery])
 
-  const handleWelcomeDecision = useCallback((choice) => {
-    setWelcomeStep('decision')
-    const reply = choice === 'fine' ? "That's great to hear! I'm so happy you're feeling well." : "I'm sorry to hear that. I'm here for you."
-    setConversation(prev => [...prev, { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }])
-    speakText(reply); setTimeout(() => setShowWelcomeOverlay(false), 3000)
-  }, [speakText])
-
   const handlePersonalitySelect = (id) => {
     setAiPersonality(id); setSettings({ ...settings, personality: id })
     localStorage.setItem('cypher4x_personality', id); setShowPersonalityModal(false)
-    const today = new Date().toDateString(); const lw = getLastWelcomeDate()
-    if (lw !== today && settings.welcomeEnabled) {
-      setLastWelcomeDate(today); setShowWelcomeOverlay(true); setWelcomeStep('greeting')
-      const msg = "Hello User! I'm CYPHER4X, your friendly AI assistant. How are you feeling today?"
-      setWelcomeMessage(msg); speakText(msg)
+    if (settings.welcomeEnabled) {
+      const today = new Date().toDateString(); const lw = localStorage.getItem('cypher4x_welcome_date')
+      if (lw !== today) {
+        localStorage.setItem('cypher4x_welcome_date', today)
+        setShowWelcomeOverlay(true)
+        const msg = "Hello! I'm CYPHER4X, your AI assistant. Welcome!"
+        setWelcomeMessage(msg); speakText(msg)
+      }
     }
   }
 
@@ -650,11 +874,11 @@ export default function App() {
   const resetAllData = useCallback(() => {
     if (!confirm("Reset ALL data for this account?")) return
     if (userMode === 'loggedin') {
-      saveUserData(email, pin, { profile: null, conversation: [], commandHistory: [], events: [], reminders: [], faceRecognition: false, biometricAuth: false, voiceGender: 'female', viewMode: 'android', personality: 'polite', backgroundImage: null, settings: { welcomeEnabled: true, autoStartVoice: true, language: 'en', voiceSpeed: 1, personality: 'polite', secretMode: false, overlayButton: false, safeLinks: true } })
+      saveUserData(email, pin, { profile: null, conversation: [], commandHistory: [], events: [], reminders: [], faceRecognition: false, biometricAuth: false, voiceGender: 'female', viewMode: 'android', personality: 'polite', backgroundImage: null, customStyle: null, settings: { welcomeEnabled: true, autoStartVoice: true, language: 'en', voiceSpeed: 1, personality: 'polite', secretMode: false, overlayButton: false, safeLinks: true } })
     }
     setProfile(null); setConversation([]); setCommandHistory([]); setEvents([]); setReminders([])
     setFaceRecognition(false); setBiometricAuth(false); setVoiceGender('female'); setViewMode('android')
-    setBackgroundImage(null); setAiPersonality('polite'); setSidebarOpen(false)
+    setBackgroundImage(null); setAiPersonality('polite'); setCustomStyle(null); setSidebarOpen(false)
   }, [userMode, email, pin])
 
   const clearConversation = useCallback(() => setConversation([]), [])
@@ -698,7 +922,6 @@ export default function App() {
               </button>
             ))}
           </div>
-          {aiPersonality === 'custom' && <input type="text" placeholder="Describe how you want me to talk..." value={customPersonality} onChange={(e) => setCustomPersonality(e.target.value)} style={styles.personalityInput} />}
           <p style={styles.personalityHint}>You can change this anytime in Settings</p>
         </div>
       </div>
@@ -720,19 +943,13 @@ export default function App() {
     )
   }
 
+  // WELCOME OVERLAY — voice only, no options
   if (showWelcomeOverlay) {
     return (
       <div style={styles.welcomeOverlay}>
         <div style={styles.welcomeCard}>
-          {welcomeStep === 'greeting' && <div style={styles.welcomeBall}><RedBall isSpeaking={isAISpeaking} /></div>}
+          <div style={styles.welcomeBall}><RedBall isSpeaking={isAISpeaking} /></div>
           <div style={styles.welcomeMessageText}>{welcomeMessage}</div>
-          {welcomeStep === 'greeting' && (
-            <div style={styles.welcomeButtons}>
-              <button onClick={() => handleWelcomeDecision('notfine')} style={styles.welcomeBtnNotFine}>I'm not fine</button>
-              <button onClick={() => handleWelcomeDecision('fine')} style={styles.welcomeBtnFine}>I'm fine</button>
-            </div>
-          )}
-          {welcomeStep === 'decision' && <div style={styles.welcomeDecisionText}>Thank you for sharing. I'm here to help you.</div>}
         </div>
       </div>
     )
@@ -797,6 +1014,9 @@ export default function App() {
                 </button>
               ))}
             </div>
+            {aiPersonality === 'custom' && customStyle && (
+              <p style={styles.bgHint}>Learned style — Short: {customStyle.short ? 'yes' : 'no'}, Formal: {customStyle.formal ? 'yes' : 'no'}, Emoji: {customStyle.emoji ? 'yes' : 'no'}, Excited: {customStyle.excited ? 'yes' : 'no'} (from {customStyle.count} messages)</p>
+            )}
           </div>
           <div style={styles.settingsSection}>
             <h3 style={styles.settingsSectionTitle}>Background</h3>
@@ -809,7 +1029,7 @@ export default function App() {
           </div>
           <div style={styles.settingsSection}>
             <h3 style={styles.settingsSectionTitle}>About Overlay</h3>
-            <p style={styles.bgHint}>Browsers and WebView wrappers (AppCreator24, WebIntoApp, Median) <b>cannot</b> float over other apps. For a true overlay, build CYPHER4X as a native Android app (React Native + react-native-floating-bubble, Flutter + flutter_overlay_window, or Kotlin with SYSTEM_ALERT_WINDOW permission).</p>
+            <p style={styles.bgHint}>Download the App for the overlay Feature to work.</p>
           </div>
         </div>
         <button onClick={() => setShowSettings(false)} style={styles.settingsDoneFull}>Done</button>
@@ -987,7 +1207,7 @@ export default function App() {
                         <span style={{ fontWeight: msg.role === 'user' ? 'bold' : 'normal', color: msg.role === 'user' ? '#ddd' : '#ff003c' }}>{msg.role === 'user' ? profile?.name || 'You' : 'CYPHER4X'}</span>
                         <span style={styles.convTimePC}>{formatTime(msg.time)}</span>
                       </div>
-                      <span style={styles.convTextPC}>{msg.content}</span>
+                      <span style={styles.convTextPC}>{msg.content.length > 100 ? msg.content.slice(0, 100) + '…' : msg.content}</span>
                     </div>
                   ))}
                 </div>
@@ -1154,7 +1374,6 @@ const styles = {
   personalityIcon: { fontSize: '28px' },
   personalityLabel: { color: '#fff', fontWeight: 'bold', fontSize: '15px' },
   personalityDesc: { color: '#888', fontSize: '11px', textAlign: 'center' },
-  personalityInput: { width: '100%', padding: '12px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '16px' },
   personalityHint: { color: '#666', fontSize: '12px', marginTop: '12px', fontStyle: 'italic' },
 
   authModalOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.9)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' },
@@ -1180,10 +1399,6 @@ const styles = {
   welcomeCard: { backgroundColor: '#111', border: '2px solid #ff003c', borderRadius: '20px', padding: '40px 30px', maxWidth: '500px', width: '100%', textAlign: 'center' },
   welcomeBall: { width: '120px', height: '120px', margin: '0 auto 20px', position: 'relative' },
   welcomeMessageText: { color: '#fff', fontSize: '20px', lineHeight: '1.6', marginBottom: '24px', fontFamily: "'Courier New', monospace" },
-  welcomeButtons: { display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' },
-  welcomeBtnNotFine: { padding: '12px 24px', backgroundColor: '#880000', color: '#fff', border: '1px solid #ff003c', borderRadius: '30px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', flex: 1, minWidth: '120px' },
-  welcomeBtnFine: { padding: '12px 24px', backgroundColor: '#008800', color: '#fff', border: '1px solid #4f8', borderRadius: '30px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', flex: 1, minWidth: '120px' },
-  welcomeDecisionText: { color: '#ff6688', fontSize: '18px', fontStyle: 'italic', marginTop: '12px' },
 
   settingsFullscreen: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, height: '100dvh', backgroundColor: '#000', zIndex: 100000, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
   settingsHeaderFull: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #333', backgroundColor: '#0a0000', flexShrink: 0 },
@@ -1235,8 +1450,8 @@ const styles = {
   chatOverviewVoiceToggle: { background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '4px' },
   chatOverviewMessages: { flex: 1, minHeight: 0, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '8px', WebkitOverflowScrolling: 'touch' },
   chatOverviewEmpty: { color: '#666', textAlign: 'center', fontSize: '16px', marginTop: '40px' },
-  chatOverviewMsg: { maxWidth: '80%', padding: '10px 14px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative' },
-  chatOverviewMsgText: { color: '#fff', fontSize: '14px', wordBreak: 'break-word', whiteSpace: 'pre-wrap' },
+  chatOverviewMsg: { maxWidth: '85%', padding: '10px 14px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative' },
+  chatOverviewMsgText: { color: '#fff', fontSize: '14px', wordBreak: 'break-word', whiteSpace: 'pre-wrap', fontFamily: 'inherit' },
   chatOverviewMsgTime: { fontSize: '10px', color: '#888', alignSelf: 'flex-end' },
   chatOverviewInputRowRaised: { display: 'flex', gap: '8px', padding: '12px 16px', paddingBottom: 'max(30px, env(safe-area-inset-bottom, 50px))', backgroundColor: '#111', borderTop: '1px solid #333', flexShrink: 0, alignItems: 'center' },
   chatOverviewInput: { flex: 1, padding: '10px 14px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '20px', fontSize: '14px', outline: 'none' },
