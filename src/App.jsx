@@ -67,6 +67,9 @@ const VERSION = "v26"
 const VERSION_FULL = "CYPHER4X v26.0.0"
 const APP_START_TIME = Date.now()
 
+// NEW: Global flag to restrict all tools for everyone as requested
+const TOOLS_ENABLED = false 
+
 // ==================================================
 // STORAGE
 // ==================================================
@@ -491,6 +494,9 @@ export default function App() {
   const synthRef = useRef(typeof window !== 'undefined' ? window.speechSynthesis : null)
   const recognitionRef = useRef(null); const msgCounter = useRef(0)
   const fileInputRef = useRef(null); const bgInputRef = useRef(null); const chatEndRef = useRef(null)
+  
+  // NEW: Ref to track if we've greeted the user this session
+  const hasGreeted = useRef(false)
 
   const playBeep = useCallback((f = 800, d = 0.08) => {
     if (!settings.soundFx) return
@@ -597,7 +603,7 @@ export default function App() {
       loginUser(email, pin); setShowAuthModal(false)
     }
   }
-  const loginUser = (e, p) => { saveAuth(e, p); setUserMode('loggedin'); loadUserDataByEmail(e, p); setAuthError(''); setGuestMessageCount(0) }
+  const loginUser = (e, p) => { saveAuth(e, p); setUserMode('loggedin'); loadUserDataByEmail(e, p); setAuthError(''); setGuestMessageCount(0); hasGreeted.current = false }
   const loadUserDataByEmail = (e, p) => {
     const d = loadUserData(e, p)
     if (d) {
@@ -620,17 +626,47 @@ export default function App() {
     if (!confirm('Logout?')) return
     clearAuth(); setUserMode('guest'); setProfile(null); setChats([{ id: 'default-' + Date.now(), title: 'Chat 1', messages: [], createdAt: Date.now() }])
     setCommandHistory([]); setSidebarOpen(false); setGuestMessageCount(0); setShowWelcomeOverlay(false); setShowAuthModal(false); msgCounter.current = 0
+    hasGreeted.current = false // Reset greeting for next session
   }
   const incrementGuestMessage = () => { if (userMode !== 'guest') return; const n = guestMessageCount + 1; setGuestMessageCount(n); if (n >= 5) setShowGuestLimit(true) }
 
-  // RESTRICTION — block tools for guests
+  // RESTRICTION — block tools entirely as requested
   const requireLogin = (featureName) => {
+    // 1. Block all users from tools until the flag is turned on
+    if (!TOOLS_ENABLED) {
+      alert(`🔒 ${featureName} is not yet available.\n\nWe are working hard to bring this to you soon!`)
+      return false
+    }
+    // 2. Existing restriction for guests (will apply once tools are enabled)
     if (settings.restrictTools && userMode !== 'loggedin') {
       alert(`🔒 ${featureName} is restricted.\n\nPlease login or sign up to access this feature.`)
       return false
     }
     return true
   }
+
+  // NEW: AI GREETING LOGIC
+  useEffect(() => {
+    if (!isBooting && !isEnteringAI && !hasGreeted.current && activeChatId) {
+      hasGreeted.current = true
+      const name = profile?.name || (userMode === 'guest' ? 'Guest' : 'there')
+      const greeting = `Hello ${name}! 👋 I am CYPHER4X, your advanced AI assistant. How can I help you today?`
+      
+      // Add message to the active chat (shows in both Mini Chat and Overview)
+      setConversation(prev => {
+        // Only add if the chat is empty to prevent duplicate greetings on reload if they cleared history
+        if (prev.length === 0) {
+          return [{ id: ++msgCounter.current, role: 'assistant', content: greeting, time: Date.now() }]
+        }
+        return prev
+      })
+
+      // Speak the greeting if enabled
+      if (settings.readAloud || settings.autoStartVoice) {
+        speakText(greeting)
+      }
+    }
+  }, [isBooting, isEnteringAI, activeChatId, profile, userMode, settings.readAloud, settings.autoStartVoice, speakText])
 
   // CHAT MANAGEMENT
   const createNewChat = () => {
@@ -1180,15 +1216,13 @@ export default function App() {
         <button onClick={() => setShowSettings(false)} style={styles.settingsCloseFull}><Icon name="close" size={28} color="#fff" /></button>
       </div>
       <div style={styles.settingsBodyFull}>
+        
+        {/* REMOVED AI DASHBOARD FROM HERE - NOW ON HOME */}
+
         <div style={styles.settingsSection}>
-          <h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>AI Dashboard</h3>
-          <div style={styles.dashGrid}>
-            <div style={styles.dashTile}><Icon name="calendar" size={20} color={theme.primary} /><div style={styles.dashTileLabel}>Date</div><div style={styles.dashTileValue}>{dash.date}</div></div>
-            <div style={styles.dashTile}><Icon name="clock" size={20} color={theme.primary} /><div style={styles.dashTileLabel}>Time</div><div style={styles.dashTileValue}>{dash.time}</div></div>
-            <div style={styles.dashTile}><Icon name="sun" size={20} color={theme.primary} /><div style={styles.dashTileLabel}>Day</div><div style={styles.dashTileValue}>{dash.day}</div></div>
-            <div style={styles.dashTile}><Icon name="zap" size={20} color={theme.primary} /><div style={styles.dashTileLabel}>Temperature</div><div style={styles.dashTileValue}>{dash.temp || 'Enable location'}</div></div>
-          </div>
-          <div style={styles.settingItem}><span>Location (weather)</span><label className="toggle-switch"><input type="checkbox" checked={settings.locationEnabled} onChange={(e) => setSettings({ ...settings, locationEnabled: e.target.checked })} /><span className="toggle-slider"></span></label></div>
+          <h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Location Services</h3>
+          <div style={styles.settingItem}><span>Enable Location (Weather)</span><label className="toggle-switch"><input type="checkbox" checked={settings.locationEnabled} onChange={(e) => setSettings({ ...settings, locationEnabled: e.target.checked })} /><span className="toggle-slider"></span></label></div>
+          <p style={styles.bgHint}>Allows the AI to fetch local weather and display it on the Home screen.</p>
         </div>
 
         <div style={styles.settingsSection}>
@@ -1409,6 +1443,17 @@ export default function App() {
             <button onClick={() => setSidebarOpen(false)} style={styles.closeBtn}><Icon name="x" size={20} color="#888" /></button>
           </div>
 
+          {/* NEW: AI DASHBOARD IN MINI CHAT SIDEBAR */}
+          <div style={styles.sidebarSection}>
+            <h3 style={{...styles.sectionTitle, color: theme.primary, borderBottomColor: '#333'}}><Icon name="calendar" size={16} color={theme.primary} /> AI DASHBOARD</h3>
+            <div style={{...styles.statsCard, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6}}>
+              <span style={{fontSize: 11, color: '#ccc'}}>{dash.date}</span>
+              <span style={{fontSize: 11, color: theme.primary, fontWeight: 'bold'}}>{dash.time}</span>
+              <span style={{fontSize: 11, color: '#ccc'}}>{dash.day}</span>
+              {dash.temp && <span style={{fontSize: 11, color: theme.primary}}>{dash.temp}</span>}
+            </div>
+          </div>
+
           <div style={styles.sidebarSection}>
             <h3 style={{...styles.sectionTitle, color: theme.primary, borderBottomColor: '#333'}}><Icon name="desktop" size={16} color={theme.primary} /> VIEW MODE</h3>
             <div style={styles.settingRow}><span style={styles.settingLabel}>Android</span><button onClick={toggleView} style={styles.toggleBtn}>PC</button></div>
@@ -1428,10 +1473,6 @@ export default function App() {
               <div style={styles.statRow}><span style={styles.statLabel}><Icon name="hourglass" size={14} color="#888" /> Uptime</span><span style={{...styles.statValue, color: theme.primary}}>{fmtU(stats.uptime)}</span></div>
               <div style={styles.statRow}><span style={styles.statLabel}><Icon name="cpu" size={14} color="#888" /> CPU</span><span style={{...styles.statValue, color: theme.primary}}>{stats.cpuUsage}%</span></div>
               <div style={styles.statRow}><span style={styles.statLabel}><Icon name="memory" size={14} color="#888" /> RAM</span><span style={{...styles.statValue, color: theme.primary}}>{stats.ramUsage.toFixed(1)} GB</span></div>
-              <div style={styles.statRow}><span style={styles.statLabel}><Icon name="calendar" size={14} color="#888" /> Date</span><span style={{...styles.statValue, color: theme.primary}}>{dash.date}</span></div>
-              <div style={styles.statRow}><span style={styles.statLabel}><Icon name="clock" size={14} color="#888" /> Time</span><span style={{...styles.statValue, color: theme.primary}}>{dash.time}</span></div>
-              <div style={styles.statRow}><span style={styles.statLabel}><Icon name="sun" size={14} color="#888" /> Day</span><span style={{...styles.statValue, color: theme.primary}}>{dash.day}</span></div>
-              {dash.temp && <div style={styles.statRow}><span style={styles.statLabel}><Icon name="zap" size={14} color="#888" /> Temp</span><span style={{...styles.statValue, color: theme.primary}}>{dash.temp}</span></div>}
             </div>
           </div>
 
@@ -1509,6 +1550,15 @@ export default function App() {
             <button onClick={() => setShowSettings(true)} style={styles.settingsButtonTop}><Icon name="cog" size={20} color="#fff" /></button>
           </div>
         </div>
+
+        {/* NEW: AI DASHBOARD ON ANDROID HOME SCREEN */}
+        <div style={{ position: 'absolute', top: 70, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 12, backgroundColor: 'rgba(0,0,0,0.6)', padding: '6px 16px', borderRadius: 20, border: `1px solid ${hexA(theme.primary, 0.3)}`, zIndex: 10, backdropFilter: 'blur(5px)' }}>
+          <span style={{ color: theme.primary, fontSize: 11, fontWeight: 'bold' }}>{dash.date}</span>
+          <span style={{ color: '#fff', fontSize: 11 }}>{dash.time}</span>
+          <span style={{ color: '#ccc', fontSize: 11 }}>{dash.day}</span>
+          {dash.temp && <span style={{ color: theme.primary, fontSize: 11 }}>{dash.temp}</span>}
+        </div>
+
         <div style={styles.listeningContainer}>
           {isListening ? (<><div style={styles.listeningDot} /><span style={styles.listeningText}>Listening...</span>{interimTranscript && <span style={styles.interimText}>"{interimTranscript}"</span>}{interimTranscript && <button onClick={sendInterim} style={{...styles.sendInterimBtn, backgroundColor: theme.primary}} disabled={isProcessing}><Icon name="send" size={16} color="#fff" /><span>Send</span></button>}</>) : isProcessing ? <span style={styles.listeningText}>Processing...</span> : isRecording ? (<><div style={{ ...styles.listeningDot, backgroundColor: theme.primary, boxShadow: `0 0 20px ${theme.primary}` }} /><span style={styles.listeningText}>Recording...</span>{interimTranscript && <span style={styles.interimText}>"{interimTranscript}"</span>}</>) : null}
         </div>
@@ -1549,6 +1599,8 @@ export default function App() {
             <div style={styles.pcSidebarRow}><span>RAM</span><span>{stats.ramUsage.toFixed(1)} GB</span></div>
             <div style={styles.pcSidebarRow}><span>Uptime</span><span>{fmtU(stats.uptime)}</span></div>
           </div>
+          
+          {/* NEW: AI DASHBOARD ON PC HOME SIDEBAR */}
           <div style={styles.pcSidebarSection}>
             <h3 style={{...styles.pcSidebarTitle, color: theme.primary}}><Icon name="calendar" size={16} color={theme.primary} /> DASHBOARD</h3>
             <div style={styles.pcSidebarRow}><span>Date</span><span>{dash.date}</span></div>
@@ -1556,6 +1608,7 @@ export default function App() {
             <div style={styles.pcSidebarRow}><span>Day</span><span>{dash.day}</span></div>
             {dash.temp && <div style={styles.pcSidebarRow}><span>Temp</span><span>{dash.temp}</span></div>}
           </div>
+
           <div style={styles.pcSidebarSection}>
             <h3 style={{...styles.pcSidebarTitle, color: theme.primary}}><Icon name="chat" size={16} color={theme.primary} /> CHATS</h3>
             <button onClick={createNewChat} style={styles.sidebarBtnPC}><Icon name="plus" size={14} color="#fff" /> New Chat</button>
@@ -1808,4 +1861,4 @@ const styles = {
   commandActionsPC: { display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   sidebarBtnPC: { padding: '5px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
   logoutBtnPC: { padding: '5px 10px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
-}
+    }
