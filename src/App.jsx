@@ -505,6 +505,7 @@ export default function App() {
   const vibrate = useCallback((p = 10) => { if (!settings.haptic) return; try { navigator.vibrate && navigator.vibrate(p) } catch {} }, [settings.haptic])
 
   // BOOT
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (!isBooting) return
     const title = 'CYPHER4X', credit = 'Created by Hackers Hub led by Crypty'
@@ -535,7 +536,8 @@ export default function App() {
       }
     }, 100)
     return () => clearInterval(iv)
-  }, [isBooting, settings.welcomeEnabled])
+  }, [isBooting])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   // ENTRY OVERLAY — 12s
   useEffect(() => {
@@ -646,6 +648,7 @@ export default function App() {
   }
 
   // AI GREETING LOGIC
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (!isBooting && !isEnteringAI && !hasGreeted.current && activeChatId) {
       hasGreeted.current = true
@@ -666,7 +669,8 @@ export default function App() {
         speakText(greeting)
       }
     }
-  }, [isBooting, isEnteringAI, activeChatId, profile, userMode, settings.readAloud, settings.autoStartVoice, speakText])
+  }, [isBooting, isEnteringAI, activeChatId])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   // CHAT MANAGEMENT
   const createNewChat = () => {
