@@ -39,7 +39,6 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     copy: 'M8 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1M8 5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2V5zm4 2h4m-4 4h4',
     pause: 'M6 4h4v16H6V4zm8 0h4v16h-4V4z',
     play: 'M5 3l14 9-14 9V3z',
-    terminal: 'M4 17l6-6-6-6M12 19h8',
     sparkles: 'M12 3l1.9 5.8L20 10l-6.1 1.2L12 17l-1.9-5.8L4 10l6.1-1.2L12 3z',
     refresh: 'M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15',
   }
@@ -70,66 +69,46 @@ const getLastWelcomeDate = () => { try { return localStorage.getItem('cypher4x_w
 const setLastWelcomeDate = (date) => { try { localStorage.setItem('cypher4x_welcome_date', date) } catch {} }
 
 const isMobileDevice = () => /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
-const isAndroid = () => /Android/i.test(navigator.userAgent)
 
-// ============ APP DEEP-LINK SYSTEM (universal links work without user gesture) ============
 const APP_MAP = {
-  whatsapp:  { universal: 'https://wa.me/',                        web: 'https://web.whatsapp.com',      scheme: 'whatsapp://send',    intentPackage: 'com.whatsapp',             name: 'WhatsApp' },
-  instagram: { universal: 'https://instagram.com/',                web: 'https://instagram.com',         scheme: 'instagram://app',    intentPackage: 'com.instagram.android',    name: 'Instagram' },
-  facebook:  { universal: 'https://facebook.com/',                 web: 'https://facebook.com',          scheme: 'fb://',              intentPackage: 'com.facebook.katana',      name: 'Facebook' },
-  twitter:   { universal: 'https://twitter.com/',                  web: 'https://twitter.com',           scheme: 'twitter://',         intentPackage: 'com.twitter.android',      name: 'Twitter' },
-  telegram:  { universal: 'https://t.me/',                         web: 'https://web.telegram.org',      scheme: 'tg://',              intentPackage: 'org.telegram.messenger',   name: 'Telegram' },
-  youtube:   { universal: 'https://youtube.com/',                  web: 'https://youtube.com',           scheme: 'vnd.youtube://',     intentPackage: 'com.google.android.youtube', name: 'YouTube' },
-  spotify:   { universal: 'https://open.spotify.com/',             web: 'https://open.spotify.com',      scheme: 'spotify://',         intentPackage: 'com.spotify.music',        name: 'Spotify' },
-  gmail:     { universal: 'https://mail.google.com/',              web: 'https://mail.google.com',       scheme: 'googlegmail://',     intentPackage: 'com.google.android.gm',    name: 'Gmail' },
-  maps:      { universal: 'https://maps.google.com/',              web: 'https://maps.google.com',       scheme: 'geo:',               intentPackage: 'com.google.android.apps.maps', name: 'Maps' },
-  netflix:   { universal: 'https://netflix.com/',                  web: 'https://netflix.com',           scheme: 'nflx://',            intentPackage: 'com.netflix.mediaclient',  name: 'Netflix' },
-  linkedin:  { universal: 'https://linkedin.com/',                 web: 'https://linkedin.com',          scheme: 'linkedin://',        intentPackage: 'com.linkedin.android',     name: 'LinkedIn' },
-  reddit:    { universal: 'https://reddit.com/',                   web: 'https://reddit.com',            scheme: 'reddit://',          intentPackage: 'com.reddit.frontpage',     name: 'Reddit' },
-  tiktok:    { universal: 'https://tiktok.com/',                   web: 'https://tiktok.com',            scheme: 'snssdk1233://',      intentPackage: 'com.zhiliaoapp.musically', name: 'TikTok' },
-  amazon:    { universal: 'https://amazon.com/',                   web: 'https://amazon.com',            scheme: null,                 intentPackage: 'com.amazon.mShop.android.shopping', name: 'Amazon' },
-  wikipedia: { universal: 'https://wikipedia.org/',                web: 'https://wikipedia.org',         scheme: null,                 intentPackage: null,                        name: 'Wikipedia' },
-  github:    { universal: 'https://github.com/',                   web: 'https://github.com',            scheme: null,                 intentPackage: null,                        name: 'GitHub' },
+  whatsapp:  { universal: 'https://wa.me/',                        web: 'https://web.whatsapp.com',      name: 'WhatsApp' },
+  instagram: { universal: 'https://instagram.com/',                web: 'https://instagram.com',         name: 'Instagram' },
+  facebook:  { universal: 'https://facebook.com/',                 web: 'https://facebook.com',          name: 'Facebook' },
+  twitter:   { universal: 'https://twitter.com/',                  web: 'https://twitter.com',           name: 'Twitter' },
+  telegram:  { universal: 'https://t.me/',                         web: 'https://web.telegram.org',      name: 'Telegram' },
+  youtube:   { universal: 'https://youtube.com/',                  web: 'https://youtube.com',           name: 'YouTube' },
+  spotify:   { universal: 'https://open.spotify.com/',             web: 'https://open.spotify.com',      name: 'Spotify' },
+  gmail:     { universal: 'https://mail.google.com/',              web: 'https://mail.google.com',       name: 'Gmail' },
+  maps:      { universal: 'https://maps.google.com/',              web: 'https://maps.google.com',       name: 'Maps' },
+  netflix:   { universal: 'https://netflix.com/',                  web: 'https://netflix.com',           name: 'Netflix' },
+  linkedin:  { universal: 'https://linkedin.com/',                 web: 'https://linkedin.com',          name: 'LinkedIn' },
+  reddit:    { universal: 'https://reddit.com/',                   web: 'https://reddit.com',            name: 'Reddit' },
+  tiktok:    { universal: 'https://tiktok.com/',                   web: 'https://tiktok.com',            name: 'TikTok' },
+  amazon:    { universal: 'https://amazon.com/',                   web: 'https://amazon.com',            name: 'Amazon' },
+  wikipedia: { universal: 'https://wikipedia.org/',                web: 'https://wikipedia.org',         name: 'Wikipedia' },
+  github:    { universal: 'https://github.com/',                   web: 'https://github.com',            name: 'GitHub' },
 }
 
-// Opens an app using universal link (most reliable — no user gesture required)
 const openApp = (appKey, extraPath = '') => {
   const app = APP_MAP[appKey]
   if (!app) return `I don't have "${appKey}" registered. Try WhatsApp, Instagram, YouTube, etc.`
-
-  // 1. Universal link — works in mobile & desktop browsers (falls back to web)
   const universalUrl = app.universal + extraPath
-  const isMob = isMobileDevice()
-
-  if (isMob) {
-    // Try opening via a NEW TAB — this prevents current page from being replaced
-    // and browsers permit the universal link to hand off to the native app.
+  if (isMobileDevice()) {
     const w = window.open(universalUrl, '_blank', 'noopener,noreferrer')
     if (!w) {
-      // Popup blocked — fall back to same-tab navigation (still user-gesture-safe via anchor trick)
       const a = document.createElement('a')
-      a.href = universalUrl
-      a.target = '_blank'
-      a.rel = 'noopener noreferrer'
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
+      a.href = universalUrl; a.target = '_blank'; a.rel = 'noopener noreferrer'
+      document.body.appendChild(a); a.click(); document.body.removeChild(a)
     }
     return `Opening ${app.name}... If the app doesn't open, install it from your app store.`
   }
-
-  // Desktop → open web version
   window.open(app.web, '_blank', 'noopener,noreferrer')
   return `Opening ${app.name} in your browser...`
 }
 
-// WhatsApp group — universal link opens app; group cannot be auto-targeted (WhatsApp privacy)
 const openWhatsAppGroup = (groupName) => {
-  const isMob = isMobileDevice()
   const text = `Looking for group: ${groupName}`
-
-  if (isMob) {
-    // Universal link — opens app if installed, else web
+  if (isMobileDevice()) {
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`
     const w = window.open(url, '_blank', 'noopener,noreferrer')
     if (!w) {
@@ -138,25 +117,17 @@ const openWhatsAppGroup = (groupName) => {
     }
     return `Opening WhatsApp. Tap the search icon and type "${groupName}" to open your group — WhatsApp doesn't allow deep-linking to a specific group for privacy.`
   }
-
   window.open('https://web.whatsapp.com', '_blank', 'noopener,noreferrer')
   return `WhatsApp Web opened. Search for "${groupName}" in your chat list.`
 }
 
 const TRUSTED_DOMAINS = ['wikipedia.org','britannica.com','gov','edu','who.int','un.org','nature.com','science.org','nasa.gov','nih.gov','cdc.gov','bbc.com','reuters.com','apnews.com','nytimes.com','theguardian.com','github.com','stackoverflow.com','mozilla.org','w3.org','ietf.org','developer.mozilla.org','python.org','reactjs.org','nodejs.org']
-const isTrustedDomain = (url) => {
-  if (!url) return false
-  try { const host = new URL(url).hostname.toLowerCase(); return TRUSTED_DOMAINS.some(d => host.includes(d)) } catch { return false }
-}
+const isTrustedDomain = (url) => { if (!url) return false; try { const host = new URL(url).hostname.toLowerCase(); return TRUSTED_DOMAINS.some(d => host.includes(d)) } catch { return false } }
 
 const searchWeb = async (query) => {
   if (!TAVILY_API_KEY) return { error: "Tavily API key not configured." }
   try {
-    const res = await fetch(TAVILY_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${TAVILY_API_KEY}` },
-      body: JSON.stringify({ query, search_depth: "advanced", include_answer: true, include_images: false, max_results: 6 })
-    })
+    const res = await fetch(TAVILY_URL, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${TAVILY_API_KEY}` }, body: JSON.stringify({ query, search_depth: "advanced", include_answer: true, include_images: false, max_results: 6 }) })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
     const results = data.results || []
@@ -165,53 +136,13 @@ const searchWeb = async (query) => {
   } catch (error) { return { error: error.message } }
 }
 
-const openAnonymousSearch = (query) => {
-  const url = `https://duckduckgo.com/?q=${encodeURIComponent(query)}&kae=d&kp=-2`
-  window.open(url, '_blank', 'noopener,noreferrer')
-}
+const openAnonymousSearch = (query) => { window.open(`https://duckduckgo.com/?q=${encodeURIComponent(query)}&kae=d&kp=-2`, '_blank', 'noopener,noreferrer') }
 
 const isCodeRequest = (query) => {
   const q = query.toLowerCase()
   const codeKeywords = ['generate code','write code','create code','make code','build code','code for','code to','function in','javascript','python','react','html','css','java','c++','sql','node','bash','shell','code snippet','program','script','algorithm']
   return codeKeywords.some(k => q.includes(k))
 }
-
-const runTerminalCommand = (cmd) => {
-  const parts = cmd.trim().split(/\s+/)
-  const base = parts[0]?.toLowerCase()
-  const args = parts.slice(1)
-  switch (base) {
-    case 'help': return `CYPHER4X Terminal — commands:
-  help              Show this help
-  clear             Clear screen
-  date              Current date & time
-  whoami            Current user
-  echo <text>       Print text
-  calc <expr>       Calculate (e.g. calc 2+2*3)
-  ls / pwd          Files (simulated)
-  open <site>       Open website
-  search <term>     Anonymous web search
-  ping <host>       Simulated ping
-  fortune           Random fortune
-  neofetch          System info
-  weather           Open weather`
-    case 'clear': return '__CLEAR__'
-    case 'date': return new Date().toString()
-    case 'whoami': return 'guest@cypher4x'
-    case 'echo': return args.join(' ')
-    case 'pwd': return '/home/cypher4x'
-    case 'ls': return 'Documents  Downloads  Pictures  Projects  README.md  cypher4x.config'
-    case 'calc': try { return String(Function(`"use strict"; return (${args.join(' ')})`)()) } catch { return 'Error: invalid expression' }
-    case 'open': if (args[0]) { window.open(`https://${args[0]}`, '_blank', 'noopener,noreferrer'); return `Opening https://${args[0]}...` } return 'Usage: open <site>'
-    case 'search': if (args.length) { openAnonymousSearch(args.join(' ')); return `Searching: ${args.join(' ')}` } return 'Usage: search <term>'
-    case 'fortune': { const f = ['You will write excellent code today.','A bug is just a feature in disguise.','Simplicity is the ultimate sophistication.','Talk is cheap. Show me the code.']; return f[Math.floor(Math.random()*f.length)] }
-    case 'neofetch': return `   CYPHER4X Web ${VERSION}\n   Shell: csh 1.0\n   Terminal: Web-TTY\n   Uptime: ${formatUptimeStr(stats?.uptime||0)}`
-    case 'ping': return args[0] ? `PING ${args[0]} (simulated): 4 packets transmitted, 4 received, 0% loss` : 'Usage: ping <host>'
-    case 'weather': window.open('https://www.google.com/search?q=weather','_blank','noopener,noreferrer'); return 'Opening weather...'
-    default: return `csh: command not found: ${base}. Type 'help' for commands.`
-  }
-}
-const formatUptimeStr = (seconds) => `${Math.floor(seconds/3600)}h ${Math.floor((seconds%3600)/60)}m ${seconds%60}s`
 
 const AI_ABILITIES = [
   { icon: '🌐', title: 'Web Search', desc: 'Search the internet for any information' },
@@ -221,7 +152,6 @@ const AI_ABILITIES = [
   { icon: '🧮', title: 'Calculations', desc: 'Compute math expressions' },
   { icon: '⏰', title: 'Time & Date', desc: 'Get current time and date' },
   { icon: '💻', title: 'Code Generation', desc: 'Generate JavaScript, Python, and more' },
-  { icon: '⌨️', title: 'Terminal', desc: 'Run simulated shell commands' },
   { icon: '🎵', title: 'Play Media', desc: 'Open YouTube or Spotify with your query' },
   { icon: '🗣️', title: 'Voice Control', desc: 'Speak to CYPHER4X hands-free' },
   { icon: '🎨', title: 'Custom Background', desc: 'Personalise your CYPHER4X screen' },
@@ -302,9 +232,6 @@ export default function App() {
   const [events] = useState([])
   const [reminders] = useState([])
 
-  const [showTerminal, setShowTerminal] = useState(false)
-  const [terminalLines, setTerminalLines] = useState([{ type: 'info', text: 'CYPHER4X Terminal v1.0 — type "help" for commands' }])
-  const [terminalInput, setTerminalInput] = useState('')
   const [showAbilities, setShowAbilities] = useState(false)
   const [overlayActive, setOverlayActive] = useState(false)
   const [overlayListening, setOverlayListening] = useState(false)
@@ -315,10 +242,7 @@ export default function App() {
   const msgCounter = useRef(0)
   const fileInputRef = useRef(null)
   const bgInputRef = useRef(null)
-  const terminalEndRef = useRef(null)
-  const terminalInputRef = useRef(null)
 
-  // BOOT TYPEWRITER
   useEffect(() => {
     if (!isBooting) return
     const title = "CYPHER4X"
@@ -356,8 +280,6 @@ export default function App() {
     }, 100)
     return () => clearInterval(interval)
   }, [isBooting, settings.welcomeEnabled])
-
-  useEffect(() => { terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [terminalLines])
 
   const handleAuthSubmit = () => {
     if (!email || !pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) { setAuthError("Please enter a valid email and 4-digit PIN."); return }
@@ -449,11 +371,9 @@ export default function App() {
   const executeCommand = (query) => {
     const lower = query.toLowerCase().trim()
 
-    // WhatsApp group with "and open my group named X"
     const waGroupMatch = lower.match(/(?:open\s+)?(?:my\s+)?whatsapp.*group(?:\s+named)?\s+(.+)/i)
     if (waGroupMatch) return { response: openWhatsAppGroup(waGroupMatch[1].trim()) }
 
-    // "open my WhatsApp" / "open WhatsApp" / "open Instagram" etc.
     const appMatch = lower.match(/^open\s+(?:my\s+)?(whatsapp|instagram|facebook|twitter|telegram|youtube|spotify|gmail|maps|netflix|linkedin|reddit|tiktok|amazon|wikipedia|github)(?:\s+and\s+open\s+my\s+group\s+named\s+(.+))?$/)
     if (appMatch) {
       const appKey = appMatch[1]
@@ -462,11 +382,9 @@ export default function App() {
       return { response: openApp(appKey) }
     }
 
-    // Bare keyword: "open WhatsApp" without anchor
     const bareApp = lower.match(/^(?:open\s+)?(whatsapp|instagram|youtube|telegram|spotify|facebook|twitter|tiktok)$/)
     if (bareApp) return { response: openApp(bareApp[1]) }
 
-    // Secret / anonymous
     if ((lower.startsWith('secret ') || lower.startsWith('anonymous ')) && settings.secretMode) {
       const term = query.replace(/^(secret|anonymous)\s+/i, '')
       openAnonymousSearch(term)
@@ -690,16 +608,6 @@ export default function App() {
   const resetBackground = () => { setBackgroundImage(null); if (bgInputRef.current) bgInputRef.current.value = '' }
   const toggleView = useCallback(() => { setViewMode(prev => { const n = prev === 'android' ? 'pc' : 'android'; if (n === 'pc') setShowRotateOverlay(true); return n }); setSidebarOpen(false) }, [])
 
-  const submitTerminal = (e) => {
-    e.preventDefault()
-    if (!terminalInput.trim()) return
-    const cmd = terminalInput.trim()
-    const out = runTerminalCommand(cmd)
-    if (out === '__CLEAR__') setTerminalLines([{ type: 'info', text: 'Terminal cleared.' }])
-    else setTerminalLines(prev => [...prev, { type: 'cmd', text: `$ ${cmd}` }, { type: 'out', text: out }])
-    setTerminalInput('')
-  }
-
   const toggleOverlay = () => {
     const newState = !overlayActive; setOverlayActive(newState)
     if (newState) {
@@ -761,7 +669,6 @@ export default function App() {
   const formatUptime = (s) => `${Math.floor(s/3600).toString().padStart(2,'0')}:${Math.floor((s%3600)/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`
   const formatTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
-  // ==================== RENDER ====================
   if (isBooting) {
     return (
       <div style={styles.bootContainer}>
@@ -938,30 +845,6 @@ export default function App() {
     )
   }
 
-  // TERMINAL — fixed layout with visible input
-  if (showTerminal) {
-    return (
-      <div style={styles.terminalFullscreen}>
-        <div style={styles.terminalHeader}>
-          <button onClick={() => setShowTerminal(false)} style={styles.terminalBackBtn}><Icon name="arrowLeft" size={22} color="#fff" /> Back</button>
-          <span style={styles.terminalTitle}>csh — CYPHER4X</span>
-          <button onClick={() => { setTerminalLines([{ type: 'info', text: 'Terminal cleared.' }]); setTimeout(() => terminalInputRef.current?.focus(), 50) }} style={styles.terminalClearBtn}>Clear</button>
-        </div>
-        <div style={styles.terminalBody}>
-          {terminalLines.map((line, i) => (
-            <pre key={i} style={{ ...styles.terminalLine, color: line.type === 'cmd' ? '#4f8' : line.type === 'info' ? '#ff6688' : '#ddd', fontWeight: line.type === 'cmd' ? 'bold' : 'normal' }}>{line.text}</pre>
-          ))}
-          <div ref={terminalEndRef} />
-        </div>
-        <form onSubmit={submitTerminal} style={styles.terminalInputRow}>
-          <span style={styles.terminalPrompt}>$</span>
-          <input ref={terminalInputRef} value={terminalInput} onChange={(e) => setTerminalInput(e.target.value)} placeholder="Type a command (try: help)" style={styles.terminalInput} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" />
-          <button type="submit" style={styles.terminalSendBtn}><Icon name="send" size={16} color="#fff" /></button>
-        </form>
-      </div>
-    )
-  }
-
   if (showAbilities) {
     return (
       <div style={styles.abilitiesFullscreen}>
@@ -1071,7 +954,6 @@ export default function App() {
               <div style={styles.sidebarSection}>
                 <h3 style={styles.sectionTitle}><Icon name="sparkles" size={16} color="#ff003c" /> QUICK TOOLS</h3>
                 <button onClick={() => { setSidebarOpen(false); setShowAbilities(true) }} style={styles.toolBtn}><Icon name="sparkles" size={16} color="#fff" /> AI Abilities</button>
-                <button onClick={() => { setSidebarOpen(false); setShowTerminal(true) }} style={styles.toolBtn}><Icon name="terminal" size={16} color="#fff" /> Terminal</button>
                 <button onClick={() => { setSidebarOpen(false); setShowSettings(true) }} style={styles.toolBtn}><Icon name="cog" size={16} color="#fff" /> Settings</button>
               </div>
               <div style={styles.sidebarSection}>
@@ -1200,7 +1082,6 @@ export default function App() {
     )
   }
 
-  // PC VIEW
   return (
     <div style={styles.appPC}>
       <header style={styles.headerPC}>
@@ -1213,7 +1094,6 @@ export default function App() {
             <Icon name="phone" size={18} color={isFullscreenCall ? "#4f8" : "#ff003c"} /><span>{isFullscreenCall ? 'ACTIVE' : 'CALL'}</span>
           </button>
           <button onClick={() => setShowSettings(true)} style={styles.settingsBtnPC}><Icon name="cog" size={20} color="#fff" /></button>
-          <button onClick={() => setShowTerminal(true)} style={styles.settingsBtnPC}><Icon name="terminal" size={20} color="#fff" /></button>
           <button onClick={() => setShowAbilities(true)} style={styles.settingsBtnPC}><Icon name="sparkles" size={20} color="#fff" /></button>
           <button onClick={startRecording} disabled={isRecording || isProcessing || isFullscreenCall} style={{ ...styles.voiceBtnPC, ...(isRecording ? styles.voiceBtnPCActive : {}) }}>
             <Icon name="mic" size={20} color={isRecording ? "#fff" : "#ff003c"} />
@@ -1341,48 +1221,162 @@ const styles = {
   fullscreenTranscript: { color: '#ff6688', fontSize: '16px', fontStyle: 'italic', padding: '8px 20px', backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: '12px', maxWidth: '90%', textAlign: 'center', border: '1px solid rgba(255,0,60,0.2)', minHeight: '40px' },
   fullscreenMicBtn: { width: 'clamp(70px, 14vw, 100px)', height: 'clamp(70px, 14vw, 100px)', borderRadius: '50%', backgroundColor: '#ff003c', border: '3px solid #ff003c', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 60px rgba(255,0,60,0.4)' },
 
-  // ========== TERMINAL (FIXED — top/left/right/bottom for true mobile viewport) ==========
-  terminalFullscreen: {
-    position: 'fixed',
-    top: 0, left: 0, right: 0, bottom: 0,
-    height: '100dvh',
-    backgroundColor: '#0a0a0a',
-    zIndex: 100001,
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-  },
-  terminalHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '12px 16px',
-    backgroundColor: '#111',
-    borderBottom: '1px solid #333',
-    flexShrink: 0,
-    paddingTop: 'max(12px, env(safe-area-inset-top, 12px))',
-  },
-  terminalBackBtn: { background: 'none', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '15px' },
-  terminalTitle: { color: '#4f8', fontSize: '14px', fontFamily: "'Courier New', monospace", fontWeight: 'bold' },
-  terminalClearBtn: { background: 'none', border: '1px solid #333', color: '#888', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' },
-  terminalBody: {
-    flex: 1,
-    minHeight: 0,
-    overflowY: 'auto',
-    padding: '16px',
-    backgroundColor: '#000',
-    fontFamily: "'Courier New', monospace",
-    fontSize: '13px',
-    lineHeight: '1.5',
-    WebkitOverflowScrolling: 'touch',
-  },
-  terminalLine: { margin: '2px 0', whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
-  terminalInputRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '12px 16px',
-    paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
-    backgroundColor: '#111',
-    borderTop: '1px solid #333',
-    flexShrink: 0,
+  abilitiesFullscreen: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, height: '100dvh', backgroundColor: '#000', zIndex: 100001, display: 'flex', flexDirection: 'column' },
+  abilitiesBody: { flex: 1, minHeight: 0, overflowY: 'auto', padding: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '12px', WebkitOverflowScrolling: 'touch' },
+  abilityCard: { display: 'flex', alignItems: 'center', gap: '12px', padding: '14px', backgroundColor: '#111', border: '1px solid #333', borderRadius: '10px' },
+  abilityIcon: { fontSize: '26px', flexShrink: 0 },
+  abilityTitle: { color: '#fff', fontWeight: 'bold', fontSize: '15px', marginBottom: '2px' },
+  abilityDesc: { color: '#888', fontSize: '12px', lineHeight: '1.4' },
+
+  chatOverviewContainer: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, height: '100dvh', backgroundColor: '#000', zIndex: 99994, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
+  chatOverviewHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', backgroundColor: '#111', borderBottom: '1px solid #333', flexShrink: 0 },
+  chatOverviewBackBtn: { background: 'none', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', cursor: 'pointer' },
+  chatOverviewTitle: { color: '#ff003c', fontSize: '18px', fontWeight: 'bold' },
+  chatOverviewVoiceToggle: { background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '4px' },
+  chatOverviewMessages: { flex: 1, minHeight: 0, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '8px', WebkitOverflowScrolling: 'touch' },
+  chatOverviewEmpty: { color: '#666', textAlign: 'center', fontSize: '16px', marginTop: '40px' },
+  chatOverviewMsg: { maxWidth: '80%', padding: '10px 14px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative' },
+  chatOverviewMsgText: { color: '#fff', fontSize: '14px', wordBreak: 'break-word', whiteSpace: 'pre-wrap' },
+  chatOverviewMsgTime: { fontSize: '10px', color: '#888', alignSelf: 'flex-end' },
+  chatOverviewInputRowRaised: { display: 'flex', gap: '8px', padding: '12px 16px', paddingBottom: 'max(30px, env(safe-area-inset-bottom, 50px))', backgroundColor: '#111', borderTop: '1px solid #333', flexShrink: 0, alignItems: 'center' },
+  chatOverviewInput: { flex: 1, padding: '10px 14px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '20px', fontSize: '14px', outline: 'none' },
+  chatOverviewMicBtn: { background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '8px', borderRadius: '50%', backgroundColor: 'rgba(255,0,60,0.2)' },
+  chatOverviewAttachBtn: { background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '8px', borderRadius: '50%', backgroundColor: 'rgba(255,0,60,0.2)', display: 'flex', alignItems: 'center' },
+  chatOverviewSendBtn: { background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '8px', borderRadius: '50%', backgroundColor: '#ff003c', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  overviewBtn: { padding: '4px 12px', backgroundColor: '#1a3a3a', border: '1px solid #2a5a5a', borderRadius: '4px', color: '#fff', cursor: 'pointer', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' },
+  voiceControls: { display: 'flex', gap: '6px', alignItems: 'center' },
+  voiceTranscriptPreview: { position: 'absolute', bottom: '80px', left: '16px', right: '16px', backgroundColor: 'rgba(0,0,0,0.8)', padding: '8px 16px', borderRadius: '12px', color: '#ff6688', fontSize: '14px', fontStyle: 'italic', border: '1px solid rgba(255,0,60,0.3)', textAlign: 'center' },
+  msgActions: { display: 'flex', gap: '4px', justifyContent: 'flex-end', marginTop: '4px', opacity: 0.6 },
+  msgActionBtn: { background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: '4px' },
+
+  profileContainer: { backgroundColor: '#000', minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' },
+  profileCard: { width: '100%', maxWidth: '420px', backgroundColor: '#111', border: '2px solid #ff003c', borderRadius: '12px', padding: '28px' },
+  profileTitle: { color: '#ff003c', textAlign: 'center', marginBottom: '24px', fontSize: '22px' },
+  avatarUploadArea: { width: '130px', height: '130px', borderRadius: '50%', border: '3px dashed #ff003c', margin: '0 auto 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: '#1a1a1a' },
+  avatarPreview: { width: '100%', height: '100%', objectFit: 'cover' },
+  avatarIcon: { fontSize: '14px', color: '#ff003c', textAlign: 'center' },
+  inputGroup: { marginBottom: '18px' },
+  label: { color: '#ff003c', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' },
+  textInput: { width: '100%', padding: '14px', backgroundColor: '#000', border: '1px solid #ff003c', color: '#fff', borderRadius: '8px', fontSize: '15px', outline: 'none', boxSizing: 'border-box' },
+  bioInput: { width: '100%', minHeight: '80px', padding: '14px', backgroundColor: '#000', border: '1px solid #ff003c', color: '#fff', borderRadius: '8px', fontSize: '15px', outline: 'none', resize: 'vertical', boxSizing: 'border-box' },
+  profileBtnRow: { display: 'flex', gap: '12px', marginTop: '12px' },
+  createBtn: { flex: 1, padding: '14px', backgroundColor: '#ff003c', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer' },
+  cancelBtn: { padding: '14px 20px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '15px', cursor: 'pointer' },
+
+  sidebarOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 998 },
+  sidebar: { position: 'fixed', top: 0, left: 0, bottom: 0, width: '380px', maxWidth: '90vw', backgroundColor: '#0a0000', borderRight: '2px solid #ff003c', zIndex: 999, overflowY: 'auto', padding: '16px' },
+  sidebarHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', paddingBottom: '10px', borderBottom: '1px solid #333' },
+  sidebarTitle: { color: '#ff003c', fontSize: '18px', fontWeight: 'bold', margin: 0, fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '8px' },
+  closeBtn: { backgroundColor: 'transparent', border: 'none', color: '#888', fontSize: '20px', cursor: 'pointer', padding: '4px', display: 'flex' },
+  sidebarSection: { marginBottom: '12px' },
+  sectionTitle: { color: '#ff003c', fontSize: '14px', margin: '0 0 8px 0', paddingBottom: '4px', borderBottom: '1px solid #333', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '6px' },
+  settingRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' },
+  settingLabel: { fontSize: '13px', color: '#ddd' },
+  settingValue: { fontSize: '13px', color: '#ff6688' },
+  toggleBtn: { padding: '4px 12px', borderRadius: '3px', border: 'none', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', backgroundColor: '#333', color: '#fff' },
+  toolBtn: { padding: '8px 12px', backgroundColor: '#1a1a1a', color: '#fff', border: '1px solid #333', borderRadius: '6px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 'bold' },
+  statsCard: { border: '1px solid #ff003c40', borderRadius: '6px', padding: '10px 12px', backgroundColor: '#0a0a0a' },
+  statRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 0', fontSize: '12px' },
+  statLabel: { color: '#aaa', display: 'flex', alignItems: 'center', gap: '4px' },
+  statValue: { color: '#ff6688', fontWeight: '500' },
+  profileCardSidebar: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' },
+  profileAvatarWrapper: { flexShrink: 0 },
+  profileAvatar: { width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #ff003c' },
+  profileAvatarPlaceholder: { width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#ff003c', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '18px', fontWeight: 'bold' },
+  profileInfo: { display: 'flex', flexDirection: 'column' },
+  profileName: { color: '#fff', fontWeight: 'bold', fontSize: '14px' },
+  profileHandle: { color: '#888', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '2px' },
+  sidebarBtn: { padding: '6px 12px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' },
+  dangerBtn: { padding: '6px 12px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' },
+  logoutBtn: { padding: '6px 12px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' },
+
+  topRightButtons: { display: 'flex', gap: '8px', alignItems: 'center' },
+  settingsButtonTop: { backgroundColor: 'rgba(0,0,0,0.6)', border: '2px solid #333', borderRadius: '30px', padding: '6px 12px', display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#fff' },
+  settingsBtnPC: { backgroundColor: 'rgba(0,0,0,0.6)', border: '1px solid #333', borderRadius: '16px', padding: '4px 10px', display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#fff' },
+
+  floatingBtn: { position: 'absolute', bottom: '150px', right: '25px', width: '56px', height: '56px', borderRadius: '50%', border: '2px solid', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.5)', transition: 'all 0.3s ease' },
+
+  mainContentAndroid: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', height: '100dvh', margin: 0, padding: 0 },
+  backgroundAndroid: { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 0, background: 'radial-gradient(ellipse at center, #0a0000 0%, #000 100%)' },
+  ballContainer: { position: 'relative', width: '300px', height: '300px', pointerEvents: 'none', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  ball3DContainer: { perspective: '800px', transformStyle: 'preserve-3d' },
+  ball3D: { width: '180px', height: '180px', borderRadius: '50%', position: 'relative', transformStyle: 'preserve-3d', background: `radial-gradient(circle at 30% 25%, rgba(255, 200, 220, 0.9) 0%, transparent 45%), radial-gradient(circle at 40% 35%, #ff6688 0%, #ff3355 25%, #ff003c 50%, #990022 75%, #550011 100%)`, boxShadow: `inset -20px -20px 40px rgba(80, 0, 20, 0.8), inset 15px 15px 30px rgba(255, 180, 200, 0.4), 0 0 50px rgba(255, 0, 60, 0.5), 0 0 100px rgba(255, 0, 60, 0.3), 0 0 150px rgba(255, 0, 60, 0.15)`, animation: 'rotateGlobe 25s linear infinite' },
+  ball3DSpeaking: { boxShadow: `inset -20px -20px 40px rgba(80, 0, 20, 0.8), inset 15px 15px 30px rgba(255, 180, 200, 0.5), 0 0 80px rgba(255, 0, 60, 0.8), 0 0 150px rgba(255, 0, 60, 0.5), 0 0 220px rgba(255, 0, 60, 0.25)`, animation: 'rotateGlobe 25s linear infinite, ballPulse 1.2s ease-in-out infinite' },
+  ballHighlight: { position: 'absolute', top: '18%', left: '22%', width: '35%', height: '25%', borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(255,255,255,0.6) 0%, transparent 70%)', filter: 'blur(4px)', pointerEvents: 'none' },
+  ballInnerGlow: { position: 'absolute', top: '15%', left: '15%', width: '70%', height: '70%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,100,140,0.2) 0%, transparent 60%)', pointerEvents: 'none' },
+  ring1: { position: 'absolute', top: '50%', left: '50%', width: '240px', height: '240px', marginLeft: '-120px', marginTop: '-120px', borderRadius: '50%', border: '2px solid rgba(255,0,60,0.25)', animation: 'spinRing 12s linear infinite' },
+  ring2: { position: 'absolute', top: '50%', left: '50%', width: '280px', height: '280px', marginLeft: '-140px', marginTop: '-140px', borderRadius: '50%', border: '1px solid rgba(255,0,60,0.12)', animation: 'spinRing 18s linear infinite reverse' },
+  ring3: { position: 'absolute', top: '50%', left: '50%', width: '200px', height: '200px', marginLeft: '-100px', marginTop: '-100px', borderRadius: '50%', border: '1px dashed rgba(255,0,60,0.15)', animation: 'spinRing 8s linear infinite' },
+  faceTitleAndroid: { position: 'absolute', bottom: '35%', fontSize: 'clamp(42px, 6vw, 68px)', fontWeight: 'bold', color: '#ff003c', textShadow: '0 0 40px #ff003c, 0 0 80px #ff003c66, 0 0 120px #ff003c33', letterSpacing: '10px', textAlign: 'center', width: '100%', zIndex: 2, animation: 'pulseText 2.5s ease-in-out infinite', fontFamily: "'Courier New', monospace" },
+  topBarAndroid: { position: 'absolute', top: '20px', left: '20px', right: '20px', zIndex: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  callButtonTopRight: { backgroundColor: 'rgba(0,0,0,0.6)', border: '2px solid #ff003c', borderRadius: '30px', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#ff003c', fontSize: '14px', fontWeight: 'bold', letterSpacing: '1px' },
+  callLabelTop: { fontSize: '12px', fontWeight: 'bold', letterSpacing: '1px', color: '#fff' },
+  listeningContainer: { position: 'absolute', top: '90px', left: '50%', transform: 'translateX(-50%)', zIndex: 10, display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: 'rgba(0,0,0,0.5)', padding: '8px 20px', borderRadius: '30px', border: '1px solid rgba(255,0,60,0.2)', backdropFilter: 'blur(10px)', flexWrap: 'wrap', justifyContent: 'center' },
+  listeningDot: { width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#4f8', boxShadow: '0 0 20px #4f8', animation: 'pulseText 0.8s ease-in-out infinite' },
+  listeningText: { color: '#fff', fontSize: '16px', fontWeight: 'bold', letterSpacing: '2px', fontFamily: "'Courier New', monospace" },
+  interimText: { color: '#ff6688', fontSize: '14px', fontStyle: 'italic', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderLeft: '1px solid rgba(255,0,60,0.3)', paddingLeft: '12px' },
+  sendInterimBtn: { backgroundColor: '#ff003c', border: 'none', borderRadius: '20px', padding: '4px 14px', display: 'flex', alignItems: 'center', gap: '6px', color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' },
+  cancelInterimBtn: { backgroundColor: 'transparent', border: '1px solid #ff003c', borderRadius: '20px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '4px', color: '#ff003c', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' },
+  voiceButtonContainer: { position: 'absolute', bottom: '50px', left: '50%', transform: 'translateX(-50%)', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' },
+  voiceButton: { width: '90px', height: '90px', borderRadius: '50%', backgroundColor: '#1a1a1a', border: '3px solid #ff003c', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', boxShadow: '0 0 40px rgba(255,0,60,0.2)' },
+  voiceButtonActive: { backgroundColor: '#ff003c', borderColor: '#ff003c', boxShadow: '0 0 80px rgba(255,0,60,0.7)', animation: 'pulseGlow 1s ease-in-out infinite' },
+  voiceLabel: { color: '#fff', fontSize: '12px', fontWeight: 'bold', letterSpacing: '1px', marginTop: '4px' },
+  hamburgerBtn: { position: 'absolute', top: '25px', left: '25px', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', zIndex: 15, padding: '8px', borderRadius: '4px' },
+
+  appPC: { minHeight: '100vh', height: '100dvh', backgroundColor: '#000', color: '#e0e0e0', fontFamily: "'Segoe UI', 'Courier New', monospace", overflow: 'hidden', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '100vw' },
+  headerPC: { padding: '6px 12px', borderBottom: '1px solid rgba(255,0,60,0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, backgroundColor: '#0a0000', flexWrap: 'wrap', gap: '4px', minHeight: '44px' },
+  headerLeft: { display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' },
+  titlePC: { color: '#ff003c', margin: 0, fontSize: 'clamp(16px, 4vw, 22px)', fontWeight: 'bold', letterSpacing: '2px' },
+  versionBadgePC: { fontSize: '10px', color: '#ff6688', backgroundColor: '#ff003c20', padding: '2px 8px', borderRadius: '10px' },
+  headerRight: { display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' },
+  callBtnPC: { backgroundColor: 'rgba(0,0,0,0.6)', border: '1px solid #ff003c', borderRadius: '16px', padding: '3px 10px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: '#ff003c', fontSize: '11px', fontWeight: 'bold' },
+  callBtnPCActive: { borderColor: '#4f8', color: '#4f8' },
+  voiceBtnPC: { backgroundColor: 'rgba(0,0,0,0.6)', border: '1px solid #ff003c', borderRadius: '16px', padding: '3px 10px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: '#ff003c', fontSize: '11px', fontWeight: 'bold' },
+  voiceBtnPCActive: { backgroundColor: '#ff003c', color: '#fff', borderColor: '#ff003c' },
+  menuBtnPC: { backgroundColor: 'transparent', border: 'none', cursor: 'pointer', padding: '2px' },
+  pcLayout: { flex: 1, display: 'flex', flexDirection: 'row', overflow: 'hidden', width: '100%', height: '100%' },
+  pcSidebar: { width: 'clamp(180px, 30%, 280px)', backgroundColor: '#0a0a0a', overflowY: 'auto', padding: '8px 10px', flexShrink: 0, borderRight: '1px solid #333', height: '100%', boxSizing: 'border-box' },
+  pcSidebarSection: { marginBottom: '12px', borderBottom: '1px solid #1a1a1a', paddingBottom: '8px' },
+  pcSidebarTitle: { color: '#ff003c', fontSize: '12px', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold', letterSpacing: '0.5px' },
+  pcSidebarRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 0', fontSize: '11px', color: '#ccc' },
+  pcMain: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', backgroundColor: '#050505', overflow: 'hidden', height: '100%', padding: '10px' },
+  pcBallContainer: { position: 'relative', width: 'clamp(160px, 25vw, 300px)', height: 'clamp(160px, 25vw, 300px)', pointerEvents: 'none', marginBottom: '10px' },
+  pcListeningContainer: { display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(0,0,0,0.5)', padding: '4px 16px', borderRadius: '30px', border: '1px solid rgba(255,0,60,0.2)', backdropFilter: 'blur(10px)', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '90%' },
+  conversationLogPC: { maxHeight: '120px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '6px' },
+  convItemPC: { display: 'flex', flexDirection: 'column', padding: '4px 8px', backgroundColor: '#111', borderRadius: '4px', borderLeft: '2px solid #ff003c' },
+  convTextPC: { fontSize: '12px', color: '#ddd', wordBreak: 'break-word', marginTop: '2px' },
+  convTimePC: { fontSize: '9px', color: '#666', alignSelf: 'flex-end', marginTop: '2px' },
+  filePreviewPC: { marginTop: '4px' },
+  commandActionsPC: { display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' },
+  attachBtnPC: { padding: '3px 10px', backgroundColor: '#1a3a3a', color: '#fff', border: '1px solid #2a5a5a', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' },
+  commandHistoryPC: { maxHeight: '80px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '6px' },
+  cmdItemPC: { display: 'flex', gap: '6px', fontSize: '11px', color: '#aaa', padding: '2px 4px', borderBottom: '1px solid #111' },
+  cmdTimePC: { color: '#666', minWidth: '50px', fontSize: '10px' },
+  cmdTextPC: { color: '#ddd', wordBreak: 'break-word' },
+  dashBtnPC: { padding: '3px 10px', backgroundColor: '#222', color: '#fff', border: '1px solid #333', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' },
+  dashEmptyPC: { color: '#666', fontSize: '12px', textAlign: 'center', padding: '6px 0' },
+  eventTimePC: { color: '#ff6688', fontSize: '11px' },
+  sidebarOverlayPC: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 998 },
+  sidebarPC: { position: 'fixed', top: 0, right: 0, bottom: 0, width: '280px', maxWidth: '85vw', backgroundColor: '#0a0000', borderLeft: '2px solid #ff003c', zIndex: 999, overflowY: 'auto', padding: '16px' },
+  sidebarHeaderPC: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '8px', borderBottom: '1px solid #333' },
+  sidebarTitlePC: { color: '#ff003c', fontSize: '16px', fontWeight: 'bold', margin: 0, fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '6px' },
+  closeBtnPC: { backgroundColor: 'transparent', border: 'none', color: '#888', fontSize: '20px', cursor: 'pointer', padding: '4px', display: 'flex' },
+  sidebarSectionPC: { marginBottom: '16px' },
+  sectionTitlePC: { color: '#ff003c', fontSize: '13px', margin: '0 0 8px 0', paddingBottom: '4px', borderBottom: '1px solid #333', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '6px' },
+  settingRowPC: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' },
+  settingLabelPC: { fontSize: '12px', color: '#ddd' },
+  toggleBtnPC2: { padding: '4px 10px', borderRadius: '4px', border: '1px solid #ff003c', backgroundColor: 'transparent', color: '#ff003c', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' },
+  profileCardSidebarPC: { display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' },
+  profileAvatarWrapperPC: { flexShrink: 0 },
+  profileAvatarPC: { width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #ff003c' },
+  profileAvatarPlaceholderPC: { width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#ff003c', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '14px', fontWeight: 'bold' },
+  profileInfoPC: { display: 'flex', flexDirection: 'column' },
+  profileNamePC: { color: '#fff', fontWeight: 'bold', fontSize: '13px' },
+  profileHandlePC: { color: '#888', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '2px' },
+  sidebarBtnPC: { padding: '5px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '12px' },
+  dangerBtnPC: { padding: '5px 10px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '12px' },
+  logoutBtnPC: { padding: '5px 10px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '12px' },
+  inputRow: { display: 'flex', gap: '6px', marginTop: '4px', marginBottom: '6px' },
+  textInputSmall: { flex: 1, padding: '6px 10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '13px', outline: 'none' },
+  sendBtnSmall: { padding: '6px 12px', backgroundColor: '#ff003c', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+}
