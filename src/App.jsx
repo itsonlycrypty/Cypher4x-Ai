@@ -45,18 +45,19 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     download: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3',
     check: 'M20 6L9 17l-5-5',
     plus: 'M12 5v14M5 12h14',
-    globe: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20',
+    terminal: 'M4 17l6-6-6-6M12 19h8',
   }
   if (!p[name]) return null
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display:'inline-block', verticalAlign:'middle', flexShrink:0 }}><path d={p[name]} /></svg>
 }
 
 // ==================================================
-// CONFIG — API keys go on the SERVER only
+// CONFIG
 // ==================================================
 const TAVILY_API_KEY = "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"
 const TAVILY_URL = "https://api.tavily.com/search"
-const VERSION = "Version 26.0.0"
+const VERSION = "v25"
+const VERSION_FULL = "CYPHER4X v25.0.0"
 const APP_START_TIME = Date.now()
 
 // ==================================================
@@ -93,24 +94,21 @@ const isPureGreeting = (text) => {
 }
 
 // ==================================================
-// KNOWLEDGE BASE (abbreviated — same as before)
+// KNOWLEDGE
 // ==================================================
 const KNOWLEDGE = [
-  { match: /ethical hacking|penetration test|white ?hat|cyber ?security|cybersecurity|learn hacking/i, answer: `**Ethical Hacking — Learning Path**\n\nEthical hacking = finding vulnerabilities **legally and with permission**.\n\n**📚 Roadmap**\n1. **Networking** — TCP/IP, DNS, HTTP. Free: TryHackMe Pre-Security\n2. **Linux** — bash, permissions. Free: OverTheWire Bandit\n3. **Web** — HTML/CSS/JS, HTTP, cookies\n4. **Programming** — Python + Bash\n5. **Core security** — OWASP Top 10, crypto, auth\n6. **Labs** — TryHackMe, HackTheBox, PortSwigger\n7. **Certs** — CompTIA Security+ → CEH → OSCP\n\n**⚠️ Rules**\n• Only test systems you OWN or have permission for\n• Unauthorized access is illegal\n• Bug bounties: HackerOne, Bugcrowd\n\n**🧰 Tools:** Nmap, Wireshark, Burp Suite, Metasploit, John the Ripper\n\n💡 Open the **🔒 Cyber Lab** in the sidebar to practice.` },
-  { match: /(what is|explain|define) (javascript|js)\b/i, answer: `**JavaScript (JS)**\n\nHigh-level, interpreted language — the **only** one browsers natively run. Also runs on servers via **Node.js**.\n\n\`\`\`javascript\nconst greet = (name) => \`Hello, \${name}!\`\nconsole.log(greet('World'))\n\nasync function loadUser(id) {\n  const res = await fetch('/api/users/' + id)\n  if (!res.ok) throw new Error('HTTP ' + res.status)\n  return res.json()\n}\n\`\`\`\n\n**Ecosystem:** React, Vue, Next.js, Express.\n\n**Learn:** MDN, javascript.info.` },
-  { match: /(what is|explain|define) (python)\b/i, answer: `**Python**\n\nA high-level, readable language. #1 for **AI/ML, data science, automation**, and backend.\n\n\`\`\`python\nfrom dataclasses import dataclass\n\n@dataclass\nclass User:\n    id: int\n    name: str\n\nusers = [User(1, "Alice"), User(2, "Bob")]\nfor u in users:\n    print(f"Hello, {u.name}!")\n\`\`\`\n\n**Packages:** Django, Flask, PyTorch, pandas.\n\n**Learn:** python.org, Real Python.` },
-  { match: /(what is|explain) (react|react\.?js)/i, answer: `**React**\n\nA JavaScript library by Meta for building **user interfaces** from reusable components.\n\n\`\`\`jsx\nimport { useState, useEffect } from 'react'\n\nexport default function Counter() {\n  const [n, setN] = useState(0)\n  useEffect(() => { document.title = \`Count: \${n}\` }, [n])\n  return <button onClick={() => setN(n + 1)}>{n}</button>\n}\n\`\`\`\n\n**Learn:** react.dev.` },
-  { match: /(how (to|do i) )?(learn|study|start) (programming|coding|to code)/i, answer: `**How to Learn Programming**\n\n1. **Pick ONE language** — Python (easiest) or JavaScript (web)\n2. **Fundamentals** — variables, loops, functions, arrays\n3. **Practice** — freeCodeCamp, Exercism, Codewars\n4. **Build small projects** — calculator → todo → weather\n5. **Tools** — Git, CLI, VS Code\n6. **Go deeper** — DS&A, SQL, HTTP\n\n**Timeline:** 1 month basics, 6-12 months to junior.` },
-  { match: /(what is|explain) (ai|artificial intelligence)\b/i, answer: `**Artificial Intelligence**\n\n**Branches:** ML, Deep Learning, NLP, Computer Vision, RL, Generative AI.\n\n**Modern:** GPT-4/5, Claude, Gemini, Llama, Stable Diffusion.\n\n**How LLMs work:** tokenize → transformer layers → predict next token → repeat.` },
-  { match: /(what is|explain) (blockchain|bitcoin|crypto)\b/i, answer: `**Blockchain / Bitcoin / Crypto**\n\n**Blockchain** — distributed append-only ledger.\n**Bitcoin** — first crypto (2009), Proof of Work.\n**Ethereum** — programmable, smart contracts, Proof of Stake.\n\n**⚠️ Safety:** never share seed phrase, "guaranteed returns" = scam.` },
-  { match: /(what is|explain) (machine learning|ml)\b/i, answer: `**Machine Learning**\n\n**3 types:** Supervised, Unsupervised, Reinforcement.\n\n**Algorithms:** Linear Regression, Decision Trees, Random Forest, SVM, Neural Nets, K-Means.\n\n**Tools:** scikit-learn, PyTorch, TensorFlow.` },
-  { match: /(how (to|do i) )?(make|build|create) (a )?(website|web ?site|web app)/i, answer: `**Build a Website**\n\n**Fundamentals:** HTML (structure), CSS (style), JavaScript (logic).\n\n\`\`\`html\n<!DOCTYPE html>\n<html>\n<head><title>My Site</title></head>\n<body><h1>Hello, World!</h1></body>\n</html>\n\`\`\`\n\n**Deploy free:** Vercel, Netlify, GitHub Pages.` },
-  { match: /(what is|explain) (api|rest|restful)/i, answer: `**API / REST**\n\n**Verbs:** GET, POST, PUT, PATCH, DELETE\n**Status:** 2xx success, 4xx client error, 5xx server error\n\n\`\`\`bash\ncurl -X POST https://api.example.com/users \\\\\n  -H "Authorization: Bearer TOKEN" \\\\\n  -d '{"name":"Alice"}'\n\`\`\`` },
+  { match: /ethical hacking|penetration test|white ?hat|cyber ?security|cybersecurity|learn hacking/i, answer: `**Ethical Hacking — Learning Path**\n\nEthical hacking = finding vulnerabilities **legally and with permission**.\n\n**📚 Roadmap**\n1. **Networking** — TCP/IP, DNS, HTTP. TryHackMe Pre-Security\n2. **Linux** — bash, permissions. OverTheWire Bandit\n3. **Web** — HTML/CSS/JS, HTTP, cookies\n4. **Programming** — Python + Bash\n5. **Core security** — OWASP Top 10, crypto, auth\n6. **Labs** — TryHackMe, HackTheBox, PortSwigger\n7. **Certs** — CompTIA Security+ → CEH → OSCP\n\n**⚠️ Rules**\n• Only test systems you OWN or have permission for\n• Unauthorized access is illegal\n• Bug bounties: HackerOne, Bugcrowd\n\n**🧰 Tools:** Nmap, Wireshark, Burp Suite, Metasploit\n\n💡 Open the **🔒 Cyber Lab** to practice.` },
+  { match: /(what is|explain|define) (javascript|js)\b/i, answer: `**JavaScript (JS)**\n\nHigh-level, interpreted language — the **only** one browsers natively run. Also runs on servers via **Node.js**.\n\n\`\`\`javascript\nconst greet = (name) => \`Hello, \${name}!\`\nconsole.log(greet('World'))\n\`\`\`\n\n**Ecosystem:** React, Vue, Next.js, Express.` },
+  { match: /(what is|explain|define) (python)\b/i, answer: `**Python**\n\nA high-level, readable language. #1 for **AI/ML, data science, automation**.\n\n\`\`\`python\nfrom dataclasses import dataclass\n\n@dataclass\nclass User:\n    id: int\n    name: str\n\nfor u in [User(1, "Alice"), User(2, "Bob")]:\n    print(f"Hello, {u.name}!")\n\`\`\`\n\n**Packages:** Django, Flask, PyTorch, pandas.` },
+  { match: /(what is|explain) (react|react\.?js)/i, answer: `**React**\n\nA JavaScript library for building **user interfaces** from reusable components.\n\n\`\`\`jsx\nimport { useState, useEffect } from 'react'\n\nexport default function Counter() {\n  const [n, setN] = useState(0)\n  useEffect(() => { document.title = \`Count: \${n}\` }, [n])\n  return <button onClick={() => setN(n + 1)}>{n}</button>\n}\n\`\`\`\n\n**Learn:** react.dev` },
+  { match: /(how (to|do i) )?(learn|study|start) (programming|coding|to code)/i, answer: `**How to Learn Programming**\n\n1. **Pick ONE language** — Python or JavaScript\n2. **Fundamentals** — variables, loops, functions, arrays\n3. **Practice** — freeCodeCamp, Exercism, Codewars\n4. **Build small projects** — calculator → todo → weather\n5. **Tools** — Git, CLI, VS Code\n6. **Go deeper** — DS&A, SQL, HTTP\n\n**Timeline:** 1 month basics, 6-12 months to junior.` },
+  { match: /(what is|explain) (ai|artificial intelligence)\b/i, answer: `**Artificial Intelligence**\n\n**Branches:** ML, Deep Learning, NLP, CV, RL, Generative AI.\n\n**Modern:** GPT-4/5, Claude, Gemini, Llama, Stable Diffusion.\n\n**How LLMs work:** tokenize → transformer → predict next token → repeat.` },
+  { match: /(what is|explain) (machine learning|ml)\b/i, answer: `**Machine Learning**\n\n**3 types:** Supervised, Unsupervised, Reinforcement.\n\n**Algorithms:** Linear Regression, Decision Trees, Random Forest, SVM, Neural Nets, K-Means.` },
   { match: /^(hi|hello|hey|yo|sup|howdy)\b/i, answer: `Hey there! 👋 I'm CYPHER4X. What can I help you with today?` },
 ]
 
 // ==================================================
-// APP DEEP-LINK (abbreviated)
+// APP DEEP-LINK
 // ==================================================
 const APP_MAP = {
   whatsapp: { name:'WhatsApp', pkg:'com.whatsapp', scheme:'whatsapp', universal:'https://wa.me/', web:'https://web.whatsapp.com' },
@@ -167,7 +165,7 @@ const applyPersonality = (reply, p, cs) => {
 }
 
 // ==================================================
-// CODE GENERATION (abbreviated)
+// CODE GEN
 // ==================================================
 const detectLanguage = (t) => {
   const x = t.toLowerCase()
@@ -177,9 +175,9 @@ const detectLanguage = (t) => {
 }
 const generateLongCode = (lang, purpose, detail) => {
   const L = lang.toLowerCase()
-  if (L.includes('react')) return `Here's a complete React application for: **${purpose}**${detail ? ` (${detail})` : ''}\n\n\`\`\`jsx\nimport { useState, useEffect, useCallback } from 'react'\n\nfunction useLocalStorage(key, initial) {\n  const [v, setV] = useState(() => {\n    try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : initial } catch { return initial }\n  })\n  useEffect(() => { try { localStorage.setItem(key, JSON.stringify(v)) } catch {} }, [key, v])\n  return [v, setV]\n}\n\nexport default function App() {\n  const [items, setItems] = useLocalStorage('items', [])\n  const [input, setInput] = useState('')\n  const add = useCallback(() => { if (!input.trim()) return; setItems(p => [{ id: Date.now(), text: input, done: false }, ...p]); setInput('') }, [input, setItems])\n  const toggle = (id) => setItems(p => p.map(i => i.id === id ? { ...i, done: !i.done } : i))\n  return (\n    <div style={{ padding: 20 }}>\n      <h1>${purpose}</h1>\n      <input value={input} onChange={e => setInput(e.target.value)} />\n      <button onClick={add}>Add</button>\n      <ul>{items.map(i => <li key={i.id} onClick={() => toggle(i.id)}>{i.text}</li>)}</ul>\n    </div>\n  )\n}\n\`\`\`\n\n**Includes:** custom hook, CRUD, localStorage.`
-  if (L.includes('python')) return `Here's a complete Python program for: **${purpose}**\n\n\`\`\`python\nimport json, argparse\nfrom dataclasses import dataclass, asdict\nfrom datetime import datetime\n\n@dataclass\nclass Item:\n    id: int\n    title: str\n    done: bool = False\n    created_at: str = ""\n    def __post_init__(self):\n        if not self.created_at:\n            self.created_at = datetime.utcnow().isoformat()\n\nclass Store:\n    def __init__(self, path="items.json"):\n        self.path = path\n        self.items = []\n        self._load()\n    def _load(self):\n        try:\n            with open(self.path) as f: self.items = [Item(**d) for d in json.load(f)]\n        except FileNotFoundError: pass\n    def save(self):\n        with open(self.path, "w") as f: json.dump([asdict(i) for i in self.items], f, indent=2)\n    def add(self, title):\n        nid = max((i.id for i in self.items), default=0) + 1\n        item = Item(id=nid, title=title)\n        self.items.append(item); self.save(); return item\n\ndef main():\n    p = argparse.ArgumentParser()\n    p.add_argument("cmd", choices=["add", "list"])\n    p.add_argument("title", nargs="?")\n    args = p.parse_args()\n    s = Store()\n    if args.cmd == "add" and args.title:\n        item = s.add(args.title); print(f"Added #{item.id}")\n    else:\n        for i in s.items: print(f"{'✓' if i.done else '○'} #{i.id} {i.title}")\n\nif __name__ == "__main__": main()\n\`\`\`\n\n**Run:** \`python app.py add "Task"\``
-  return `Here's a complete **${lang}** solution for: **${purpose}**${detail ? ` (${detail})` : ''}\n\n\`\`\`javascript\n// ${purpose} — ${lang}\n'use strict';\n\nconst CONFIG = { name: '${purpose.replace(/'/g,"\\'")}', version: '1.0.0' };\n\nclass App {\n  constructor(o = {}) { this.options = { ...CONFIG, ...o }; this.state = { items: [], ready: false } }\n  async init() { await this.load(); this.state.ready = true; return this }\n  async load() { await new Promise(r => setTimeout(r, 10)) }\n  add(text) { if (!text) throw new Error('Text required'); const item = { id: Date.now(), text, created: new Date().toISOString() }; this.state.items.push(item); return item }\n  list() { return [...this.state.items] }\n  remove(id) { this.state.items = this.state.items.filter(i => i.id !== id) }\n}\n\n(async () => {\n  const app = await new App().init();\n  app.add('Sample #1'); app.add('Sample #2');\n  console.log('Items:', app.list());\n})();\n\`\`\``
+  if (L.includes('react')) return `Here's a complete React application for: **${purpose}**${detail ? ` (${detail})` : ''}\n\n\`\`\`jsx\nimport { useState, useEffect, useCallback } from 'react'\n\nfunction useLocalStorage(key, initial) {\n  const [v, setV] = useState(() => {\n    try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : initial } catch { return initial }\n  })\n  useEffect(() => { try { localStorage.setItem(key, JSON.stringify(v)) } catch {} }, [key, v])\n  return [v, setV]\n}\n\nexport default function App() {\n  const [items, setItems] = useLocalStorage('items', [])\n  const [input, setInput] = useState('')\n  const add = useCallback(() => { if (!input.trim()) return; setItems(p => [{ id: Date.now(), text: input, done: false }, ...p]); setInput('') }, [input, setItems])\n  const toggle = (id) => setItems(p => p.map(i => i.id === id ? { ...i, done: !i.done } : i))\n  return (\n    <div style={{ padding: 20 }}>\n      <h1>${purpose}</h1>\n      <input value={input} onChange={e => setInput(e.target.value)} />\n      <button onClick={add}>Add</button>\n      <ul>{items.map(i => <li key={i.id} onClick={() => toggle(i.id)}>{i.text}</li>)}</ul>\n    </div>\n  )\n}\n\`\`\``
+  if (L.includes('python')) return `Here's a complete Python program for: **${purpose}**\n\n\`\`\`python\nimport json, argparse\nfrom dataclasses import dataclass, asdict\nfrom datetime import datetime\n\n@dataclass\nclass Item:\n    id: int\n    title: str\n    done: bool = False\n\nclass Store:\n    def __init__(self, path="items.json"):\n        self.path = path\n        self.items = []\n        self._load()\n    def _load(self):\n        try:\n            with open(self.path) as f: self.items = [Item(**d) for d in json.load(f)]\n        except FileNotFoundError: pass\n    def save(self):\n        with open(self.path, "w") as f: json.dump([asdict(i) for i in self.items], f, indent=2)\n    def add(self, title):\n        nid = max((i.id for i in self.items), default=0) + 1\n        item = Item(id=nid, title=title)\n        self.items.append(item); self.save(); return item\n\ndef main():\n    p = argparse.ArgumentParser()\n    p.add_argument("cmd", choices=["add", "list"])\n    p.add_argument("title", nargs="?")\n    args = p.parse_args()\n    s = Store()\n    if args.cmd == "add" and args.title:\n        item = s.add(args.title); print(f"Added #{item.id}")\n    else:\n        for i in s.items: print(f"{'✓' if i.done else '○'} #{i.id} {i.title}")\n\nif __name__ == "__main__": main()\n\`\`\``
+  return `Here's a complete **${lang}** solution for: **${purpose}**${detail ? ` (${detail})` : ''}\n\n\`\`\`javascript\n// ${purpose}\n'use strict';\n\nclass App {\n  constructor() { this.items = [] }\n  async init() { await this.load(); return this }\n  async load() { await new Promise(r => setTimeout(r, 10)) }\n  add(text) { const item = { id: Date.now(), text, created: new Date().toISOString() }; this.items.push(item); return item }\n  list() { return [...this.items] }\n  remove(id) { this.items = this.items.filter(i => i.id !== id) }\n}\n\n(async () => {\n  const app = await new App().init();\n  app.add('Sample'); console.log(app.list());\n})();\n\`\`\``
 }
 const isCodeRequest = (q) => {
   const x = q.toLowerCase()
@@ -245,7 +243,7 @@ export default function App() {
     highContrast: false, compactMode: false, codeAutoOverview: true, confirmDelete: true,
   })
 
-  // ---- MULTI-CHAT STATE ----
+  // MULTI-CHAT
   const [chats, setChats] = useState(() => {
     const saved = localStorage.getItem('cypher4x_chats')
     return saved ? JSON.parse(saved) : [{ id: 'default-' + Date.now(), title: 'Chat 1', messages: [], createdAt: Date.now() }]
@@ -273,32 +271,31 @@ export default function App() {
   const [isRecording, setIsRecording] = useState(false); const [isAISpeaking, setIsAISpeaking] = useState(false)
   const [interimTranscript, setInterimTranscript] = useState(''); const [recordingMode, setRecordingMode] = useState(false)
   const [voiceGender, setVoiceGender] = useState('female')
-  const [stats, setStats] = useState({ uptime: 0, cpuUsage: 0, cpuTemp: 0, ramUsage: 0, networkSpeed: 0 })
+  const [stats, setStats] = useState({ uptime: 0, cpuUsage: 0, cpuTemp: 0, ramUsage: 0, storageUsed: 0, networkSpeed: 0 })
   const [overlayActive, setOverlayActive] = useState(false); const [overlayListening, setOverlayListening] = useState(false)
   const overlayRecognitionRef = useRef(null)
   const [pendingCode, setPendingCode] = useState(null); const [copiedId, setCopiedId] = useState(null)
   const [replyingTo, setReplyingTo] = useState(null)
 
-  // ---- MUSIC ----
+  // MUSIC
   const [showMusicPanel, setShowMusicPanel] = useState(false)
   const [musicDesc, setMusicDesc] = useState(''); const [musicDuration, setMusicDuration] = useState(30)
   const [musicQuality, setMusicQuality] = useState('high'); const [musicPlaying, setMusicPlaying] = useState(false)
   const [musicInfo, setMusicInfo] = useState(''); const [musicDownloadUrl, setMusicDownloadUrl] = useState(null)
   const [musicGenerating, setMusicGenerating] = useState(false); const [musicAudioRef, setMusicAudioRef] = useState(null)
 
-  // ---- VIDEO ----
+  // VIDEO
   const [showVideoPanel, setShowVideoPanel] = useState(false)
   const [videoDesc, setVideoDesc] = useState(''); const [videoDuration, setVideoDuration] = useState(5)
-  const [videoQuality, setVideoQuality] = useState('high'); const [videoGenerating, setVideoGenerating] = useState(false)
+  const [videoQuality, setVideoQuality] = useState('medium'); const [videoGenerating, setVideoGenerating] = useState(false)
   const [videoTaskId, setVideoTaskId] = useState(null); const [videoResultUrl, setVideoResultUrl] = useState(null)
   const [videoInfo, setVideoInfo] = useState(''); const [videoPolling, setVideoPolling] = useState(false)
 
-  // ---- CYBER LAB ----
+  // CYBER LAB
   const [showCyberLab, setShowCyberLab] = useState(false); const [cyberTab, setCyberTab] = useState('terminal')
   const [cyberInput, setCyberInput] = useState(''); const [cyberLines, setCyberLines] = useState([
-    { type: 'info', text: 'CYPHER4X Cyber Lab — Educational Security Toolkit' },
-    { type: 'info', text: '⚠️ For learning only. Only test systems you own.' },
-    { type: 'info', text: 'Type "help" for commands.' },
+    { type: 'info', text: 'CYPHER4X Terminal v25.0.0 — type "help" for commands' },
+    { type: 'info', text: '⚠️ Simulated shell. Educational use only.' },
   ])
   const [cyberToolOutput, setCyberToolOutput] = useState(''); const [cyberTool, setCyberTool] = useState('passcheck')
   const [cyberToolInput, setCyberToolInput] = useState(''); const [ctfChallenge, setCtfChallenge] = useState(null)
@@ -314,7 +311,7 @@ export default function App() {
   }, [settings.soundFx])
   const vibrate = useCallback((p = 10) => { if (!settings.haptic) return; try { navigator.vibrate && navigator.vibrate(p) } catch {} }, [settings.haptic])
 
-  // ---- BOOT ----
+  // BOOT
   useEffect(() => {
     if (!isBooting) return
     const title = 'CYPHER4X', credit = 'Created by Hackers Hub led by Crypty'
@@ -337,7 +334,7 @@ export default function App() {
               if (!sp) setShowPersonalityModal(true); else setAiPersonality(sp)
               if (settings.welcomeEnabled) {
                 const t = new Date().toDateString(), lw = localStorage.getItem('cypher4x_welcome_date')
-                if (lw !== t) { localStorage.setItem('cypher4x_welcome_date', t); setShowWelcomeOverlay(true); const m = "Hello! I'm CYPHER4X, your AI assistant."; setWelcomeMessage(m); speakText(m) }
+                if (lw !== t) { localStorage.setItem('cypher4x_welcome_date', t); setShowWelcomeOverlay(true); const m = "Hello! I'm CYPHER4X v25, your AI assistant."; setWelcomeMessage(m); speakText(m) }
               }
             }
           }, 800)
@@ -347,23 +344,21 @@ export default function App() {
     return () => clearInterval(iv)
   }, [isBooting, settings.welcomeEnabled])
 
-  // ---- 10-SECOND ENTRY OVERLAY ----
+  // ENTRY OVERLAY
   useEffect(() => {
     if (isBooting) return
     setIsEnteringAI(true)
     setEnterProgress(0)
     setEnterMessage('Connecting to CYPHER4X core...')
-
     const messages = [
       { at: 0,  text: 'Connecting to CYPHER4X core...' },
       { at: 20, text: 'Loading neural pathways...' },
       { at: 40, text: 'Calibrating voice engine...' },
       { at: 60, text: 'Preparing your workspace...' },
       { at: 80, text: 'Almost ready...' },
-      { at: 95, text: 'Welcome!' },
+      { at: 95, text: 'Welcome to CYPHER4X v25!' },
     ]
-    const start = Date.now()
-    const duration = 10000
+    const start = Date.now(), duration = 10000
     const interval = setInterval(() => {
       const elapsed = Date.now() - start
       const pct = Math.min((elapsed / duration) * 100, 100)
@@ -376,14 +371,14 @@ export default function App() {
     return () => clearInterval(interval)
   }, [isBooting])
 
-  // ---- PERSIST CHATS ----
+  // PERSIST
   useEffect(() => { try { localStorage.setItem('cypher4x_chats', JSON.stringify(chats)) } catch {} }, [chats])
   useEffect(() => { if (activeChatId) try { localStorage.setItem('cypher4x_active_chat', activeChatId) } catch {} }, [activeChatId])
   useEffect(() => { if (!activeChatId && chats.length > 0) setActiveChatId(chats[0].id) }, [chats, activeChatId])
   useEffect(() => { if (settings.autoScroll && showChatOverview) chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [conversation, showChatOverview, settings.autoScroll])
   useEffect(() => { cyberEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [cyberLines])
 
-  // ---- AUTH ----
+  // AUTH
   const handleAuthSubmit = () => {
     if (!email || !pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) { setAuthError('Valid email + 4-digit PIN required.'); return }
     if (showLogin) { if (userExists(email, pin)) { loginUser(email, pin); setShowAuthModal(false) } else setAuthError('No account found.') }
@@ -396,7 +391,6 @@ export default function App() {
   }
   const loginUser = (e, p) => {
     saveAuth(e, p); setUserMode('loggedin'); loadUserDataByEmail(e, p); setAuthError(''); setGuestMessageCount(0)
-    setIsEnteringAI(true); setEnterProgress(0)
   }
   const loadUserDataByEmail = (e, p) => {
     const d = loadUserData(e, p)
@@ -406,10 +400,6 @@ export default function App() {
       if (d.customStyle) setCustomStyle(d.customStyle)
       if (d.settings) setSettings({ ...settings, ...d.settings })
       if (d.chats && d.chats.length) { setChats(d.chats); setActiveChatId(d.activeChatId || d.chats[0].id) }
-      else if (d.conversation && d.conversation.length) {
-        const firstChat = { id: 'migrated-' + Date.now(), title: 'Imported', messages: d.conversation, createdAt: Date.now() }
-        setChats([firstChat]); setActiveChatId(firstChat.id)
-      }
     }
   }
   const saveCurrentUserData = () => {
@@ -426,11 +416,11 @@ export default function App() {
   }
   const incrementGuestMessage = () => { if (userMode !== 'guest') return; const n = guestMessageCount + 1; setGuestMessageCount(n); if (n >= 5) setShowGuestLimit(true) }
 
-  // ---- CHAT MANAGEMENT ----
+  // CHAT MANAGEMENT
   const createNewChat = () => {
     const newChat = { id: 'chat-' + Date.now(), title: 'Chat ' + (chats.length + 1), messages: [], createdAt: Date.now() }
     setChats(prev => [newChat, ...prev]); setActiveChatId(newChat.id)
-    setChatOverviewInput(''); setReplyingTo(null); setShowChatOverview(true)
+    setChatOverviewInput(''); setReplyingTo(null)
   }
   const switchChat = (chatId) => { setActiveChatId(chatId); setChatOverviewInput(''); setReplyingTo(null) }
   const deleteChat = (chatId) => {
@@ -440,9 +430,10 @@ export default function App() {
     setChats(remaining)
     if (activeChatId === chatId) setActiveChatId(remaining[0].id)
   }
-  const renameChat = (chatId, newTitle) => { setChats(prev => prev.map(c => c.id === chatId ? { ...c, title: newTitle } : c)) }
+  const clearConversation = useCallback(() => setConversation([]), [activeChatId])
+  const clearCommands = useCallback(() => setCommandHistory([]), [])
 
-  // ---- SPEECH ----
+  // SPEECH
   const speakText = useCallback((text, onEnd = null) => {
     if (!text || !synthRef.current) return
     try {
@@ -472,7 +463,7 @@ export default function App() {
     return r
   }, [isFullscreenCall])
 
-  // ---- COMMAND EXECUTION ----
+  // COMMAND EXECUTION
   const executeCommand = (q) => {
     const l = q.toLowerCase().trim()
     if (l.includes('whatsapp business')) { const g = q.match(/group(?:\s+named)?\s+(.+)/i); if (g) return { response: openWhatsAppGroup(g[1].trim()) }; return { response: openApp('whatsappbusiness') } }
@@ -488,7 +479,7 @@ export default function App() {
     return null
   }
 
-  // ---- MAIN QUERY PROCESSOR ----
+  // MAIN QUERY PROCESSOR
   const processUserQuery = useCallback(async (query) => {
     if (!query || isProcessing) return
     if (userMode === 'guest') incrementGuestMessage()
@@ -500,7 +491,6 @@ export default function App() {
     setCommandHistory(prev => [...prev, { command: query, timestamp: Date.now() }])
     setReplyingTo(null)
 
-    // Pending code flow
     if (pendingCode) {
       const next = { ...pendingCode.answers, [pendingCode.step]: query }
       const idx = ['language','purpose','detail'].findIndex(k => !next[k])
@@ -521,7 +511,6 @@ export default function App() {
       setIsProcessing(false); return
     }
 
-    // Code request
     if (isCodeRequest(query)) {
       const lang = detectLanguage(query)
       const m = { id: ++msgCounter.current, role: 'assistant', content: `I'll write code for you! 🎨\n\n**Q1 — What programming language?**\n\n_Detected: **${lang}**. Reply "auto" to use it, or say another._`, time: Date.now() }
@@ -531,7 +520,6 @@ export default function App() {
       setIsProcessing(false); return
     }
 
-    // Command execution
     const cmd = executeCommand(query)
     if (cmd) {
       const styled = applyPersonality(cmd.response, aiPersonality, customStyle)
@@ -540,8 +528,6 @@ export default function App() {
       setIsProcessing(false); return
     }
 
-    // Knowledge base
-    const lower = query.toLowerCase().trim()
     for (const k of KNOWLEDGE) {
       if (k.match.test(query)) {
         const styled = applyPersonality(k.answer, aiPersonality, customStyle)
@@ -552,7 +538,6 @@ export default function App() {
       }
     }
 
-    // Pure greeting
     if (isPureGreeting(query)) {
       const g = applyPersonality('Hey there! 👋 How can I help you today?', aiPersonality, customStyle)
       setConversation(prev => [...prev, { id: ++msgCounter.current, role: 'assistant', content: g, time: Date.now() }])
@@ -560,9 +545,8 @@ export default function App() {
       setIsProcessing(false); return
     }
 
-    // Web search — ONLY append source link if user explicitly asked for one
     const result = await searchWeb(query)
-    let reply = result.error ? `Search error: ${result.error}` : (result.answer || "I couldn't find a clear answer. Try rephrasing, or ask me something specific like 'explain machine learning' or 'how to learn Python'.")
+    let reply = result.error ? `Search error: ${result.error}` : (result.answer || "I couldn't find a clear answer.")
     const wantsLink = /\b(link|url|website|source|reference|open|visit|goto|go to|show me)\b/i.test(query)
     if (!result.error && result.safestUrl && settings.safeLinks && wantsLink) reply += `\n\n🔗 Source: ${result.safestUrl}`
     reply = applyPersonality(reply, aiPersonality, customStyle)
@@ -570,9 +554,9 @@ export default function App() {
     if (settings.readAloud) speakText(reply.replace(/🔗.*$/s, ''))
     playBeep(500, 0.08); vibrate(10)
     setIsProcessing(false)
-  }, [isProcessing, userMode, aiPersonality, customStyle, settings, pendingCode, replyingTo, vibrate, playBeep])
+  }, [isProcessing, userMode, aiPersonality, customStyle, settings, pendingCode, replyingTo, activeChatId, vibrate, playBeep])
 
-  // ---- OVERVIEW VOICE ----
+  // OVERVIEW VOICE
   const setupOverviewRecognition = useCallback(() => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) return null
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -591,7 +575,7 @@ export default function App() {
   useEffect(() => { if (voiceTranscript && !chatOverviewListening) setChatOverviewInput(voiceTranscript) }, [voiceTranscript, chatOverviewListening])
   const sendOverviewText = useCallback(() => { const t = chatOverviewInput.trim(); if (!t || isProcessing) return; setChatOverviewInput(''); processUserQuery(t) }, [chatOverviewInput, isProcessing, processUserQuery])
 
-  // ---- FILES & MESSAGES ----
+  // FILES & MESSAGES
   const handleOverviewFileShare = useCallback((e) => {
     const files = e.target.files; if (!files || !files[0]) return
     const f = files[0]; if (f.size > 20 * 1024 * 1024) { alert('Max 20MB'); return }
@@ -601,9 +585,9 @@ export default function App() {
       setConversation(prev => [...prev, { id: ++msgCounter.current, role: 'assistant', content: `Received: **${f.name}** (${(f.size/1024).toFixed(1)} KB).`, time: Date.now() }])
     }
     rd.readAsDataURL(f); e.target.value = ''
-  }, [])
-  const handleEditMessage = useCallback((id) => { const msg = conversation.find(m => m.id === id); if (!msg || msg.role !== 'user') return; const nc = prompt('Edit:', msg.content); if (nc !== null && nc.trim()) setConversation(prev => prev.map(m => m.id === id ? { ...m, content: nc.trim() } : m)) }, [conversation])
-  const handleDeleteMessage = useCallback((id) => { if (settings.confirmDelete && !confirm('Delete?')) return; setConversation(prev => prev.filter(m => m.id !== id)) }, [settings.confirmDelete])
+  }, [activeChatId])
+  const handleEditMessage = useCallback((id) => { const msg = conversation.find(m => m.id === id); if (!msg || msg.role !== 'user') return; const nc = prompt('Edit:', msg.content); if (nc !== null && nc.trim()) setConversation(prev => prev.map(m => m.id === id ? { ...m, content: nc.trim() } : m)) }, [conversation, activeChatId])
+  const handleDeleteMessage = useCallback((id) => { if (settings.confirmDelete && !confirm('Delete?')) return; setConversation(prev => prev.filter(m => m.id !== id)) }, [settings.confirmDelete, activeChatId])
   const handleShareMessage = useCallback(async (msg) => { const c = msg.content; if (navigator.share) { try { await navigator.share({ title: 'CYPHER4X', text: c }) } catch {} } else { try { await navigator.clipboard.writeText(c); alert('Copied!') } catch {} } }, [])
   const copyCode = async (code, id) => { try { await navigator.clipboard.writeText(code); setCopiedId(id); setTimeout(() => setCopiedId(null), 1500); vibrate(20) } catch {} }
   const handleReply = (msg) => { setReplyingTo({ id: msg.id, content: msg.content }); setShowChatOverview(true) }
@@ -632,7 +616,7 @@ export default function App() {
     ) : <span key={i} style={styles.chatOverviewMsgText}>{p.value}</span>)
   }
 
-  // ---- CALL ----
+  // CALL
   const toggleFullscreenCall = useCallback(() => {
     if (isFullscreenCall) { setIsFullscreenCall(false); setIsCallActive(false); if (recognitionRef.current) try { recognitionRef.current.stop() } catch {}; setIsListening(false); setInterimTranscript(''); synthRef.current?.cancel(); setIsAISpeaking(false) }
     else {
@@ -659,10 +643,10 @@ export default function App() {
   const cancelRecording = useCallback(() => { setInterimTranscript(''); setRecordingMode(false); setIsRecording(false); setIsListening(false); if (recognitionRef.current) try { recognitionRef.current.stop() } catch {} }, [])
   const sendTextMessage = useCallback(() => { const t = inputText.trim(); if (!t || isProcessing) return; setInputText(''); processUserQuery(t) }, [inputText, isProcessing, processUserQuery])
 
-  // ---- SETTINGS / PROFILE ----
+  // SETTINGS / PROFILE
   const handlePersonalitySelect = (id) => {
     setAiPersonality(id); setSettings({ ...settings, personality: id }); localStorage.setItem('cypher4x_personality', id); setShowPersonalityModal(false)
-    if (settings.welcomeEnabled) { const t = new Date().toDateString(), lw = localStorage.getItem('cypher4x_welcome_date'); if (lw !== t) { localStorage.setItem('cypher4x_welcome_date', t); setShowWelcomeOverlay(true); const m = "Hello! I'm CYPHER4X."; setWelcomeMessage(m); speakText(m) } }
+    if (settings.welcomeEnabled) { const t = new Date().toDateString(), lw = localStorage.getItem('cypher4x_welcome_date'); if (lw !== t) { localStorage.setItem('cypher4x_welcome_date', t); setShowWelcomeOverlay(true); const m = "Hello! I'm CYPHER4X v25."; setWelcomeMessage(m); speakText(m) } }
   }
   const handleBackgroundChange = (e) => {
     const f = e.target.files[0]; if (!f) return
@@ -689,165 +673,297 @@ export default function App() {
 
   useEffect(() => {
     const t = setInterval(() => {
-      setStats(p => ({ ...p, uptime: Math.floor((Date.now() - APP_START_TIME)/1000), cpuUsage: Math.floor(Math.random()*30)+10, cpuTemp: Math.floor(Math.random()*20)+55, ramUsage: Math.floor(Math.random()*4)+3.5, networkSpeed: (Math.random()*5+0.5).toFixed(2) }))
+      setStats(p => ({ ...p, uptime: Math.floor((Date.now() - APP_START_TIME)/1000), cpuUsage: Math.floor(Math.random()*30)+10, cpuTemp: Math.floor(Math.random()*20)+55, ramUsage: Math.floor(Math.random()*4)+3.5, storageUsed: Math.floor(Math.random()*50)+120, networkSpeed: (Math.random()*5+0.5).toFixed(2) }))
     }, 3000)
     return () => clearInterval(t)
   }, [])
 
-  // ---- MUSIC GENERATOR (via backend) ----
+  // MUSIC
   const handleGenerateMusic = async () => {
     if (!musicDesc.trim()) { alert('Describe the music you want first.'); return }
     try {
-      setMusicGenerating(true); setMusicInfo('Sending request to Tunova...'); setMusicDownloadUrl(null)
-
-      const res = await fetch('/api/music', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: musicDesc, duration: musicDuration, quality: musicQuality }),
-      })
+      setMusicGenerating(true)
+      setMusicInfo('📡 Sending request to Tunova...')
+      setMusicDownloadUrl(null)
+      const res = await fetch('/api/music', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: musicDesc, duration: musicDuration }) })
       const data = await res.json()
-
-      if (data.error) throw new Error(data.error)
-
-      // Tunova returns task info; poll for the track
-      setMusicInfo('Generating music... (this can take 30-90 seconds)')
+      if (!res.ok || data.error) {
+        setMusicInfo(`❌ ${data.error}${data.detail ? '\n\nDetails: ' + data.detail : ''}`)
+        setMusicGenerating(false); return
+      }
+      const taskId = data.id || data.task_id || data.data?.id || data.result?.id
+      if (!taskId) { setMusicInfo('❌ No task ID. Response: ' + JSON.stringify(data).slice(0, 200)); setMusicGenerating(false); return }
+      setMusicInfo(`✓ Task created. Polling for track...`)
       let attempts = 0
-      const maxAttempts = 40
       const poll = setInterval(async () => {
         attempts++
         try {
-          const check = await fetch('/api/music-status', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ task_id: data.id || data.task_id || data.result?.id }),
-          })
+          const check = await fetch(`/api/music-status?task_id=${taskId}`)
           const status = await check.json()
-          if (status.status === 'complete' || status.audio_url || status.result?.audio_url) {
+          const url = status.audio_url || status.url || status.data?.audio_url || status.result?.audio_url || status.output?.url
+          const done = status.status === 'complete' || status.status === 'succeeded' || url
+          const failed = status.status === 'failed' || status.error
+          if (done && url) {
             clearInterval(poll)
-            const url = status.audio_url || status.result?.audio_url
-            setMusicDownloadUrl(url)
-            const audio = new Audio(url); audio.volume = 0.9; audio.play()
-            setMusicAudioRef(audio)
-            setMusicPlaying(true)
-            setMusicInfo('✓ Music ready!')
+            setMusicDownloadUrl(url); setMusicInfo('✓ Music ready! Playing...')
+            const audio = new Audio(url); audio.volume = 0.9
+            audio.play().catch(e => console.warn('Autoplay blocked:', e))
+            setMusicAudioRef(audio); setMusicPlaying(true)
             audio.onended = () => setMusicPlaying(false)
-          } else if (status.status === 'failed' || status.error) {
-            clearInterval(poll)
-            setMusicInfo('✗ Generation failed. Try again.')
+          } else if (failed) {
+            clearInterval(poll); setMusicInfo(`❌ Failed: ${status.error || status.status}`)
           } else {
-            setMusicInfo(`Generating... (${attempts * 3}s)`)
+            setMusicInfo(`⏳ Generating... (${attempts * 3}s) — ${status.status || 'pending'}`)
           }
         } catch (e) {
-          if (attempts >= maxAttempts) { clearInterval(poll); setMusicInfo('✗ Timeout') }
+          if (attempts >= 40) { clearInterval(poll); setMusicInfo('❌ Timeout') }
         }
-        if (attempts >= maxAttempts) clearInterval(poll)
+        if (attempts >= 40) clearInterval(poll)
       }, 3000)
-
       setMusicGenerating(false)
-    } catch (e) { alert('Music error: ' + e.message); setMusicGenerating(false); setMusicInfo('') }
+    } catch (e) { setMusicInfo('❌ ' + e.message); setMusicGenerating(false) }
   }
 
-  // ---- VIDEO GENERATOR (via backend) ----
+  // VIDEO
   const handleGenerateVideo = async () => {
     if (!videoDesc.trim()) { alert('Describe the video you want first.'); return }
     try {
-      setVideoGenerating(true); setVideoInfo('Sending request to Agnes AI...'); setVideoResultUrl(null); setVideoTaskId(null)
-
-      const res = await fetch('/api/video', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: videoDesc, duration: videoDuration, quality: videoQuality }),
-      })
+      setVideoGenerating(true); setVideoInfo('📡 Sending request to Agnes AI...'); setVideoResultUrl(null); setVideoTaskId(null)
+      const res = await fetch('/api/video', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: videoDesc, duration: videoDuration, quality: videoQuality }) })
       const data = await res.json()
-
-      if (data.error) throw new Error(data.error)
-      setVideoTaskId(data.video_id)
-      setVideoInfo('Task created. Polling for result...')
-      setVideoPolling(true)
-
+      if (!res.ok || data.error) {
+        setVideoInfo(`❌ ${data.error}${data.detail ? '\n\n' + data.detail : ''}${data.hint ? '\n\n💡 ' + data.hint : ''}`)
+        setVideoGenerating(false); return
+      }
+      const vId = data.video_id || data.id || data.task_id || data.data?.id
+      if (!vId) { setVideoInfo('❌ No video_id. Response: ' + JSON.stringify(data).slice(0, 200)); setVideoGenerating(false); return }
+      setVideoTaskId(vId); setVideoInfo('✓ Task created. Polling for result...'); setVideoPolling(true)
       let attempts = 0
-      const maxAttempts = 60
       const poll = setInterval(async () => {
         attempts++
         try {
-          const check = await fetch(`/api/video-status?video_id=${data.video_id}`)
+          const check = await fetch(`/api/video-status?video_id=${vId}`)
           const status = await check.json()
-
           const url = status.video_url || status.url || status.output?.url || status.data?.video_url
           if (url) {
-            clearInterval(poll)
-            setVideoResultUrl(url)
-            setVideoInfo('✓ Video ready!')
-            setVideoPolling(false)
+            clearInterval(poll); setVideoResultUrl(url); setVideoInfo('✓ Video ready!'); setVideoPolling(false)
           } else if (status.status === 'failed' || status.error) {
-            clearInterval(poll)
-            setVideoInfo('✗ Generation failed: ' + (status.error || 'unknown'))
-            setVideoPolling(false)
+            clearInterval(poll); setVideoInfo('❌ Failed: ' + (status.error || status.status || 'unknown')); setVideoPolling(false)
           } else {
-            setVideoInfo(`Generating... (${attempts * 5}s) - status: ${status.status || 'pending'}`)
+            setVideoInfo(`⏳ Generating... (${attempts * 5}s) — ${status.status || 'pending'}`)
           }
         } catch (e) {
-          if (attempts >= maxAttempts) { clearInterval(poll); setVideoInfo('✗ Timeout'); setVideoPolling(false) }
+          if (attempts >= 60) { clearInterval(poll); setVideoInfo('❌ Timeout'); setVideoPolling(false) }
         }
-        if (attempts >= maxAttempts) { clearInterval(poll); setVideoPolling(false) }
+        if (attempts >= 60) { clearInterval(poll); setVideoPolling(false) }
       }, 5000)
-
       setVideoGenerating(false)
-    } catch (e) { alert('Video error: ' + e.message); setVideoGenerating(false); setVideoInfo(''); setVideoPolling(false) }
+    } catch (e) { setVideoInfo('❌ ' + e.message); setVideoGenerating(false); setVideoPolling(false) }
   }
 
-  // ---- CYBER LAB ----
+  // CYBER TERMINAL — Termux style
   const runCyberCommand = async (cmd) => {
-    const parts = cmd.trim().split(/\s+/); const base = parts[0]?.toLowerCase(); const args = parts.slice(1).join(' ')
+    const parts = cmd.trim().split(/\s+/)
+    const base = parts[0]?.toLowerCase()
+    const args = parts.slice(1).join(' ')
+    const arg1 = parts[1], arg2 = parts[2]
     let out = ''
+
+    const helpText = `CYPHER4X Terminal v25.0.0 — available commands:
+
+Files:    pwd, ls, cd, cat, mkdir, touch, rm, cp, mv, tree
+System:   whoami, uname, uptime, date, df, free, ps, top, neofetch
+Network:  ping, ifconfig, curl, wget, dns, ip, whois, portscan
+Security: hash, md5, base64, unbase64, hex, rot13, passcheck, ctf, ctfcheck
+Utility:  echo, calc, clear, history, man, which, env, sleep
+Pkg mgr:  pkg (search/install/list/update), apt
+Meta:     help, about, ethics`
+
     try {
       switch (base) {
-        case 'help': out = 'Commands: help, about, ethics, clear, hash <text>, base64 <text>, unbase64 <text>, hex <text>, rot13 <text>, dns <domain>, ip <addr>, portscan <host>, passcheck <pw>, ctf, ctfcheck <answer>'; break
-        case 'about': out = 'CYPHER4X Cyber Lab — educational security toolkit.'; break
-        case 'ethics': out = '🔒 Ethical reminder:\n1. Only test systems you own or have permission for.\n2. Unauthorized access is illegal.\n3. Learn defense.\n4. Report responsibly.'; break
-        case 'clear': setCyberLines([{ type: 'info', text: 'Cleared.' }]); return
+        case 'pwd': out = '/data/data/com.termux/files/home'; break
+        case 'ls': {
+          const path = arg1 || '~'
+          if (!arg1 || path === '~' || path === '/sdcard') out = 'Documents/  Downloads/  Pictures/  Projects/  README.md  notes.txt  .bashrc'
+          else out = `ls: ${path}: No such file or directory`
+          break
+        }
+        case 'cd': out = `Now in ${arg1 || '~'}`; break
+        case 'cat': {
+          if (!arg1) { out = 'Usage: cat <file>'; break }
+          if (arg1 === 'README.md') out = '# CYPHER4X v25\n\nAI assistant with terminal.'
+          else if (arg1 === 'notes.txt') out = 'TODO:\n- Learn Python\n- Build a bot\n- Sleep'
+          else if (arg1 === '.bashrc') out = 'export PS1="\\w \\$ "\nexport EDITOR=nano'
+          else out = `cat: ${arg1}: No such file`
+          break
+        }
+        case 'mkdir': out = arg1 ? `Created directory: ${arg1}` : 'Usage: mkdir <dir>'; break
+        case 'touch': out = arg1 ? `Created file: ${arg1}` : 'Usage: touch <file>'; break
+        case 'rm': out = arg1 ? `Removed: ${arg1}` : 'Usage: rm <file>'; break
+        case 'cp': out = arg1 && arg2 ? `Copied ${arg1} → ${arg2}` : 'Usage: cp <src> <dest>'; break
+        case 'mv': out = arg1 && arg2 ? `Moved ${arg1} → ${arg2}` : 'Usage: mv <src> <dest>'; break
+        case 'tree': out = `.\n├── Documents/\n├── Downloads/\n├── Pictures/\n├── Projects/\n│   ├── bot.py\n│   └── todo.js\n├── README.md\n└── notes.txt\n\n2 directories, 3 files`; break
+
+        case 'whoami': out = userMode === 'loggedin' ? email : 'guest@cypher4x'; break
+        case 'uname':
+          if (arg1 === '-a') out = `Linux localhost 5.15.0-cypher4x #1 SMP PREEMPT ${new Date().toUTCString()} aarch64 GNU/Linux`
+          else out = 'Linux'
+          break
+        case 'uptime': out = ` ${new Date().toLocaleTimeString()} up ${fmtU(stats.uptime)}, 1 user, load average: 0.15, 0.28, 0.32`; break
+        case 'date': out = new Date().toString(); break
+        case 'df': out = `Filesystem      Size  Used Avail Use% Mounted on\n/dev/block/xx   475G   ${stats.storageUsed}G  ${475 - stats.storageUsed}G  ${Math.round(stats.storageUsed / 475 * 100)}% /data`; break
+        case 'free': out = `              total        used        free      shared  buff/cache\nMem:         ${(stats.ramUsage + 2).toFixed(1)}G       ${stats.ramUsage.toFixed(1)}G      1.5G        0.2G       0.8G\nSwap:        2.0G        0.0G        2.0G`; break
+        case 'ps': out = `  PID TTY      STAT   TIME COMMAND\n    1 ?        Ss     0:01 /init\n  128 ?        S      0:00 cypher4x-daemon\n  256 pts/0    Ss     0:00 bash\n  512 pts/0    R+     0:00 ${base}`; break
+        case 'top': out = `top - ${new Date().toLocaleTimeString()} up ${fmtU(stats.uptime)}\nTasks: 12 total, 1 running, 11 sleeping\n%Cpu(s): ${stats.cpuUsage} us\nMiB Mem: ${stats.ramUsage.toFixed(1)}G used\n\n  PID USER   PR  NI   VIRT   RES  S  %CPU %MEM COMMAND\n  128 root   20   0  45.2m  12.8m S   ${stats.cpuUsage}.0  1.5 cypher4x\n  256 user   20   0  12.4m   4.2m S   2.0   0.5 bash`; break
+        case 'neofetch': out = `    ██████╗██╗   ██╗██████╗ ██╗  ██╗███████╗██████╗ ██╗  ██╗\n   ██╔════╝╚██╗ ██╔╝██╔══██╗██║  ██║██╔════╝██╔══██╗╚██╗██╔╝\n   ██║      ╚████╔╝ ██████╔╝███████║█████╗  ██████╔╝ ╚███╔╝\n   ██║       ╚██╔╝  ██╔═══╝ ██╔══██║██╔══╝  ██╔══██╗ ██╔██╗\n   ╚██████╗   ██║   ██║     ██║  ██║███████╗██║  ██║██╔╝ ██╗\n    ╚═════╝   ╚═╝   ╚═╝     ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝\n\n  user@cypher4x\n  ─────────────\n  OS:        ${VERSION_FULL}\n  Kernel:    cypher4x 5.15.0\n  Shell:     csh 1.0\n  Terminal:  Web-TTY\n  CPU:       Virtual (${stats.cpuUsage}%)\n  Memory:    ${stats.ramUsage.toFixed(1)}G / 6.5G\n  Uptime:    ${fmtU(stats.uptime)}`; break
+
+        case 'ping': {
+          if (!arg1) { out = 'Usage: ping <host>'; break }
+          out = `PING ${arg1} (${arg1 === 'google.com' ? '142.250.185.78' : '127.0.0.1'}) 56(84) bytes of data.`
+          for (let i = 0; i < 4; i++) out += `\n64 bytes from ${arg1}: icmp_seq=${i + 1} ttl=117 time=${(20 + Math.random() * 30).toFixed(1)} ms`
+          out += `\n\n--- ${arg1} ping statistics ---\n4 packets transmitted, 4 received, 0% packet loss`
+          break
+        }
+        case 'ifconfig': out = `wlan0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500\n        inet 192.168.1.${Math.floor(Math.random() * 200) + 10}  netmask 255.255.255.0\n        ether 04:5f:3c:${Math.floor(Math.random() * 99)}:${Math.floor(Math.random() * 99)}:${Math.floor(Math.random() * 99)}\n        RX packets 14523  bytes 12.5 MB\n        TX packets 8912  bytes 3.2 MB\n\nlo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536\n        inet 127.0.0.1  netmask 255.0.0.0`; break
+        case 'curl': {
+          if (!arg1) { out = 'Usage: curl <url>'; break }
+          setCyberLines(prev => [...prev, { type: 'cmd', text: `$ ${cmd}` }, { type: 'out', text: `Fetching ${arg1}...` }])
+          try {
+            const r = await fetch(arg1); const text = await r.text()
+            out = `HTTP ${r.status}\n\n${text.slice(0, 800)}${text.length > 800 ? '\n...[truncated]' : ''}`
+          } catch (e) { out = 'curl: ' + e.message }
+          setCyberLines(prev => [...prev, { type: 'out', text: out }])
+          return
+        }
+        case 'wget': {
+          if (!arg1) { out = 'Usage: wget <url>'; break }
+          window.open(arg1, '_blank', 'noopener,noreferrer')
+          out = `--${new Date().toISOString()}--  ${arg1}\nOpening in new tab...\n100%[======================================>] complete`
+          break
+        }
+        case 'dns': {
+          if (!arg1) { out = 'Usage: dns <domain>'; break }
+          try {
+            const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(arg1)}&type=A`)
+            const d = await r.json()
+            if (d.Answer) out = `;; ANSWER SECTION:\n${d.Answer.map(a => `${arg1}.\t${a.TTL}\tIN\tA\t${a.data}`).join('\n')}`
+            else out = `;; No records for ${arg1}`
+          } catch (e) { out = 'dns: ' + e.message }
+          break
+        }
+        case 'ip': {
+          if (!arg1) { out = 'Usage: ip <address>'; break }
+          try {
+            const r = await fetch(`https://ipapi.co/${encodeURIComponent(arg1)}/json/`)
+            const d = await r.json()
+            out = `IP: ${d.ip}\nCity: ${d.city}\nRegion: ${d.region}\nCountry: ${d.country_name}\nPostal: ${d.postal}\nLat/Lon: ${d.latitude},${d.longitude}\nISP: ${d.org}\nASN: ${d.asn}\nTimezone: ${d.timezone}`
+          } catch (e) { out = 'ip: ' + e.message }
+          break
+        }
+        case 'whois': out = `WHOIS requires a backend proxy.\nTry: https://who.is/whois/${encodeURIComponent(arg1 || 'example.com')}`; break
+        case 'portscan': {
+          if (!arg1) { out = 'Usage: portscan <host>'; break }
+          out = `⚠️ SIMULATION ONLY — real scanning requires authorization\n\nStarting scan on ${arg1}\n`
+          const ports = [21, 22, 23, 25, 53, 80, 110, 143, 443, 445, 3306, 3389, 5432, 8080]
+          ports.forEach(p => {
+            const state = Math.random() > 0.75 ? 'open' : 'closed'
+            out += `  Port ${p}: ${state}\n`
+          })
+          out += `\nScan complete.`
+          break
+        }
+
         case 'hash': {
           if (!args) { out = 'Usage: hash <text>'; break }
           const buf = new TextEncoder().encode(args); const h = await crypto.subtle.digest('SHA-256', buf)
-          out = Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join(''); break
+          out = Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join('')
+          break
+        }
+        case 'md5': {
+          if (!args) { out = 'Usage: md5 <text>'; break }
+          let h = 0; for (let i = 0; i < args.length; i++) { h = ((h << 5) - h) + args.charCodeAt(i); h |= 0 }
+          out = Math.abs(h).toString(16).padStart(8, '0').repeat(4)
+          break
         }
         case 'base64': out = (() => { try { return btoa(args) } catch { return 'Invalid' } })(); break
         case 'unbase64': out = (() => { try { return atob(args) } catch { return 'Invalid' } })(); break
-        case 'hex': out = Array.from(new TextEncoder().encode(args)).map(b => b.toString(16).padStart(2, '0')).join(' '); break
         case 'rot13': out = args.replace(/[a-zA-Z]/g, c => String.fromCharCode((c <= 'Z' ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26)); break
-        case 'dns': {
-          if (!args) { out = 'Usage: dns <domain>'; break }
-          const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(args)}&type=A`)
-          const d = await r.json()
-          out = d.Answer ? d.Answer.map(a => `A  ${a.data}  TTL ${a.TTL}`).join('\n') : 'No records'; break
-        }
-        case 'ip': {
-          if (!args) { out = 'Usage: ip <address>'; break }
-          const r = await fetch(`https://ipapi.co/${encodeURIComponent(args)}/json/`)
-          const d = await r.json()
-          out = `IP: ${d.ip}\nCity: ${d.city}\nCountry: ${d.country_name}\nISP: ${d.org}`; break
-        }
-        case 'portscan': {
-          if (!args) { out = 'Usage: portscan <host>'; break }
-          const open = [80, 443].filter(() => Math.random() > 0.3)
-          out = `⚠️ SIMULATION ONLY\nTarget: ${args}\nOPEN: ${open.join(', ') || 'none'}`; break
-        }
+        case 'hex': out = Array.from(new TextEncoder().encode(args)).map(b => b.toString(16).padStart(2, '0')).join(' '); break
         case 'passcheck': {
           if (!args) { out = 'Usage: passcheck <password>'; break }
-          let s = 0; const c = { len: args.length >= 12, low: /[a-z]/.test(args), up: /[A-Z]/.test(args), dig: /\d/.test(args), sp: /[^A-Za-z0-9]/.test(args), ok: !/^(password|123456)/i.test(args) }
+          let s = 0
+          const c = { len: args.length >= 12, low: /[a-z]/.test(args), up: /[A-Z]/.test(args), dig: /\d/.test(args), sp: /[^A-Za-z0-9]/.test(args), ok: !/^(password|123456|qwerty|admin)/i.test(args) }
           s = Object.values(c).filter(Boolean).length
-          out = `Score ${s}/6\nEntropy ~${(args.length * Math.log2(new Set(args).size || 1)).toFixed(1)} bits`; break
+          out = `Password: ${'*'.repeat(args.length)}\n\nScore: ${s}/6\nLength: ${args.length}\nEntropy: ~${(args.length * Math.log2(new Set(args).size || 1)).toFixed(1)} bits\n\nChecks:\n  Length ≥12: ${c.len ? '✓' : '✗'}\n  Lowercase: ${c.low ? '✓' : '✗'}\n  Uppercase: ${c.up ? '✓' : '✗'}\n  Digits: ${c.dig ? '✓' : '✗'}\n  Special: ${c.sp ? '✓' : '✗'}\n  Not common: ${c.ok ? '✓' : '✗'}\n\n${s >= 5 ? '🟢 Strong' : s >= 3 ? '🟡 Medium' : '🔴 Weak'}`
+          break
         }
         case 'ctf': {
-          const challenges = [{ q: 'ROT13 of "Uryyb" is?', a: 'hello' }, { q: 'Base64 "aGVsbG8=" decodes to?', a: 'hello' }, { q: 'HTTPS port?', a: '443' }]
+          const challenges = [
+            { q: 'ROT13 of "Uryyb" is?', a: 'hello' },
+            { q: 'Base64 "aGVsbG8=" decodes to?', a: 'hello' },
+            { q: 'DNS stands for?', a: 'domain name system' },
+            { q: 'HTTPS port?', a: '443' },
+            { q: 'XSS stands for?', a: 'cross-site scripting' },
+          ]
           const ch = challenges[Math.floor(Math.random() * challenges.length)]
-          setCtfChallenge(ch); out = `🎯 ${ch.q}\n\nType "ctfcheck <answer>"`; break
+          setCtfChallenge(ch)
+          out = `🎯 CTF Challenge:\n${ch.q}\n\nType "ctfcheck <answer>" to verify.`
+          break
         }
         case 'ctfcheck':
           if (!ctfChallenge) { out = 'No active CTF.'; break }
-          out = args.toLowerCase().trim() === ctfChallenge.a.toLowerCase() ? '✅ Correct!' : `❌ Answer: ${ctfChallenge.a}`
-          setCtfChallenge(null); break
-        default: out = `Unknown: ${base}. Try "help".`
+          out = args.toLowerCase().trim() === ctfChallenge.a.toLowerCase() ? '✅ Correct!' : `❌ Wrong. Answer: ${ctfChallenge.a}`
+          setCtfChallenge(null)
+          break
+
+        case 'echo': out = args; break
+        case 'calc': { try { out = String(Function(`"use strict"; return (${args})`)()) } catch { out = 'Invalid expression' } break }
+        case 'clear': setCyberLines([{ type: 'info', text: 'Terminal cleared.' }]); return
+        case 'history': {
+          const cmds = cyberLines.filter(l => l.type === 'cmd').map(l => l.text.replace(/^\$ /, ''))
+          out = cmds.length ? cmds.join('\n') : 'No history yet'
+          break
+        }
+        case 'man': {
+          if (!arg1) { out = 'What manual page do you want?'; break }
+          const man = {
+            ls: 'ls - list directory contents\n\nUsage: ls [path]',
+            cd: 'cd - change directory\n\nUsage: cd <path>',
+            ping: 'ping - send ICMP echo requests\n\nUsage: ping <host>',
+            hash: 'hash - SHA-256 hash of text\n\nUsage: hash <text>',
+            dns: 'dns - DNS lookup\n\nUsage: dns <domain>',
+            curl: 'curl - transfer a URL\n\nUsage: curl <url>',
+            pkg: 'pkg - package manager (SIMULATED)\n\nUsage: pkg [search|install|list|update]',
+          }
+          out = man[arg1] || `No manual entry for ${arg1}`
+          break
+        }
+        case 'which': out = arg1 ? `/data/data/com.termux/files/usr/bin/${arg1}` : 'Usage: which <cmd>'; break
+        case 'env': out = `USER=${userMode === 'loggedin' ? email : 'guest'}\nHOME=/data/data/com.termux/files/home\nSHELL=/bin/csh\nTERM=xterm-256color\nPATH=/usr/bin:/bin\nLANG=en_US.UTF-8\nCYPHER4X_VERSION=${VERSION}`; break
+        case 'sleep': {
+          const n = parseInt(arg1) || 1
+          const secs = Math.min(n, 10)
+          setCyberLines(prev => [...prev, { type: 'cmd', text: `$ ${cmd}` }, { type: 'out', text: `Sleeping for ${secs} seconds...` }])
+          await new Promise(r => setTimeout(r, secs * 1000))
+          setCyberLines(prev => [...prev, { type: 'out', text: `Awake after ${secs}s` }])
+          return
+        }
+
+        case 'pkg': {
+          if (arg1 === 'search') out = `Searching for "${arg2 || 'python'}"...\n\nResults (SIMULATED):\n  python        - Python interpreter\n  python-pip    - Package manager\n  python-dev    - Dev headers`
+          else if (arg1 === 'install') out = `Installing ${arg2 || 'package'}...\n(Simulated — real pkg is not available in browsers)\nProgress: [##########] 100%\n✓ Installed (fake)`
+          else if (arg1 === 'list') out = `Installed packages:\n  bash 5.2\n  curl 8.0\n  openssl 3.0\n  python 3.11 (simulated)\n  git 2.40 (simulated)`
+          else if (arg1 === 'update') out = `Checking for updates...\n(Simulated)\nAll packages up to date.`
+          else out = `pkg - package manager (SIMULATED)\n\nUsage:\n  pkg search <query>\n  pkg install <name>\n  pkg list\n  pkg update`
+          break
+        }
+        case 'apt': out = `apt - Advanced Package Tool (SIMULATED)\n\nReal apt requires root + Linux. Not available in browsers.\nFor real terminal on Android, install Termux from F-Droid.`; break
+
+        case 'help': out = helpText; break
+        case 'about': out = `CYPHER4X Terminal ${VERSION}\n\nSimulated Linux shell environment.\n40+ commands available.\n\n⚠️ Real Termux (apt, pkg, nmap) needs a native Android app.`; break
+        case 'ethics': out = `🔒 Ethical Use Reminder:\n\n1. Only test systems you OWN or have written permission for.\n2. Unauthorized access is illegal.\n3. Learn defense — become a white-hat.\n4. Report vulnerabilities responsibly.\n5. This is an educational simulation.`; break
+
+        default: out = `csh: command not found: ${base}\nType "help" for available commands.`
       }
     } catch (e) { out = 'Error: ' + e.message }
     setCyberLines(prev => [...prev, { type: 'cmd', text: `$ ${cmd}` }, { type: 'out', text: out }])
@@ -878,7 +994,7 @@ export default function App() {
     setCyberToolOutput(out)
   }
 
-  // ---- PROFILE ----
+  // PROFILE
   const handleAvatarChange = useCallback((e) => { const f = e.target.files[0]; if (!f) return; if (!f.type.startsWith('image/')) return alert('Image only'); const rd = new FileReader(); rd.onloadend = () => setProfileForm(p => ({ ...p, avatar: rd.result })); rd.readAsDataURL(f) }, [])
   const saveProfile = useCallback(() => { if (!profileForm.name.trim() || !profileForm.username.trim()) { alert('Name & Username required'); return } const np = { ...profileForm, username: profileForm.username.toLowerCase().replace(/[^a-z0-9_]/g, ''), updatedAt: new Date().toISOString() }; setProfile(np); setEditingProfile(false); speakText(`Updated, ${np.name}!`) }, [profileForm, speakText])
   const openEditProfile = useCallback(() => { setProfileForm({ name: profile?.name || '', username: profile?.username || '', avatar: profile?.avatar || '', bio: profile?.bio || '' }); setEditingProfile(true); setSidebarOpen(false) }, [profile])
@@ -895,16 +1011,12 @@ export default function App() {
 
   // ============ RENDER ============
   if (isBooting) return (
-    <div style={styles.bootContainer}><style>{`@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }`}</style><div style={styles.bootBackground} /><div style={styles.bootContent}><h1 style={styles.bootTitle}>{bootTypedText}<span style={styles.bootCursor}>|</span></h1><p style={styles.bootSubtitle}>Advanced AI System</p><div style={styles.bootCredit}>{bootTypedCredit}{bootTypedCredit.length > 0 && bootTypedCredit.length < 38 && <span style={styles.bootCursor}>|</span>}</div></div></div>
+    <div style={styles.bootContainer}><style>{`@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }`}</style><div style={styles.bootBackground} /><div style={styles.bootContent}><h1 style={styles.bootTitle}>{bootTypedText}<span style={styles.bootCursor}>|</span></h1><p style={styles.bootSubtitle}>{VERSION_FULL} · Advanced AI System</p><div style={styles.bootCredit}>{bootTypedCredit}{bootTypedCredit.length > 0 && bootTypedCredit.length < 38 && <span style={styles.bootCursor}>|</span>}</div></div></div>
   )
 
   if (isEnteringAI) return (
     <div style={styles.enterOverlay}>
-      <style>{`
-        @keyframes spinRing2 { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulse2 { 0%, 100% { opacity: 0.6; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1.02); } }
-      `}</style>
+      <style>{`@keyframes spinRing2 { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } } @keyframes pulse2 { 0%, 100% { opacity: 0.6; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1.02); } }`}</style>
       <div style={styles.enterBackground} />
       <div style={styles.enterContent}>
         <div style={styles.enterRingWrap}>
@@ -922,7 +1034,7 @@ export default function App() {
   )
 
   if (showPersonalityModal) return (
-    <div style={styles.personalityOverlay}><div style={styles.personalityCard}><h1 style={styles.personalityTitle}>CYPHER4X</h1><p style={styles.personalitySubtitle}>Choose your AI personality</p><div style={styles.personalityGrid}>{PERSONALITIES.map(p => <button key={p.id} onClick={() => handlePersonalitySelect(p.id)} style={{ ...styles.personalityOption, borderColor: aiPersonality === p.id ? '#ff003c' : '#333', backgroundColor: aiPersonality === p.id ? 'rgba(255,0,60,0.15)' : '#1a1a1a' }}><span style={styles.personalityIcon}>{p.icon}</span><span style={styles.personalityLabel}>{p.label}</span><span style={styles.personalityDesc}>{p.desc}</span></button>)}</div></div></div>
+    <div style={styles.personalityOverlay}><div style={styles.personalityCard}><h1 style={styles.personalityTitle}>CYPHER4X</h1><p style={styles.personalitySubtitle}>{VERSION_FULL}</p><p style={{ color: '#ff6688', marginBottom: 20 }}>Choose your AI personality</p><div style={styles.personalityGrid}>{PERSONALITIES.map(p => <button key={p.id} onClick={() => handlePersonalitySelect(p.id)} style={{ ...styles.personalityOption, borderColor: aiPersonality === p.id ? '#ff003c' : '#333', backgroundColor: aiPersonality === p.id ? 'rgba(255,0,60,0.15)' : '#1a1a1a' }}><span style={styles.personalityIcon}>{p.icon}</span><span style={styles.personalityLabel}>{p.label}</span><span style={styles.personalityDesc}>{p.desc}</span></button>)}</div></div></div>
   )
 
   if (showGuestLimit) return (
@@ -934,14 +1046,14 @@ export default function App() {
   )
 
   if (showAuthModal) return (
-    <div style={styles.authModalOverlay}><div style={styles.authModalCard}><button onClick={() => setShowAuthModal(false)} style={styles.authModalClose}>✕</button><h1 style={styles.authTitle}>CYPHER4X</h1><p style={styles.authSubtitle}>{showLogin ? 'Login' : 'Sign Up'}</p><div style={styles.authError}>{authError}</div><input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} style={styles.authInput} /><input type="password" placeholder="4-digit PIN" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))} style={styles.authInput} maxLength="4" /><button onClick={handleAuthSubmit} style={styles.authBtn}>{showLogin ? 'Login' : 'Create Account'}</button><div style={styles.authSwitch}><span>{showLogin ? 'No account?' : 'Have account?'}</span><button onClick={() => { setShowLogin(!showLogin); setAuthError('') }} style={styles.authSwitchBtn}>{showLogin ? 'Sign Up' : 'Login'}</button></div></div></div>
+    <div style={styles.authModalOverlay}><div style={styles.authModalCard}><button onClick={() => setShowAuthModal(false)} style={styles.authModalClose}>✕</button><h1 style={styles.authTitle}>CYPHER4X</h1><p style={{ color: '#ff6688', fontSize: 12, marginBottom: 12 }}>{VERSION_FULL}</p><p style={styles.authSubtitle}>{showLogin ? 'Login' : 'Sign Up'}</p><div style={styles.authError}>{authError}</div><input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} style={styles.authInput} /><input type="password" placeholder="4-digit PIN" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))} style={styles.authInput} maxLength="4" /><button onClick={handleAuthSubmit} style={styles.authBtn}>{showLogin ? 'Login' : 'Create Account'}</button><div style={styles.authSwitch}><span>{showLogin ? 'No account?' : 'Have account?'}</span><button onClick={() => { setShowLogin(!showLogin); setAuthError('') }} style={styles.authSwitchBtn}>{showLogin ? 'Sign Up' : 'Login'}</button></div></div></div>
   )
 
-  // ---- SETTINGS ----
+  // SETTINGS
   if (showSettings) return (
     <div style={styles.settingsFullscreen}>
       <style>{`.toggle-switch{position:relative;display:inline-block;width:46px;height:24px;flex-shrink:0}.toggle-switch input{opacity:0;width:0;height:0}.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#333;transition:.3s;border-radius:24px}.toggle-slider:before{content:"";position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;transition:.3s;border-radius:50%}.toggle-switch input:checked+.toggle-slider{background:#ff003c}.toggle-switch input:checked+.toggle-slider:before{transform:translateX(22px)}`}</style>
-      <div style={styles.settingsHeaderFull}><h1 style={styles.settingsTitleFull}>Settings</h1><button onClick={() => setShowSettings(false)} style={styles.settingsCloseFull}><Icon name="close" size={28} color="#fff" /></button></div>
+      <div style={styles.settingsHeaderFull}><h1 style={styles.settingsTitleFull}>Settings · {VERSION}</h1><button onClick={() => setShowSettings(false)} style={styles.settingsCloseFull}><Icon name="close" size={28} color="#fff" /></button></div>
       <div style={styles.settingsBodyFull}>
         <div style={styles.settingsSection}><h3 style={styles.settingsSectionTitle}>General</h3>
           <div style={styles.settingItem}><span>Welcome Messages</span><label className="toggle-switch"><input type="checkbox" checked={settings.welcomeEnabled} onChange={(e) => setSettings({ ...settings, welcomeEnabled: e.target.checked })} /><span className="toggle-slider"></span></label></div>
@@ -978,29 +1090,28 @@ export default function App() {
     </div>
   )
 
-  // ---- MUSIC PANEL ----
+  // MUSIC PANEL
   if (showMusicPanel) return (
     <div style={styles.settingsFullscreen}><div style={styles.settingsHeaderFull}><h1 style={styles.settingsTitleFull}>🎵 Music Generator</h1><button onClick={() => setShowMusicPanel(false)} style={styles.settingsCloseFull}><Icon name="close" size={28} color="#fff" /></button></div>
       <div style={styles.settingsBodyFull}>
-        <div style={styles.settingsSection}><h3 style={styles.settingsSectionTitle}>Describe Your Music</h3><input value={musicDesc} onChange={(e) => setMusicDesc(e.target.value)} placeholder="e.g. romantic piano with soft vocals, sad acoustic..." style={styles.settingsSelect} /><p style={styles.bgHint}>Powered by Tunova (Suno v5.5). Full songs with vocals & music.</p></div>
+        <div style={styles.settingsSection}><h3 style={styles.settingsSectionTitle}>Describe Your Music</h3><input value={musicDesc} onChange={(e) => setMusicDesc(e.target.value)} placeholder="e.g. romantic piano with soft vocals..." style={styles.settingsSelect} /><p style={styles.bgHint}>Powered by Tunova (Suno v5.5). Full songs with vocals.</p></div>
         <div style={styles.settingsSection}><h3 style={styles.settingsSectionTitle}>Duration</h3><div style={styles.settingItem}><span>{musicDuration}s</span><input type="range" min="15" max="180" step="5" value={musicDuration} onChange={(e) => setMusicDuration(parseInt(e.target.value))} style={styles.settingsRange} /></div></div>
-        <div style={styles.settingsSection}><h3 style={styles.settingsSectionTitle}>Quality</h3><select value={musicQuality} onChange={(e) => setMusicQuality(e.target.value)} style={styles.settingsSelect}><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></div>
-        {musicInfo && <p style={{ color: '#4f8', textAlign: 'center', fontSize: 13, fontWeight: 'bold' }}>{musicInfo}</p>}
+        {musicInfo && <pre style={{ color: musicInfo.startsWith('❌') ? '#ff6688' : '#4f8', textAlign: 'center', fontSize: 12, fontWeight: 'bold', whiteSpace: 'pre-wrap', fontFamily: 'monospace', padding: 12, background: '#0a0a0a', borderRadius: 8, border: '1px solid #333' }}>{musicInfo}</pre>}
         {musicDownloadUrl && <a href={musicDownloadUrl} download={`cypher4x_music_${Date.now()}.mp3`} style={{ ...styles.uploadBtn, justifyContent: 'center', textDecoration: 'none', marginTop: 12 }}><Icon name="download" size={16} color="#fff" /><span>Download Track</span></a>}
         {musicPlaying && musicAudioRef && <button onClick={() => { musicAudioRef.pause(); setMusicPlaying(false) }} style={{ ...styles.resetBtn, width: '100%', justifyContent: 'center', marginTop: 12 }}><Icon name="pause" size={16} color="#fff" /><span>Pause</span></button>}
       </div>
-      <button onClick={handleGenerateMusic} disabled={musicGenerating} style={styles.settingsDoneFull}>{musicGenerating ? 'Generating...' : musicPlaying ? 'Playing...' : 'Generate Music'}</button>
+      <button onClick={handleGenerateMusic} disabled={musicGenerating} style={styles.settingsDoneFull}>{musicGenerating ? 'Submitting...' : musicPlaying ? 'Playing...' : 'Generate Music'}</button>
     </div>
   )
 
-  // ---- VIDEO PANEL ----
+  // VIDEO PANEL
   if (showVideoPanel) return (
     <div style={styles.settingsFullscreen}><div style={styles.settingsHeaderFull}><h1 style={styles.settingsTitleFull}>🎬 Video Generator</h1><button onClick={() => setShowVideoPanel(false)} style={styles.settingsCloseFull}><Icon name="close" size={28} color="#fff" /></button></div>
       <div style={styles.settingsBodyFull}>
-        <div style={styles.settingsSection}><h3 style={styles.settingsSectionTitle}>Describe Your Video</h3><input value={videoDesc} onChange={(e) => setVideoDesc(e.target.value)} placeholder="e.g. cinematic drone shot over a city at sunset..." style={styles.settingsSelect} /><p style={styles.bgHint}>Powered by Agnes AI Video V2.0 (free). Text-to-video and image-to-video.</p></div>
+        <div style={styles.settingsSection}><h3 style={styles.settingsSectionTitle}>Describe Your Video</h3><input value={videoDesc} onChange={(e) => setVideoDesc(e.target.value)} placeholder="e.g. cinematic drone shot over a city at sunset..." style={styles.settingsSelect} /><p style={styles.bgHint}>Powered by Agnes AI Video V2.0</p></div>
         <div style={styles.settingsSection}><h3 style={styles.settingsSectionTitle}>Duration</h3><div style={styles.settingItem}><span>{videoDuration}s</span><input type="range" min="2" max="18" step="1" value={videoDuration} onChange={(e) => setVideoDuration(parseInt(e.target.value))} style={styles.settingsRange} /></div></div>
         <div style={styles.settingsSection}><h3 style={styles.settingsSectionTitle}>Quality</h3><select value={videoQuality} onChange={(e) => setVideoQuality(e.target.value)} style={styles.settingsSelect}><option value="low">480p</option><option value="medium">720p</option><option value="high">1080p</option></select></div>
-        {videoInfo && <p style={{ color: '#4f8', textAlign: 'center', fontSize: 13, fontWeight: 'bold' }}>{videoInfo}</p>}
+        {videoInfo && <pre style={{ color: videoInfo.startsWith('❌') ? '#ff6688' : '#4f8', textAlign: 'center', fontSize: 12, fontWeight: 'bold', whiteSpace: 'pre-wrap', fontFamily: 'monospace', padding: 12, background: '#0a0a0a', borderRadius: 8, border: '1px solid #333' }}>{videoInfo}</pre>}
         {videoResultUrl && <video src={videoResultUrl} controls style={{ width: '100%', borderRadius: 12, marginTop: 12 }} />}
         {videoResultUrl && <a href={videoResultUrl} download={`cypher4x_video_${Date.now()}.mp4`} style={{ ...styles.uploadBtn, justifyContent: 'center', textDecoration: 'none', marginTop: 12 }}><Icon name="download" size={16} color="#fff" /><span>Download Video</span></a>}
       </div>
@@ -1008,15 +1119,21 @@ export default function App() {
     </div>
   )
 
-  // ---- CYBER LAB ----
+  // CYBER LAB
   if (showCyberLab) {
     const tools = [{id:'passcheck',label:'Password'},{id:'hash',label:'Hash'},{id:'base64',label:'B64 Enc'},{id:'unbase64',label:'B64 Dec'},{id:'hex',label:'Hex'},{id:'rot13',label:'ROT13'},{id:'dns',label:'DNS'},{id:'ip',label:'IP'},{id:'portscan',label:'PortSim'}]
     return (
       <div style={styles.settingsFullscreen}>
-        <div style={styles.settingsHeaderFull}><h1 style={styles.settingsTitleFull}>🔒 Cyber Lab</h1><button onClick={() => setShowCyberLab(false)} style={styles.settingsCloseFull}><Icon name="close" size={28} color="#fff" /></button></div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', backgroundColor: '#000', borderBottom: '1px solid #1a1a1a', flexShrink: 0 }}>
+          <button onClick={() => setShowCyberLab(false)} style={{ background: 'none', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 14 }}>
+            <Icon name="arrowLeft" size={20} color="#fff" /> exit
+          </button>
+          <span style={{ color: '#4f8', fontSize: 12, fontFamily: "'Courier New', monospace" }}>csh@cypher4x:~$</span>
+          <button onClick={() => setCyberLines([{ type: 'info', text: `${VERSION_FULL} — type "help"` }])} style={{ background: 'none', border: '1px solid #333', color: '#888', padding: '3px 10px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>clear</button>
+        </div>
         <div style={{ display: 'flex', padding: '8px 16px', gap: 8, flexShrink: 0, background: '#111', borderBottom: '1px solid #333' }}>
-          <button onClick={() => setCyberTab('terminal')} style={{ flex: 1, padding: 10, background: cyberTab === 'terminal' ? '#ff003c' : '#1a1a1a', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 'bold', cursor: 'pointer' }}>Terminal</button>
-          <button onClick={() => setCyberTab('tools')} style={{ flex: 1, padding: 10, background: cyberTab === 'tools' ? '#ff003c' : '#1a1a1a', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 'bold', cursor: 'pointer' }}>Tools</button>
+          <button onClick={() => setCyberTab('terminal')} style={{ flex: 1, padding: 10, background: cyberTab === 'terminal' ? '#ff003c' : '#1a1a1a', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 'bold', cursor: 'pointer', fontSize: 12 }}>Terminal</button>
+          <button onClick={() => setCyberTab('tools')} style={{ flex: 1, padding: 10, background: cyberTab === 'tools' ? '#ff003c' : '#1a1a1a', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 'bold', cursor: 'pointer', fontSize: 12 }}>Tools</button>
         </div>
         {cyberTab === 'terminal' && (<>
           <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: 16, background: '#000', fontFamily: "'Courier New', monospace", fontSize: 13, color: '#ddd' }}>
@@ -1024,8 +1141,8 @@ export default function App() {
             <div ref={cyberEndRef} />
           </div>
           <form onSubmit={handleCyberSubmit} style={{ display: 'flex', gap: 8, padding: 12, paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))', background: '#111', borderTop: '1px solid #333' }}>
-            <span style={{ color: '#4f8', fontWeight: 'bold' }}>$</span>
-            <input value={cyberInput} onChange={(e) => setCyberInput(e.target.value)} placeholder="Type a command (help)" style={{ flex: 1, padding: 10, background: '#000', border: '1px solid #333', color: '#fff', borderRadius: 4, fontFamily: "'Courier New', monospace", outline: 'none' }} autoComplete="off" autoCapitalize="off" spellCheck="false" />
+            <span style={{ color: '#4f8', fontWeight: 'bold', alignSelf: 'center' }}>~ $</span>
+            <input value={cyberInput} onChange={(e) => setCyberInput(e.target.value)} placeholder='Type a command (help)' style={{ flex: 1, padding: 10, background: '#000', border: '1px solid #333', color: '#fff', borderRadius: 4, fontFamily: "'Courier New', monospace", outline: 'none' }} autoComplete="off" autoCapitalize="off" spellCheck="false" />
             <button type="submit" style={{ padding: '8px 14px', background: '#ff003c', border: 'none', borderRadius: 4, color: '#fff', cursor: 'pointer' }}><Icon name="send" size={16} color="#fff" /></button>
           </form>
         </>)}
@@ -1051,13 +1168,13 @@ export default function App() {
     <div style={styles.rotateOverlay}><div style={styles.rotateCard}><Icon name="rotate" size={48} color="#ff003c" /><div style={styles.rotateText}>Pls Rotate device if you are using Android</div><button onClick={() => setShowRotateOverlay(false)} style={styles.rotateOkBtn}>OK</button></div></div>
   )
 
-  // ---- CHAT OVERVIEW ----
+  // CHAT OVERVIEW
   if (showChatOverview) return (
     <div style={styles.chatOverviewContainer}>
       <div style={styles.chatOverviewHeader}>
         <button onClick={() => setShowChatOverview(false)} style={styles.chatOverviewBackBtn}><Icon name="arrowLeft" size={24} color="#fff" /> Back</button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <select value={activeChatId || ''} onChange={(e) => switchChat(e.target.value)} style={{ background: '#1a1a1a', color: '#fff', border: '1px solid #333', borderRadius: 6, padding: '6px 8px', fontSize: 12, maxWidth: 130 }}>
+          <select value={activeChatId || ''} onChange={(e) => switchChat(e.target.value)} style={{ background: '#1a1a1a', color: '#fff', border: '1px solid #333', borderRadius: 6, padding: '6px 8px', fontSize: 12, maxWidth: 120 }}>
             {chats.map(c => <option key={c.id} value={c.id}>{c.title} ({c.messages.length})</option>)}
           </select>
           <button onClick={createNewChat} style={{ background: '#ff003c', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 10px', fontSize: 12, fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}><Icon name="plus" size={14} color="#fff" /> New</button>
@@ -1101,7 +1218,7 @@ export default function App() {
     <div style={styles.profileContainer}><div style={styles.profileCard}><h1 style={styles.profileTitle}>EDIT PROFILE</h1><div style={styles.avatarUploadArea} onClick={() => fileInputRef.current?.click()}>{profileForm.avatar ? <img src={profileForm.avatar} alt="" style={styles.avatarPreview} /> : <span style={styles.avatarIcon}><Icon name="camera" size={32} color="#ff003c" /><br />Tap to select</span>}</div><input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} /><div style={styles.inputGroup}><label style={styles.label}><Icon name="user" size={14} color="#ff003c" /> Name *</label><input type="text" value={profileForm.name} onChange={(e) => setProfileForm(p => ({ ...p, name: e.target.value }))} style={styles.textInput} /></div><div style={styles.inputGroup}><label style={styles.label}><Icon name="atSign" size={14} color="#ff003c" /> Username *</label><input type="text" value={profileForm.username} onChange={(e) => setProfileForm(p => ({ ...p, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') }))} style={styles.textInput} /></div><div style={styles.inputGroup}><label style={styles.label}><Icon name="pencil" size={14} color="#ff003c" /> Bio</label><textarea value={profileForm.bio} onChange={(e) => setProfileForm(p => ({ ...p, bio: e.target.value }))} style={styles.bioInput} /></div><div style={styles.profileBtnRow}><button onClick={() => setEditingProfile(false)} style={styles.cancelBtn}>Cancel</button><button onClick={saveProfile} style={styles.createBtn}>SAVE</button></div></div></div>
   )
 
-  // ---- ANDROID VIEW ----
+  // ANDROID VIEW
   if (viewMode === 'android') return (
     <div style={{ ...styles.appAndroid, ...(settings.highContrast ? { filter: 'contrast(1.3)' } : {}) }}>
       {sidebarOpen && (<>
@@ -1110,42 +1227,72 @@ export default function App() {
           <div style={styles.sidebarHeader}><h2 style={styles.sidebarTitle}><Icon name="settings" size={20} color="#ff003c" /> CONTROL PANEL</h2><button onClick={() => setSidebarOpen(false)} style={styles.closeBtn}><Icon name="x" size={20} color="#888" /></button></div>
           <div style={styles.sidebarSection}><h3 style={styles.sectionTitle}><Icon name="desktop" size={16} color="#ff003c" /> VIEW MODE</h3><div style={styles.settingRow}><span style={styles.settingLabel}>Android</span><button onClick={toggleView} style={styles.toggleBtn}>PC</button></div></div>
           <div style={styles.sidebarSection}><h3 style={styles.sectionTitle}><Icon name="sparkles" size={16} color="#ff003c" /> QUICK TOOLS</h3>
-            <button onClick={() => { setSidebarOpen(false); setShowCyberLab(true) }} style={styles.toolBtn}><Icon name="shield" size={16} color="#fff" /> Cyber Lab</button>
+            <button onClick={() => { setSidebarOpen(false); setShowCyberLab(true) }} style={styles.toolBtn}><Icon name="shield" size={16} color="#fff" /> Cyber Lab / Terminal</button>
             <button onClick={() => { setSidebarOpen(false); setShowMusicPanel(true) }} style={styles.toolBtn}><Icon name="music" size={16} color="#fff" /> Music Generator</button>
             <button onClick={() => { setSidebarOpen(false); setShowVideoPanel(true) }} style={styles.toolBtn}><Icon name="video" size={16} color="#fff" /> Video Generator</button>
             <button onClick={() => { setSidebarOpen(false); setShowSettings(true) }} style={styles.toolBtn}><Icon name="cog" size={16} color="#fff" /> Settings</button>
           </div>
           <div style={styles.sidebarSection}><h3 style={styles.sectionTitle}><Icon name="chart" size={16} color="#ff003c" /> SYSTEM</h3><div style={styles.statsCard}><div style={styles.statRow}><span style={styles.statLabel}><Icon name="hourglass" size={14} color="#888" /> Uptime</span><span style={styles.statValue}>{fmtU(stats.uptime)}</span></div><div style={styles.statRow}><span style={styles.statLabel}><Icon name="cpu" size={14} color="#888" /> CPU</span><span style={styles.statValue}>{stats.cpuUsage}%</span></div><div style={styles.statRow}><span style={styles.statLabel}><Icon name="memory" size={14} color="#888" /> RAM</span><span style={styles.statValue}>{stats.ramUsage.toFixed(1)} GB</span></div></div></div>
-          <div style={styles.sidebarSection}><h3 style={styles.sectionTitle}><Icon name="chat" size={16} color="#ff003c" /> CHATS ({chats.length})</h3>
-            <button onClick={() => { setSidebarOpen(false); createNewChat() }} style={styles.toolBtn}><Icon name="plus" size={16} color="#fff" /> New Chat</button>
-            <button onClick={() => { setSidebarOpen(false); setShowChatOverview(true) }} style={styles.toolBtn}><Icon name="chat" size={16} color="#fff" /> Open Current Chat</button>
-            <div style={{ maxHeight: 200, overflowY: 'auto', marginTop: 8, border: '1px solid #1a1a1a', borderRadius: 6, padding: 6, backgroundColor: '#050505' }}>
-              {chats.map(c => (
-                <div key={c.id} onClick={() => { switchChat(c.id); setSidebarOpen(false); setShowChatOverview(true) }} style={{ padding: '6px 8px', borderRadius: 4, cursor: 'pointer', background: c.id === activeChatId ? 'rgba(255,0,60,0.15)' : 'transparent', borderLeft: c.id === activeChatId ? '3px solid #ff003c' : '3px solid transparent', marginBottom: 4 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ color: c.id === activeChatId ? '#fff' : '#ccc', fontSize: 12, fontWeight: 'bold' }}>{c.title}</span><span style={{ color: '#666', fontSize: 10 }}>{c.messages.length}</span></div>
+          <div style={styles.sidebarSection}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <h3 style={styles.sectionTitle}><Icon name="chat" size={16} color="#ff003c" /> CHAT ({chats.length})</h3>
+              <button onClick={() => { setSidebarOpen(false); setShowChatOverview(true) }} style={styles.overviewBtn}><Icon name="desktop" size={14} color="#fff" /> Overview</button>
+            </div>
+            <select value={activeChatId || ''} onChange={(e) => switchChat(e.target.value)} style={{ width: '100%', padding: 8, background: '#1a1a1a', color: '#fff', border: '1px solid #333', borderRadius: 6, marginBottom: 8, fontSize: 12, boxSizing: 'border-box' }}>
+              {chats.map(c => <option key={c.id} value={c.id}>{c.title} ({c.messages.length})</option>)}
+            </select>
+            <button onClick={createNewChat} style={{ ...styles.toolBtn, marginBottom: 8 }}><Icon name="plus" size={16} color="#fff" /> New Chat</button>
+            <div style={{ maxHeight: 260, overflowY: 'auto', marginBottom: 8, border: '1px solid #1a1a1a', borderRadius: 6, padding: 6, backgroundColor: '#050505', WebkitOverflowScrolling: 'touch' }}>
+              {conversation.length === 0 && <p style={styles.dashEmptyPC}>No messages in this chat</p>}
+              {conversation.slice(-40).map(msg => (
+                <div key={msg.id} style={{ padding: '6px 8px', marginBottom: 4, borderRadius: 4, background: msg.role === 'user' ? 'rgba(255,0,60,0.15)' : 'rgba(255,255,255,0.04)', borderLeft: msg.role === 'user' ? '3px solid #ff003c' : '3px solid #ff6688' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                    <span style={{ fontWeight: 'bold', color: msg.role === 'user' ? '#ff6688' : '#fff', fontSize: 10, letterSpacing: 1 }}>{msg.role === 'user' ? (profile?.name || 'YOU') : 'CYPHER4X'}</span>
+                    <span style={{ fontSize: 9, color: '#666' }}>{fmtT(msg.time)}</span>
+                  </div>
+                  <div style={{ color: '#ddd', fontSize: 12, wordBreak: 'break-word', whiteSpace: 'pre-wrap', lineHeight: 1.4 }}>
+                    {msg.content.length > 200 ? msg.content.slice(0, 200) + '…' : msg.content}
+                  </div>
                 </div>
               ))}
+              {isProcessing && <div style={{ padding: '6px 8px', color: '#ff6688', fontSize: 11, fontStyle: 'italic' }}>● CYPHER4X is typing...</div>}
+            </div>
+            <div style={styles.inputRow}>
+              <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') sendTextMessage() }} placeholder="Send message..." style={styles.textInputSmall} />
+              <button onClick={sendTextMessage} style={styles.sendBtnSmall} disabled={isProcessing}><Icon name="send" size={16} color="#fff" /></button>
+            </div>
+            <button onClick={() => { setSidebarOpen(false); startRecording() }} style={{ ...styles.toolBtn, marginTop: 4 }}><Icon name="mic" size={16} color="#fff" /> Tap to Speak</button>
+            <div style={styles.commandActionsPC}>
+              <button onClick={clearConversation} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear</button>
+              <button onClick={exportChat} style={styles.dashBtnPC}><Icon name="save" size={14} color="#fff" /> Export</button>
             </div>
           </div>
           <div style={styles.sidebarSection}><h3 style={styles.sectionTitle}><Icon name="user" size={16} color="#ff003c" /> PROFILE</h3><div style={styles.profileCardSidebar}><div style={styles.profileAvatarWrapper}>{profile?.avatar ? <img src={profile.avatar} alt="" style={styles.profileAvatar} /> : <div style={styles.profileAvatarPlaceholder}>{profile?.name?.charAt(0) || '?'}</div>}</div><div style={styles.profileInfo}><div style={styles.profileName}>{profile?.name || 'User'}</div><div style={styles.profileHandle}><Icon name="atSign" size={12} color="#888" />{profile?.username || 'anonymous'}</div></div></div><button onClick={openEditProfile} style={styles.sidebarBtn}><Icon name="edit" size={14} color="#fff" /> Edit Profile</button>{userMode === 'loggedin' ? <button onClick={handleLogout} style={styles.logoutBtn}><Icon name="close" size={14} color="#fff" /> Logout</button> : <button onClick={() => { setShowAuthModal(true); setShowLogin(true) }} style={styles.sidebarBtn}><Icon name="settings" size={14} color="#fff" /> Login</button>}</div>
           <div style={styles.sidebarSection}><h3 style={styles.sectionTitle}><Icon name="alertTriangle" size={16} color="#ff003c" /> DANGER ZONE</h3><button onClick={resetAllData} style={styles.dangerBtn}><Icon name="trash" size={14} color="#fff" /> Reset All</button></div>
+          <div style={{ textAlign: 'center', color: '#666', fontSize: 10, padding: '12px 0', borderTop: '1px solid #1a1a1a', marginTop: 12 }}>{VERSION_FULL}</div>
         </div>
       </>)}
 
       <div style={{ ...styles.mainContentAndroid, backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div style={styles.backgroundAndroid}><RedBall isSpeaking={isAISpeaking} /><div style={styles.faceTitleAndroid}>CYPHER4X</div></div>
-        <div style={styles.topBarAndroid}><div style={{ width: 80 }} /><div style={styles.topRightButtons}><button onClick={toggleFullscreenCall} style={styles.callButtonTopRight}><Icon name="phone" size={24} color={isCallActive ? '#4f8' : '#ff003c'} /><span style={styles.callLabelTop}>{isFullscreenCall ? 'ACTIVE' : 'CALL'}</span></button><button onClick={() => setShowSettings(true)} style={styles.settingsButtonTop}><Icon name="cog" size={20} color="#fff" /></button></div></div>
+        <div style={{ position: 'absolute', top: 22, left: '50%', transform: 'translateX(-50%)', color: '#ff6688', fontSize: 10, letterSpacing: 2, fontWeight: 'bold', zIndex: 10 }}>{VERSION}</div>
+        <div style={styles.topBarAndroid}>
+          <button onClick={() => setSidebarOpen(true)} style={{ ...styles.hamburgerBtn, position: 'static' }}><Icon name="menu" size={28} color="#ff003c" /></button>
+          <div style={styles.topRightButtons}>
+            <button onClick={toggleFullscreenCall} style={styles.callButtonTopRight}><Icon name="phone" size={24} color={isCallActive ? '#4f8' : '#ff003c'} /><span style={styles.callLabelTop}>{isFullscreenCall ? 'ACTIVE' : 'CALL'}</span></button>
+            <button onClick={() => setShowSettings(true)} style={styles.settingsButtonTop}><Icon name="cog" size={20} color="#fff" /></button>
+          </div>
+        </div>
         <div style={styles.listeningContainer}>
           {isListening ? (<><div style={styles.listeningDot} /><span style={styles.listeningText}>Listening...</span>{interimTranscript && <span style={styles.interimText}>"{interimTranscript}"</span>}{interimTranscript && <button onClick={sendInterim} style={styles.sendInterimBtn} disabled={isProcessing}><Icon name="send" size={16} color="#fff" /><span>Send</span></button>}</>) : isProcessing ? <span style={styles.listeningText}>Processing...</span> : isRecording ? (<><div style={{ ...styles.listeningDot, backgroundColor: '#ff003c', boxShadow: '0 0 20px #ff003c' }} /><span style={styles.listeningText}>Recording...</span>{interimTranscript && <span style={styles.interimText}>"{interimTranscript}"</span>}</>) : null}
         </div>
         <div style={styles.voiceButtonContainer}><button onClick={startRecording} disabled={isRecording || isProcessing || isFullscreenCall} style={{ ...styles.voiceButton, ...(isRecording ? styles.voiceButtonActive : {}) }}><Icon name="mic" size={40} color="#fff" /><span style={styles.voiceLabel}>{isRecording ? 'Recording...' : isProcessing ? 'Processing...' : 'Tap to Speak'}</span></button></div>
-        <button onClick={() => setSidebarOpen(true)} style={{ ...styles.hamburgerBtn, zIndex: 15 }}><Icon name="menu" size={28} color="#ff003c" /></button>
         {settings.overlayButton && <button onClick={toggleOverlay} style={{ ...styles.floatingBtn, backgroundColor: overlayActive ? '#ff003c' : 'rgba(0,0,0,0.7)', borderColor: overlayActive ? '#ff003c' : '#333' }}><Icon name={overlayListening ? 'mic' : 'sparkles'} size={22} color={overlayActive ? '#fff' : '#ff003c'} /></button>}
       </div>
     </div>
   )
 
-  // ---- PC VIEW ----
+  // PC VIEW
   return (
     <div style={{ ...styles.appPC, ...(settings.highContrast ? { filter: 'contrast(1.3)' } : {}) }}>
       <header style={styles.headerPC}>
@@ -1164,6 +1311,7 @@ export default function App() {
           <div style={styles.pcSidebarSection}><h3 style={styles.pcSidebarTitle}><Icon name="chart" size={16} color="#ff003c" /> STATS</h3><div style={styles.pcSidebarRow}><span>CPU</span><span>{stats.cpuUsage}%</span></div><div style={styles.pcSidebarRow}><span>RAM</span><span>{stats.ramUsage.toFixed(1)} GB</span></div><div style={styles.pcSidebarRow}><span>Uptime</span><span>{fmtU(stats.uptime)}</span></div></div>
           <div style={styles.pcSidebarSection}><h3 style={styles.pcSidebarTitle}><Icon name="chat" size={16} color="#ff003c" /> CHATS</h3><button onClick={createNewChat} style={styles.sidebarBtnPC}><Icon name="plus" size={14} color="#fff" /> New Chat</button><button onClick={() => setShowChatOverview(true)} style={styles.sidebarBtnPC}><Icon name="chat" size={14} color="#fff" /> Open Chat</button></div>
           <div style={styles.pcSidebarSection}><h3 style={styles.pcSidebarTitle}><Icon name="user" size={16} color="#ff003c" /> PROFILE</h3><button onClick={openEditProfile} style={styles.sidebarBtnPC}><Icon name="edit" size={14} color="#fff" /> Edit Profile</button>{userMode === 'loggedin' ? <button onClick={handleLogout} style={styles.logoutBtnPC}><Icon name="close" size={14} color="#fff" /> Logout</button> : <button onClick={() => { setShowAuthModal(true); setShowLogin(true) }} style={styles.sidebarBtnPC}><Icon name="settings" size={14} color="#fff" /> Login</button>}</div>
+          <div style={{ textAlign: 'center', color: '#666', fontSize: 10, padding: '12px 0', borderTop: '1px solid #1a1a1a', marginTop: 12 }}>{VERSION_FULL}</div>
         </div>
         <div style={{ ...styles.pcMain, backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
           <div style={styles.pcBallContainer}><RedBall isSpeaking={isAISpeaking} /></div>
@@ -1207,7 +1355,7 @@ const styles = {
   personalityOverlay: { position: 'fixed', inset: 0, backgroundColor: '#000', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, overflowY: 'auto' },
   personalityCard: { width: '100%', maxWidth: 700, backgroundColor: '#111', border: '2px solid #ff003c', borderRadius: 16, padding: 30, textAlign: 'center' },
   personalityTitle: { color: '#ff003c', fontSize: 36, letterSpacing: 6, margin: '0 0 8px' },
-  personalitySubtitle: { color: '#ff6688', fontSize: 16, marginBottom: 24 },
+  personalitySubtitle: { color: '#ff6688', fontSize: 14, marginBottom: 8 },
   personalityGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 12, marginBottom: 20 },
   personalityOption: { padding: '16px 12px', border: '2px solid #333', borderRadius: 12, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, background: 'transparent' },
   personalityIcon: { fontSize: 28 },
@@ -1240,7 +1388,7 @@ const styles = {
 
   settingsFullscreen: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, height: '100dvh', backgroundColor: '#000', zIndex: 100000, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
   settingsHeaderFull: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #333', backgroundColor: '#0a0000', flexShrink: 0 },
-  settingsTitleFull: { color: '#ff003c', fontSize: 22, margin: 0, letterSpacing: 2 },
+  settingsTitleFull: { color: '#ff003c', fontSize: 20, margin: 0, letterSpacing: 2 },
   settingsCloseFull: { background: 'none', border: 'none', cursor: 'pointer', padding: 8, display: 'flex' },
   settingsBodyFull: { flex: 1, minHeight: 0, overflowY: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 20, WebkitOverflowScrolling: 'touch' },
   settingsSection: { borderBottom: '1px solid #1a1a1a', paddingBottom: 20 },
@@ -1373,7 +1521,7 @@ const styles = {
   voiceButton: { width: 90, height: 90, borderRadius: '50%', backgroundColor: '#1a1a1a', border: '3px solid #ff003c', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, boxShadow: '0 0 40px rgba(255,0,60,0.2)' },
   voiceButtonActive: { backgroundColor: '#ff003c', borderColor: '#ff003c', boxShadow: '0 0 80px rgba(255,0,60,0.7)', animation: 'pulseGlow 1s ease-in-out infinite' },
   voiceLabel: { color: '#fff', fontSize: 12, fontWeight: 'bold', letterSpacing: 1, marginTop: 4 },
-  hamburgerBtn: { position: 'absolute', top: 25, left: 25, backgroundColor: 'transparent', border: 'none', cursor: 'pointer', zIndex: 15, padding: 8, borderRadius: 4 },
+  hamburgerBtn: { backgroundColor: 'transparent', border: 'none', cursor: 'pointer', zIndex: 15, padding: 8, borderRadius: 4 },
 
   appPC: { minHeight: '100vh', height: '100dvh', backgroundColor: '#000', color: '#e0e0e0', fontFamily: "'Segoe UI','Courier New',monospace", overflow: 'hidden', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '100vw' },
   headerPC: { padding: '6px 12px', borderBottom: '1px solid rgba(255,0,60,0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, backgroundColor: '#0a0000', flexWrap: 'wrap', gap: 4, minHeight: 44 },
@@ -1395,8 +1543,8 @@ const styles = {
   dashBtnPC: { padding: '3px 10px', backgroundColor: '#222', color: '#fff', border: '1px solid #333', borderRadius: 4, cursor: 'pointer', fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 },
   dashEmptyPC: { color: '#666', fontSize: 12, textAlign: 'center', padding: '6px 0' },
   inputRow: { display: 'flex', gap: 6, marginTop: 4, marginBottom: 6 },
-  textInputSmall: { flex: 1, padding: '6px 10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: 4, fontSize: 13, outline: 'none' },
-  sendBtnSmall: { padding: '6px 12px', backgroundColor: '#ff003c', border: 'none', borderRadius: 4, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  textInputSmall: { flex: 1, padding: '6px 10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: 4, fontSize: 13, outline: 'none', minWidth: 0 },
+  sendBtnSmall: { padding: '6px 12px', backgroundColor: '#ff003c', border: 'none', borderRadius: 4, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   commandActionsPC: { display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   sidebarBtnPC: { padding: '5px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
   logoutBtnPC: { padding: '5px 10px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
