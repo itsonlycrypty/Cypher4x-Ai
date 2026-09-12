@@ -42,15 +42,15 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     sparkles: 'M12 3l1.9 5.8L20 10l-6.1 1.2L12 17l-1.9-5.8L4 10l6.1-1.2L12 3z',
     refresh: 'M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15',
     music: 'M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm12-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0z',
-    toolbox: 'M2 8h20v13H2zM2 8V6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v2M9 12v3M15 12v3',
-    wand: 'M15 4V2m0 20v-2m8-8h-2M3 12H1m17.07-7.07l-1.41 1.41M6.34 17.66l-1.41 1.41m0-14.14l1.41 1.41m11.32 11.32l1.41 1.41M12 8l4 4-4 4M8 8l4 4-4 4',
-    key: 'M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4',
-    hash: 'M4 9h16M4 15h16M10 3L8 21M16 3l-2 18',
-    type: 'M4 7V4h16v3M9 20h6M12 4v16',
-    download: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3',
-    dice: 'M4 4h16v16H4zM8 8h.01M16 8h.01M12 12h.01M8 16h.01M16 16h.01',
-    palette: 'M12 22a10 10 0 1 1 0-20c5.5 0 10 4.5 10 10 0 1.7-1.3 3-3 3h-1.5a1.5 1.5 0 0 0-1.5 1.5c0 .4.1.7.4 1 .3.3.6.6.6 1.2A1.8 1.8 0 0 1 12 22zM7.5 11a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm5-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm5 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-5 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2z',
     zap: 'M13 2L3 14h9l-1 8 10-12h-9l1-8z',
+    shield: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+    reply: 'M9 17l-6-6 6-6M3 11h10a6 6 0 0 1 6 6v2',
+    terminal: 'M4 17l6-6-6-6M12 19h8',
+    lock: 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4',
+    eye: 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12zm11 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+    wifi: 'M5 12.55a11 11 0 0 1 14 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01',
+    globe: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20',
+    code: 'M16 18l6-6-6-6M8 6l-6 6 6 6',
   }
   const path = icons[name]
   if (!path) return null
@@ -63,7 +63,7 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
 
 const TAVILY_API_KEY = "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"
 const TAVILY_URL = "https://api.tavily.com/search"
-const VERSION = "Version 23.0.0"
+const VERSION = "Version 24.0.0"
 const APP_START_TIME = Date.now()
 
 const getStorageKey = (email, pin) => `cypher4x_${email}_${pin}`
@@ -85,49 +85,31 @@ const APP_MAP = {
   whatsappbusiness: { name: 'WhatsApp Business', pkg: 'com.whatsapp.w4b', scheme: 'whatsapp', universal: 'https://wa.me/', web: 'https://web.whatsapp.com' },
   instagram: { name: 'Instagram', pkg: 'com.instagram.android', scheme: 'instagram', universal: 'https://instagram.com/', web: 'https://instagram.com' },
   facebook: { name: 'Facebook', pkg: 'com.facebook.katana', scheme: 'fb', universal: 'https://facebook.com/', web: 'https://facebook.com' },
-  twitter: { name: 'Twitter', pkg: 'com.twitter.android', scheme: 'twitter', universal: 'https://twitter.com/', web: 'https://twitter.com' },
   telegram: { name: 'Telegram', pkg: 'org.telegram.messenger', scheme: 'tg', universal: 'https://t.me/', web: 'https://web.telegram.org' },
   youtube: { name: 'YouTube', pkg: 'com.google.android.youtube', scheme: 'vnd.youtube', universal: 'https://youtube.com/', web: 'https://youtube.com' },
   spotify: { name: 'Spotify', pkg: 'com.spotify.music', scheme: 'spotify', universal: 'https://open.spotify.com/', web: 'https://open.spotify.com' },
   gmail: { name: 'Gmail', pkg: 'com.google.android.gm', scheme: 'googlegmail', universal: 'https://mail.google.com/', web: 'https://mail.google.com' },
   maps: { name: 'Maps', pkg: 'com.google.android.apps.maps', scheme: 'geo', universal: 'https://maps.google.com/', web: 'https://maps.google.com' },
-  netflix: { name: 'Netflix', pkg: 'com.netflix.mediaclient', scheme: 'nflx', universal: 'https://netflix.com/', web: 'https://netflix.com' },
-  linkedin: { name: 'LinkedIn', pkg: 'com.linkedin.android', scheme: 'linkedin', universal: 'https://linkedin.com/', web: 'https://linkedin.com' },
-  reddit: { name: 'Reddit', pkg: 'com.reddit.frontpage', scheme: 'reddit', universal: 'https://reddit.com/', web: 'https://reddit.com' },
-  tiktok: { name: 'TikTok', pkg: 'com.zhiliaoapp.musically', scheme: 'snssdk1233', universal: 'https://tiktok.com/', web: 'https://tiktok.com' },
-  amazon: { name: 'Amazon', pkg: 'com.amazon.mShop.android.shopping', scheme: null, universal: 'https://amazon.com/', web: 'https://amazon.com' },
-  wikipedia: { name: 'Wikipedia', pkg: null, scheme: null, universal: 'https://wikipedia.org/', web: 'https://wikipedia.org' },
   github: { name: 'GitHub', pkg: null, scheme: null, universal: 'https://github.com/', web: 'https://github.com' },
 }
 
 const openApp = (appKey, extraPath = '') => {
   const app = APP_MAP[appKey]
-  if (!app) return `I don't have "${appKey}" registered.`
+  if (!app) return `Unknown app: ${appKey}`
   if (isAndroid() && app.pkg) {
     const intentUrl = `intent://${extraPath || ''}#Intent;scheme=${app.scheme};package=${app.pkg};S.browser_fallback_url=${encodeURIComponent(app.universal)};end`
     try { window.location.href = intentUrl; return `Opening ${app.name}...` } catch (e) {}
   }
-  if (isMobileDevice()) {
-    const url = app.universal + extraPath
-    window.open(url, '_blank', 'noopener,noreferrer')
-    return `Opening ${app.name}...`
-  }
+  if (isMobileDevice()) { window.open(app.universal + extraPath, '_blank', 'noopener,noreferrer'); return `Opening ${app.name}...` }
   window.open(app.web, '_blank', 'noopener,noreferrer')
-  return `Opening ${app.name} in your browser...`
+  return `Opening ${app.name} in browser...`
 }
 
-const openWhatsAppGroup = (groupName) => {
-  const text = `Looking for group: ${groupName}`
-  if (isAndroid()) {
-    window.location.href = `intent://send?text=${encodeURIComponent(text)}#Intent;scheme=whatsapp;package=com.whatsapp;end`
-    return `Opening WhatsApp. Tap search and type "${groupName}".`
-  }
-  if (isMobileDevice()) {
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer')
-    return `Opening WhatsApp. Search "${groupName}".`
-  }
-  window.open('https://web.whatsapp.com', '_blank', 'noopener,noreferrer')
-  return `WhatsApp Web opened. Search "${groupName}".`
+const openWhatsAppGroup = (name) => {
+  const text = `Looking for group: ${name}`
+  if (isAndroid()) { window.location.href = `intent://send?text=${encodeURIComponent(text)}#Intent;scheme=whatsapp;package=com.whatsapp;end`; return `Opening WhatsApp. Search "${name}".` }
+  if (isMobileDevice()) { window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank'); return `Opening WhatsApp. Search "${name}".` }
+  window.open('https://web.whatsapp.com', '_blank'); return `WhatsApp Web opened.`
 }
 
 // ============ PERSONALITY ============
@@ -140,477 +122,89 @@ const PERSONALITIES = [
 ]
 
 const analyzeUserStyle = (messages) => {
-  const userMsgs = messages.filter(m => m.role === 'user').map(m => m.content).filter(m => m.length > 0)
-  if (userMsgs.length < 3) return null
-  const avgLen = userMsgs.reduce((a, m) => a + m.length, 0) / userMsgs.length
-  const emojiCount = userMsgs.filter(m => /[\u{1F300}-\u{1F9FF}\u{2600}-\u{27BF}]/u.test(m)).length
-  const formalCount = userMsgs.filter(m => /\b(please|thank you|kindly|could you|would you|may i)\b/i.test(m)).length
-  const excitedCount = userMsgs.filter(m => /!/.test(m)).length
-  return { short: avgLen < 40, long: avgLen > 120, emoji: emojiCount / userMsgs.length > 0.3, formal: formalCount / userMsgs.length > 0.3, excited: excitedCount / userMsgs.length > 0.4, count: userMsgs.length }
-}
-
-const applyPersonality = (reply, personality, customStyle) => {
-  if (!reply) return reply
-  const clean = reply.replace(/^(I found this for you:|Here's what I discovered:|Great question! The answer is:|Let me share what I know:|Based on my search,|Certainly!|\[Short\]|\[Detailed\])\s*/i, '').trim()
-  switch (personality) {
-    case 'concise': { const s = clean.split(/(?<=[.!?])\s+/).filter(Boolean); return s.slice(0, 2).join(' ') || clean }
-    case 'polite': return `Certainly! ${clean}`
-    case 'clear': return `Here's a clear answer:\n\n${clean}`
-    case 'comprehensive': return `Let me give you a thorough answer:\n\n${clean}\n\nWould you like me to go deeper on any part?`
-    case 'custom': {
-      if (!customStyle || !customStyle.count) return clean
-      let out = clean
-      if (customStyle.short) { const s = clean.split(/(?<=[.!?])\s+/).filter(Boolean); out = s.slice(0, 2).join(' ') || clean }
-      if (customStyle.formal && !/^Regarding/i.test(out)) out = `Regarding your query: ${out}`
-      if (customStyle.emoji) out = `✨ ${out} 😊`
-      if (customStyle.excited && !/[!?]$/.test(out)) out = out + '!'
-      return out
-    }
-    default: return clean
+  const u = messages.filter(m => m.role === 'user').map(m => m.content)
+  if (u.length < 3) return null
+  const avg = u.reduce((a, m) => a + m.length, 0) / u.length
+  return {
+    short: avg < 40, long: avg > 120,
+    emoji: u.filter(m => /[\u{1F300}-\u{1F9FF}]/u.test(m)).length / u.length > 0.3,
+    formal: u.filter(m => /\b(please|thank you|kindly)\b/i.test(m)).length / u.length > 0.3,
+    excited: u.filter(m => /!/.test(m)).length / u.length > 0.4,
+    count: u.length,
   }
 }
+const applyPersonality = (reply, p, cs) => {
+  if (!reply) return reply
+  const clean = reply.replace(/^(I found this for you:|Great question!|Based on my search,|Certainly!)\s*/i, '').trim()
+  if (p === 'concise') { const s = clean.split(/(?<=[.!?])\s+/); return s.slice(0, 2).join(' ') || clean }
+  if (p === 'polite') return `Certainly! ${clean}`
+  if (p === 'clear') return `Here's a clear answer:\n\n${clean}`
+  if (p === 'comprehensive') return `Let me give you a thorough answer:\n\n${clean}\n\nWould you like me to go deeper?`
+  if (p === 'custom' && cs && cs.count) {
+    let out = clean
+    if (cs.short) { const s = clean.split(/(?<=[.!?])\s+/); out = s.slice(0, 2).join(' ') || clean }
+    if (cs.formal && !/^Regarding/i.test(out)) out = `Regarding your query: ${out}`
+    if (cs.emoji) out = `✨ ${out} 😊`
+    if (cs.excited && !/[!?]$/.test(out)) out += '!'
+    return out
+  }
+  return clean
+}
 
-// ============ CODE GENERATOR (INTERACTIVE) ============
-const CODE_QUESTIONS = [
-  { key: 'language', q: "What programming language? (JavaScript, Python, React, HTML/CSS, Java, C++, etc.)" },
-  { key: 'purpose', q: "What should the code do? (e.g., 'a todo app', 'a login form', 'fibonacci', 'an AI classifier')" },
-  { key: 'detail', q: "Any extra details? (e.g., 'with dark theme', 'using localStorage', 'with comments')" },
-]
-
+// ============ CODE GEN ============
 const detectLanguage = (text) => {
   const t = text.toLowerCase()
-  const map = [
-    ['javascript', ['javascript','js','node','nodejs','vanilla js']],
-    ['typescript', ['typescript','ts']],
-    ['python', ['python','py','django','flask']],
-    ['react', ['react','reactjs','jsx','hooks']],
-    ['html', ['html','htm']],
-    ['css', ['css','styling','scss','sass']],
-    ['java', ['java']],
-    ['c++', ['c++','cpp']],
-    ['c#', ['c#','csharp','.net']],
-    ['go', ['go','golang']],
-    ['rust', ['rust']],
-    ['php', ['php','laravel']],
-    ['sql', ['sql','mysql','postgres']],
-    ['bash', ['bash','shell','sh']],
-  ]
-  for (const [lang, kws] of map) if (kws.some(k => t.includes(k))) return lang
+  const map = [['javascript',['javascript','js','node']],['python',['python','py','django','flask']],['react',['react','jsx','hooks']],['typescript',['typescript','ts']],['html',['html','htm']],['css',['css']],['java',['java']],['c++',['c++','cpp']],['c#',['c#','csharp']],['go',['go','golang']],['rust',['rust']],['php',['php']],['sql',['sql']]]
+  for (const [l, k] of map) if (k.some(x => t.includes(x))) return l
   return 'javascript'
 }
-
 const generateLongCode = (language, purpose, detail) => {
   const lang = language.toLowerCase()
-  const p = purpose.toLowerCase()
-
-  // Big, real, multi-part code samples per language
-  if (lang.includes('react')) {
-    return `Here's a complete React application for: **${purpose}**${detail ? ` (${detail})` : ''}
-
-\`\`\`jsx
-// ============================================
-// ${purpose.toUpperCase()} — React App
-// Features: state, effects, localStorage, API,
-// error boundaries, responsive UI
-// ============================================
-import { useState, useEffect, useCallback, useRef } from 'react'
-
-// ---------- Custom Hook: persistent state ----------
-function useLocalStorage(key, initial) {
-  const [value, setValue] = useState(() => {
-    try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : initial }
-    catch { return initial }
-  })
-  useEffect(() => {
-    try { localStorage.setItem(key, JSON.stringify(value)) } catch {}
-  }, [key, value])
-  return [value, setValue]
-}
-
-// ---------- Custom Hook: debounce ----------
-function useDebounce(value, delay = 300) {
-  const [debounced, setDebounced] = useState(value)
-  useEffect(() => {
-    const t = setTimeout(() => setDebounced(value), delay)
-    return () => clearTimeout(t)
-  }, [value, delay])
-  return debounced
-}
-
-// ---------- Main Component ----------
-export default function App() {
-  const [items, setItems] = useLocalStorage('app_items', [])
-  const [query, setQuery] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const inputRef = useRef(null)
-  const debouncedQuery = useDebounce(query, 300)
-
-  // Fetch on mount
-  useEffect(() => {
-    async function load() {
-      setLoading(true)
-      setError(null)
-      try {
-        // Replace with your API
-        // const res = await fetch('/api/items')
-        // const data = await res.json()
-        // setItems(data)
-      } catch (e) {
-        setError(e.message)
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
-  }, [])
-
-  const addItem = useCallback((text) => {
-    if (!text.trim()) return
-    setItems(prev => [{ id: Date.now(), text, done: false }, ...prev])
-  }, [setItems])
-
-  const toggleItem = useCallback((id) => {
-    setItems(prev => prev.map(i => i.id === id ? { ...i, done: !i.done } : i))
-  }, [setItems])
-
-  const removeItem = useCallback((id) => {
-    setItems(prev => prev.filter(i => i.id !== id))
-  }, [setItems])
-
-  const filtered = items.filter(i =>
-    i.text.toLowerCase().includes(debouncedQuery.toLowerCase())
-  )
-
-  return (
-    <div style={{ padding: 20, fontFamily: 'system-ui', maxWidth: 600, margin: '0 auto' }}>
-      <h1>${purpose}</h1>
-
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <input
-          ref={inputRef}
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') { addItem(query); setQuery('') } }}
-          placeholder="Type and press Enter..."
-          style={{ flex: 1, padding: 12, borderRadius: 8, border: '1px solid #ccc' }}
-        />
-        <button onClick={() => { addItem(query); setQuery('') }} style={{ padding: '12px 20px', background: '#ff003c', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
-          Add
-        </button>
-      </div>
-
-      {loading && <p>Loading...</p>}
-      {error && <p style={{ color: 'red' }}>Error: {error}</p>}
-
-      <ul style={{ listStyle: 'none', padding: 0 }}>
-        {filtered.map(item => (
-          <li key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, borderBottom: '1px solid #eee' }}>
-            <input type="checkbox" checked={item.done} onChange={() => toggleItem(item.id)} />
-            <span style={{ flex: 1, textDecoration: item.done ? 'line-through' : 'none' }}>{item.text}</span>
-            <button onClick={() => removeItem(item.id)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#999' }}>✕</button>
-          </li>
-        ))}
-      </ul>
-
-      {filtered.length === 0 && !loading && <p style={{ color: '#999', textAlign: 'center' }}>No items</p>}
-    </div>
-  )
-}
-\`\`\`
-
-**What's included:**
-- Custom hooks for localStorage + debounce
-- Full CRUD operations
-- Error boundary and loading states
-- Filtering and search
-- Responsive layout
-
-Want me to add authentication, routing, or a backend for this?`
-  }
-
-  if (lang.includes('python')) {
-    return `Here's a complete Python program for: **${purpose}**${detail ? ` (${detail})` : ''}
-
-\`\`\`python
-# ============================================
-# ${purpose.upper()} — Python Program
-# Features: OOP, error handling, logging,
-# CLI parsing, file I/O, unit tests
-# ============================================
-import os
-import sys
-import json
-import logging
-import argparse
-from dataclasses import dataclass, asdict
-from typing import List, Optional
-from datetime import datetime
-
-# ---------- Logging ----------
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s'
-)
-log = logging.getLogger(__name__)
-
-# ---------- Data model ----------
-@dataclass
-class Item:
-    id: int
-    title: str
-    description: str = ""
-    done: bool = False
-    created_at: str = ""
-
-    def __post_init__(self):
-        if not self.created_at:
-            self.created_at = datetime.utcnow().isoformat()
-
-# ---------- Storage ----------
-class Store:
-    def __init__(self, path: str = "items.json"):
-        self.path = path
-        self.items: List[Item] = []
-        self._load()
-
-    def _load(self):
-        if not os.path.exists(self.path):
-            return
-        try:
-            with open(self.path, "r") as f:
-                data = json.load(f)
-            self.items = [Item(**d) for d in data]
-            log.info(f"Loaded {len(self.items)} items")
-        except Exception as e:
-            log.error(f"Failed to load: {e}")
-
-    def save(self):
-        try:
-            with open(self.path, "w") as f:
-                json.dump([asdict(i) for i in self.items], f, indent=2)
-            log.info("Saved")
-        except Exception as e:
-            log.error(f"Failed to save: {e}")
-
-    def add(self, title: str, description: str = "") -> Item:
-        new_id = max((i.id for i in self.items), default=0) + 1
-        item = Item(id=new_id, title=title, description=description)
-        self.items.append(item)
-        self.save()
-        return item
-
-    def list(self) -> List[Item]:
-        return sorted(self.items, key=lambda x: x.created_at, reverse=True)
-
-    def complete(self, item_id: int) -> bool:
-        for i in self.items:
-            if i.id == item_id:
-                i.done = True
-                self.save()
-                return True
-        return False
-
-    def delete(self, item_id: int) -> bool:
-        before = len(self.items)
-        self.items = [i for i in self.items if i.id != item_id]
-        if len(self.items) < before:
-            self.save()
-            return True
-        return False
-
-# ---------- CLI ----------
-def main():
-    parser = argparse.ArgumentParser(description="${purpose}")
-    sub = parser.add_subparsers(dest="cmd")
-
-    add_p = sub.add_parser("add", help="Add a new item")
-    add_p.add_argument("title", help="Item title")
-    add_p.add_argument("-d", "--description", default="")
-
-    sub.add_parser("list", help="List all items")
-
-    done_p = sub.add_parser("done", help="Mark as done")
-    done_p.add_argument("id", type=int)
-
-    del_p = sub.add_parser("delete", help="Delete an item")
-    del_p.add_argument("id", type=int)
-
-    args = parser.parse_args()
-    store = Store()
-
-    if args.cmd == "add":
-        item = store.add(args.title, args.description)
-        print(f"✓ Added: #{item.id} {item.title}")
-    elif args.cmd == "list":
-        items = store.list()
-        if not items:
-            print("No items.")
-            return
-        for i in items:
-            mark = "✓" if i.done else "○"
-            print(f"{mark} #{i.id} {i.title}")
-    elif args.cmd == "done":
-        print("✓ Marked" if store.complete(args.id) else "✗ Not found")
-    elif args.cmd == "delete":
-        print("✓ Deleted" if store.delete(args.id) else "✗ Not found")
-    else:
-        parser.print_help()
-
-if __name__ == "__main__":
-    main()
-\`\`\`
-
-**Run it with:**
-\`\`\`bash
-python app.py add "Buy milk"
-python app.py list
-python app.py done 1
-\`\`\`
-
-**What's included:**
-- Dataclasses, type hints, logging
-- JSON persistence, error handling
-- Full CLI with sub-commands
-
-Want tests or a REST API version?`
-  }
-
-  // Generic fallback for any other language
-  return `Here's a complete **${language}** solution for: **${purpose}**${detail ? ` (${detail})` : ''}
-
-\`\`\`${lang}
-// ============================================
-// ${purpose.toUpperCase()} — ${language}
-// ============================================
-
-'use strict';
-
-/**
- * Configuration
- */
-const CONFIG = {
-  name: '${purpose.replace(/'/g, "\\'")}',
-  version: '1.0.0',
-  debug: true,
-};
-
-/**
- * Logger — simple leveled logger
- */
-const log = {
-  info: (...args) => console.log('[INFO]', ...args),
-  warn: (...args) => console.warn('[WARN]', ...args),
-  error: (...args) => console.error('[ERROR]', ...args),
-};
-
-/**
- * Core class
- */
-class App {
-  constructor(options = {}) {
-    this.options = { ...CONFIG, ...options };
-    this.state = { items: [], ready: false };
-    log.info('Initializing', this.options.name);
-  }
-
-  async init() {
-    try {
-      await this.load();
-      this.state.ready = true;
-      log.info('Ready. Items:', this.state.items.length);
-      return this;
-    } catch (err) {
-      log.error('Init failed:', err);
-      throw err;
-    }
-  }
-
-  async load() {
-    // Simulated async load — replace with fetch/localStorage
-    await new Promise(r => setTimeout(r, 10));
-    this.state.items = [];
-  }
-
-  add(text) {
-    if (!text) throw new Error('Text required');
-    const item = { id: Date.now(), text, created: new Date().toISOString() };
-    this.state.items.push(item);
-    log.info('Added:', item.id);
-    return item;
-  }
-
-  list() { return [...this.state.items] }
-
-  remove(id) {
-    const before = this.state.items.length;
-    this.state.items = this.state.items.filter(i => i.id !== id);
-    return this.state.items.length < before;
-  }
-
-  find(predicate) { return this.state.items.find(predicate) }
-
-  filter(predicate) { return this.state.items.filter(predicate) }
-}
-
-/**
- * Bootstrap
- */
-(async () => {
-  const app = await new App().init();
-  app.add('Sample item #1');
-  app.add('Sample item #2');
-  console.log('All items:', app.list());
-})();
-
-// Export for module use
-// export default App;
-\`\`\`
-
-**What's included:**
-- Configuration object
-- Leveled logger
-- Class-based structure with async init
-- CRUD operations
-- Error handling
-
-Want me to extend this — add tests, a UI, or convert it to a framework?`
+  if (lang.includes('react')) return `Here's a complete React application for: **${purpose}**${detail ? ` (${detail})` : ''}\n\n\`\`\`jsx\n// ============================================\n// ${purpose.toUpperCase()} — React App\n// ============================================\nimport { useState, useEffect, useCallback } from 'react'\n\nfunction useLocalStorage(key, initial) {\n  const [value, setValue] = useState(() => {\n    try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : initial }\n    catch { return initial }\n  })\n  useEffect(() => { try { localStorage.setItem(key, JSON.stringify(value)) } catch {} }, [key, value])\n  return [value, setValue]\n}\n\nexport default function App() {\n  const [items, setItems] = useLocalStorage('app_items', [])\n  const [input, setInput] = useState('')\n\n  const add = useCallback(() => {\n    if (!input.trim()) return\n    setItems(prev => [{ id: Date.now(), text: input, done: false }, ...prev])\n    setInput('')\n  }, [input, setItems])\n\n  const toggle = (id) => setItems(prev => prev.map(i => i.id === id ? { ...i, done: !i.done } : i))\n  const remove = (id) => setItems(prev => prev.filter(i => i.id !== id))\n\n  return (\n    <div style={{ padding: 20, fontFamily: 'system-ui', maxWidth: 600, margin: '0 auto' }}>\n      <h1>${purpose}</h1>\n      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>\n        <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()}\n          placeholder="Type and press Enter..." style={{ flex: 1, padding: 12, borderRadius: 8, border: '1px solid #ccc' }} />\n        <button onClick={add} style={{ padding: '12px 20px', background: '#ff003c', color: '#fff', border: 'none', borderRadius: 8 }}>Add</button>\n      </div>\n      <ul style={{ listStyle: 'none', padding: 0 }}>\n        {items.map(item => (\n          <li key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, borderBottom: '1px solid #eee' }}>\n            <input type="checkbox" checked={item.done} onChange={() => toggle(item.id)} />\n            <span style={{ flex: 1, textDecoration: item.done ? 'line-through' : 'none' }}>{item.text}</span>\n            <button onClick={() => remove(item.id)} style={{ background: 'transparent', border: 'none', color: '#999' }}>✕</button>\n          </li>\n        ))}\n      </ul>\n    </div>\n  )\n}\n\`\`\`\n\n**Includes:** custom hooks, CRUD, error handling, responsive layout.\n\nWant auth, routing, or a backend?`
+  if (lang.includes('python')) return `Here's a complete Python program for: **${purpose}**${detail ? ` (${detail})` : ''}\n\n\`\`\`python\n# ============================================\n# ${purpose.upper()} — Python\n# ============================================\nimport os, sys, json, logging, argparse\nfrom dataclasses import dataclass, asdict\nfrom typing import List\nfrom datetime import datetime\n\nlogging.basicConfig(level=logging.INFO)\nlog = logging.getLogger(__name__)\n\n@dataclass\nclass Item:\n    id: int\n    title: str\n    done: bool = False\n    created_at: str = ""\n    def __post_init__(self):\n        if not self.created_at:\n            self.created_at = datetime.utcnow().isoformat()\n\nclass Store:\n    def __init__(self, path="items.json"):\n        self.path = path\n        self.items: List[Item] = []\n        self._load()\n    def _load(self):\n        if not os.path.exists(self.path): return\n        try:\n            with open(self.path) as f: data = json.load(f)\n            self.items = [Item(**d) for d in data]\n        except Exception as e: log.error(f"Load failed: {e}")\n    def save(self):\n        with open(self.path, "w") as f: json.dump([asdict(i) for i in self.items], f, indent=2)\n    def add(self, title):\n        nid = max((i.id for i in self.items), default=0) + 1\n        item = Item(id=nid, title=title)\n        self.items.append(item); self.save(); return item\n    def list(self): return sorted(self.items, key=lambda x: x.created_at, reverse=True)\n\ndef main():\n    parser = argparse.ArgumentParser()\n    parser.add_argument("cmd", choices=["add", "list"])\n    parser.add_argument("title", nargs="?")\n    args = parser.parse_args()\n    s = Store()\n    if args.cmd == "add" and args.title:\n        item = s.add(args.title); print(f"Added #{item.id}")\n    else:\n        for i in s.list(): print(f"{'✓' if i.done else '○'} #{i.id} {i.title}")\n\nif __name__ == "__main__": main()\n\`\`\`\n\n**Run:** \`python app.py add "Buy milk"\` and \`python app.py list\``
+  return `Here's a complete **${language}** solution for: **${purpose}**${detail ? ` (${detail})` : ''}\n\n\`\`\`javascript\n// ============================================\n// ${purpose.toUpperCase()} — ${language}\n// ============================================\n'use strict';\n\nconst CONFIG = { name: '${purpose.replace(/'/g,"\\'")}', version: '1.0.0', debug: true };\n\nconst log = {\n  info: (...a) => console.log('[INFO]', ...a),\n  warn: (...a) => console.warn('[WARN]', ...a),\n  error: (...a) => console.error('[ERROR]', ...a),\n};\n\nclass App {\n  constructor(options = {}) {\n    this.options = { ...CONFIG, ...options };\n    this.state = { items: [], ready: false };\n    log.info('Init:', this.options.name);\n  }\n  async init() {\n    try { await this.load(); this.state.ready = true; log.info('Ready'); return this }\n    catch (e) { log.error('Init failed:', e); throw e }\n  }\n  async load() { await new Promise(r => setTimeout(r, 10)); this.state.items = [] }\n  add(text) {\n    if (!text) throw new Error('Text required');\n    const item = { id: Date.now(), text, created: new Date().toISOString() };\n    this.state.items.push(item); return item\n  }\n  list() { return [...this.state.items] }\n  remove(id) {\n    const before = this.state.items.length;\n    this.state.items = this.state.items.filter(i => i.id !== id);\n    return this.state.items.length < before\n  }\n}\n\n(async () => {\n  const app = await new App().init();\n  app.add('Sample #1'); app.add('Sample #2');\n  console.log('Items:', app.list());\n})();\n\`\`\`\n\n**Includes:** config, leveled logger, class structure, async init, CRUD.\n\nWant tests or a UI version?`
 }
 
 const isCodeRequest = (query) => {
   const q = query.toLowerCase()
-  const kws = ['generate code','write code','create code','make code','build code','code for','code to','function in','javascript','python','react','html','css','java','c++','sql','node','bash','shell','code snippet','program','script','algorithm','write an ai code','ai code','write me a']
-  return kws.some(k => q.includes(k))
+  return ['generate code','write code','create code','make code','build code','code for','code to','function in','write me a','write an ai code'].some(k => q.includes(k))
 }
 
-// ============ MUSIC GENERATOR (Web Audio) ============
-const generateMelody = (bpm = 120, scale = 'major', bars = 4) => {
-  const scales = {
-    major: [0, 2, 4, 5, 7, 9, 11, 12],
-    minor: [0, 2, 3, 5, 7, 8, 10, 12],
-    pentatonic: [0, 2, 4, 7, 9, 12],
-  }
+// ============ MUSIC GEN ============
+const MUSIC_STYLES = {
+  'love': { scale: 'major', bpm: 80, mood: 'romantic' },
+  'pink': { scale: 'major', bpm: 110, mood: 'dreamy' },
+  'sad': { scale: 'minor', bpm: 70, mood: 'melancholic' },
+  'happy': { scale: 'major', bpm: 130, mood: 'upbeat' },
+  'chill': { scale: 'pentatonic', bpm: 90, mood: 'relaxed' },
+  'epic': { scale: 'minor', bpm: 140, mood: 'intense' },
+  'default': { scale: 'major', bpm: 120, mood: 'balanced' },
+}
+const guessMusicStyle = (desc) => {
+  const d = desc.toLowerCase()
+  for (const [key, val] of Object.entries(MUSIC_STYLES)) if (d.includes(key)) return { ...val, name: key }
+  return { ...MUSIC_STYLES.default, name: 'balanced' }
+}
+const generateRichMelody = (bpm, scale, bars, quality) => {
+  const scales = { major: [0,2,4,5,7,9,11,12], minor: [0,2,3,5,7,8,10,12], pentatonic: [0,2,4,7,9,12] }
   const s = scales[scale] || scales.major
-  const root = 60 // C4
-  const beatDur = 60 / bpm
+  const beat = 60 / bpm
   const notes = []
   for (let b = 0; b < bars * 4; b++) {
-    if (Math.random() < 0.25) { notes.push({ t: b * beatDur, freq: 0, dur: beatDur * 0.5 }); continue }
-    const degree = s[Math.floor(Math.random() * s.length)]
-    const octave = Math.random() < 0.3 ? 12 : 0
-    const midi = root + degree + octave
-    const freq = 440 * Math.pow(2, (midi - 69) / 12)
-    notes.push({ t: b * beatDur, freq, dur: beatDur * (Math.random() < 0.3 ? 1 : 0.5) })
+    if (Math.random() < 0.2) { notes.push({ t: b * beat, freq: 0, dur: beat * 0.5 }); continue }
+    const deg = s[Math.floor(Math.random() * s.length)]
+    const oct = Math.random() < 0.3 ? 12 : 0
+    const midi = 60 + deg + oct
+    notes.push({ t: b * beat, freq: 440 * Math.pow(2, (midi - 69) / 12), dur: beat * (Math.random() < 0.3 ? 1 : 0.5) })
   }
   return notes
 }
-
-const playMelody = (notes, bpm = 120) => {
+const playRichMelody = (notes, quality = 'medium') => {
   const Ctx = window.AudioContext || window.webkitAudioContext
   if (!Ctx) throw new Error('Web Audio not supported')
   const ctx = new Ctx()
   const master = ctx.createGain()
-  master.gain.value = 0.15
+  master.gain.value = quality === 'high' ? 0.2 : quality === 'low' ? 0.1 : 0.15
   master.connect(ctx.destination)
   const start = ctx.currentTime + 0.05
   const totalDur = notes.reduce((m, n) => Math.max(m, n.t + n.dur), 0)
@@ -618,114 +212,262 @@ const playMelody = (notes, bpm = 120) => {
   notes.forEach(n => {
     if (!n.freq) return
     const osc = ctx.createOscillator()
-    osc.type = 'triangle'
+    osc.type = quality === 'high' ? 'sawtooth' : 'triangle'
     osc.frequency.value = n.freq
     const gain = ctx.createGain()
     gain.gain.setValueAtTime(0, start + n.t)
     gain.gain.linearRampToValueAtTime(1, start + n.t + 0.02)
     gain.gain.exponentialRampToValueAtTime(0.001, start + n.t + n.dur)
     osc.connect(gain).connect(master)
-    osc.start(start + n.t)
-    osc.stop(start + n.t + n.dur + 0.05)
+    osc.start(start + n.t); osc.stop(start + n.t + n.dur + 0.05)
   })
 
-  // Bass line
-  const bassNotes = notes.filter((_, i) => i % 4 === 0)
-  bassNotes.forEach(n => {
-    const osc = ctx.createOscillator()
-    osc.type = 'sine'
-    osc.frequency.value = (n.freq || 130) / 2
-    const gain = ctx.createGain()
-    gain.gain.setValueAtTime(0, start + n.t)
-    gain.gain.linearRampToValueAtTime(0.6, start + n.t + 0.03)
-    gain.gain.exponentialRampToValueAtTime(0.001, start + n.t + n.dur * 2)
-    osc.connect(gain).connect(master)
-    osc.start(start + n.t)
-    osc.stop(start + n.t + n.dur * 2 + 0.1)
-  })
-
+  // Bass layer for medium/high quality
+  if (quality !== 'low') {
+    notes.filter((_, i) => i % 4 === 0).forEach(n => {
+      const osc = ctx.createOscillator()
+      osc.type = 'sine'
+      osc.frequency.value = (n.freq || 130) / 2
+      const g = ctx.createGain()
+      g.gain.setValueAtTime(0, start + n.t)
+      g.gain.linearRampToValueAtTime(0.6, start + n.t + 0.03)
+      g.gain.exponentialRampToValueAtTime(0.001, start + n.t + n.dur * 2)
+      osc.connect(g).connect(master)
+      osc.start(start + n.t); osc.stop(start + n.t + n.dur * 2 + 0.1)
+    })
+  }
   return { ctx, duration: totalDur + 0.5 }
 }
 
-// ============ VIDEO GENERATOR (Canvas) ============
-const startCanvasVideo = (canvas, onProgress) => {
+// ============ VIDEO GEN ============
+const VIDEO_STYLES = {
+  'anime': { palette: ['#ff69b4','#ff1493','#ffb6c1','#ffc0cb'], label: 'Anime', shapes: 'sakura' },
+  'movie': { palette: ['#1a1a2e','#16213e','#0f3460','#e94560'], label: 'Movie', shapes: 'cinema' },
+  'cartoon': { palette: ['#ffdd00','#ff6b6b','#4ecdc4','#a8e6cf'], label: 'Cartoon', shapes: 'bubbles' },
+  'cyber': { palette: ['#00ff41','#008f11','#0d0208','#ff003c'], label: 'Cyberpunk', shapes: 'matrix' },
+  'nature': { palette: ['#2ecc71','#27ae60','#f39c12','#e67e22'], label: 'Nature', shapes: 'leaves' },
+  'space': { palette: ['#000','#1a0033','#ff00ff','#00ffff'], label: 'Space', shapes: 'stars' },
+  'abstract': { palette: ['#ff003c','#ff69b4','#ffa500','#00ffff'], label: 'Abstract', shapes: 'blobs' },
+  'default': { palette: ['#ff003c','#ff6688','#ffa500','#ffff00'], label: 'Default', shapes: 'particles' },
+}
+const guessVideoStyle = (desc) => {
+  const d = desc.toLowerCase()
+  for (const [key, val] of Object.entries(VIDEO_STYLES)) if (d.includes(key)) return val
+  return VIDEO_STYLES.default
+}
+
+const startCanvasVideo = (canvas, style, onProgress) => {
   const ctx = canvas.getContext('2d')
   const W = canvas.width, H = canvas.height
-  let t = 0
-  let raf
+  let t = 0, raf
   const stream = canvas.captureStream(30)
-
-  const particles = Array.from({ length: 80 }, () => ({
+  const palette = style.palette
+  const particles = Array.from({ length: 100 }, () => ({
     x: Math.random() * W, y: Math.random() * H,
     vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2,
-    r: Math.random() * 3 + 1,
+    r: Math.random() * 4 + 1,
+    c: palette[Math.floor(Math.random() * palette.length)],
   }))
-
   const draw = () => {
     t += 0.02
-    // Background gradient
     const grad = ctx.createLinearGradient(0, 0, W, H)
-    grad.addColorStop(0, `hsl(${(t * 30) % 360}, 70%, 15%)`)
-    grad.addColorStop(1, `hsl(${(t * 30 + 120) % 360}, 70%, 10%)`)
+    grad.addColorStop(0, palette[0])
+    grad.addColorStop(1, palette[1] || palette[0])
     ctx.fillStyle = grad
     ctx.fillRect(0, 0, W, H)
 
-    // Particles
-    particles.forEach(p => {
-      p.x += p.vx; p.y += p.vy
-      if (p.x < 0 || p.x > W) p.vx *= -1
-      if (p.y < 0 || p.y > H) p.vy *= -1
-      ctx.beginPath()
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
-      ctx.fillStyle = `hsla(${(t * 50 + p.x) % 360}, 80%, 60%, 0.7)`
-      ctx.fill()
-    })
+    if (style.shapes === 'stars') {
+      particles.forEach(p => {
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.r * 0.5, 0, Math.PI * 2)
+        ctx.fillStyle = p.c
+        ctx.fill()
+        p.x += p.vx * 0.3; p.y += p.vy * 0.3
+        if (p.x < 0) p.x = W; if (p.x > W) p.x = 0
+        if (p.y < 0) p.y = H; if (p.y > H) p.y = 0
+      })
+    } else if (style.shapes === 'matrix') {
+      for (let i = 0; i < 30; i++) {
+        const x = (i * W / 30 + Math.sin(t + i) * 20)
+        const y = (t * 100 + i * 50) % H
+        ctx.fillStyle = palette[0]
+        ctx.font = '14px monospace'
+        ctx.fillText(String.fromCharCode(0x30A0 + Math.floor(Math.random() * 96)), x, y)
+      }
+    } else if (style.shapes === 'sakura') {
+      particles.forEach(p => {
+        ctx.save()
+        ctx.translate(p.x, p.y)
+        ctx.rotate(t + p.x * 0.01)
+        ctx.beginPath()
+        ctx.ellipse(0, 0, p.r * 2, p.r, 0, 0, Math.PI * 2)
+        ctx.fillStyle = p.c + 'cc'
+        ctx.fill()
+        ctx.restore()
+        p.y += 1; p.x += Math.sin(t + p.y * 0.05) * 0.5
+        if (p.y > H) { p.y = -10; p.x = Math.random() * W }
+      })
+    } else if (style.shapes === 'blobs') {
+      particles.forEach(p => {
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.r * 4, 0, Math.PI * 2)
+        ctx.fillStyle = p.c + '40'
+        ctx.fill()
+        p.x += p.vx; p.y += p.vy
+        if (p.x < 0 || p.x > W) p.vx *= -1
+        if (p.y < 0 || p.y > H) p.vy *= -1
+      })
+    } else {
+      particles.forEach(p => {
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
+        ctx.fillStyle = p.c
+        ctx.fill()
+        p.x += p.vx; p.y += p.vy
+        if (p.x < 0 || p.x > W) p.vx *= -1
+        if (p.y < 0 || p.y > H) p.vy *= -1
+      })
+    }
 
-    // Text
-    ctx.fillStyle = 'rgba(255,255,255,0.9)'
-    ctx.font = 'bold 48px sans-serif'
+    ctx.fillStyle = 'rgba(255,255,255,0.95)'
+    ctx.font = 'bold 40px sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillText('CYPHER4X', W / 2, H / 2 - 20)
-    ctx.font = '16px sans-serif'
-    ctx.fillStyle = 'rgba(255,100,150,0.9)'
-    ctx.fillText('AI Video Generator', W / 2, H / 2 + 20)
+    ctx.fillText('CYPHER4X', W / 2, H / 2 - 15)
+    ctx.font = '14px sans-serif'
+    ctx.fillStyle = palette[2] || '#fff'
+    ctx.fillText(style.label + ' Style', W / 2, H / 2 + 20)
 
     onProgress && onProgress(t)
     raf = requestAnimationFrame(draw)
   }
   draw()
-
   const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' })
   const chunks = []
   recorder.ondataavailable = e => e.data.size > 0 && chunks.push(e.data)
   recorder.start()
-
   return {
     stop: () => new Promise(resolve => {
       recorder.onstop = () => resolve(new Blob(chunks, { type: 'video/webm' }))
-      cancelAnimationFrame(raf)
-      recorder.stop()
+      cancelAnimationFrame(raf); recorder.stop()
     }),
   }
 }
 
-// ============ WEB SEARCH ============
-const TRUSTED_DOMAINS = ['wikipedia.org','britannica.com','gov','edu','who.int','un.org','nature.com','science.org','nasa.gov','nih.gov','cdc.gov','bbc.com','reuters.com','apnews.com','nytimes.com','theguardian.com','github.com','stackoverflow.com','mozilla.org','w3.org','ietf.org','developer.mozilla.org','python.org','reactjs.org','nodejs.org']
-const isTrustedDomain = (url) => { if (!url) return false; try { const h = new URL(url).hostname.toLowerCase(); return TRUSTED_DOMAINS.some(d => h.includes(d)) } catch { return false } }
-
-const searchWeb = async (query) => {
-  if (!TAVILY_API_KEY) return { error: "Tavily API key not configured." }
-  try {
-    const res = await fetch(TAVILY_URL, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${TAVILY_API_KEY}` }, body: JSON.stringify({ query, search_depth: "advanced", include_answer: true, max_results: 6 }) })
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const data = await res.json()
-    const results = data.results || []
-    const safest = results.find(r => isTrustedDomain(r.url)) || results[0]
-    return { answer: data.answer || results.map(r => r.content).join("\n\n") || "No results.", safestUrl: safest?.url || null }
-  } catch (error) { return { error: error.message } }
+// ============ CYBER LAB (educational) ============
+const CYBER_TOOLS = {
+  hash: async (text, algo = 'SHA-256') => {
+    if (!text) return 'Enter text to hash'
+    const buf = new TextEncoder().encode(text)
+    const hash = await crypto.subtle.digest(algo, buf)
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('')
+  },
+  base64: (text) => { try { return btoa(text) } catch { return 'Invalid' } },
+  unbase64: (text) => { try { return atob(text) } catch { return 'Invalid Base64' } },
+  hex: (text) => Array.from(new TextEncoder().encode(text)).map(b => b.toString(16).padStart(2, '0')).join(' '),
+  rot13: (text) => text.replace(/[a-zA-Z]/g, c => String.fromCharCode((c <= 'Z' ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26)),
+  dns: async (domain) => {
+    if (!domain) return 'Enter a domain'
+    try {
+      const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=A`)
+      const d = await r.json()
+      if (d.Answer) return d.Answer.map(a => `A  ${a.data}  TTL ${a.TTL}`).join('\n')
+      return 'No records found'
+    } catch (e) { return 'DNS lookup failed: ' + e.message }
+  },
+  ip: async (ip) => {
+    if (!ip) return 'Enter an IP'
+    try {
+      const r = await fetch(`https://ipapi.co/${encodeURIComponent(ip)}/json/`)
+      const d = await r.json()
+      return `IP: ${d.ip}\nCity: ${d.city}\nRegion: ${d.region}\nCountry: ${d.country_name}\nISP: ${d.org}\nTimezone: ${d.timezone}`
+    } catch (e) { return 'IP lookup failed' }
+  },
+  whois: async (domain) => {
+    if (!domain) return 'Enter a domain'
+    return `⚠️ WHOIS lookup requires a backend proxy (CORS).\n\nTry these public WHOIS services:\n• https://who.is/whois/${encodeURIComponent(domain)}\n• https://www.whois.com/whois/${encodeURIComponent(domain)}`
+  },
+  passwordStrength: (pw) => {
+    if (!pw) return 'Enter a password'
+    let score = 0
+    const checks = {
+      length: pw.length >= 12,
+      lower: /[a-z]/.test(pw),
+      upper: /[A-Z]/.test(pw),
+      digit: /\d/.test(pw),
+      special: /[^A-Za-z0-9]/.test(pw),
+      noCommon: !/^(password|123456|qwerty|admin)/i.test(pw),
+    }
+    score = Object.values(checks).filter(Boolean).length
+    const labels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong', 'Very Strong', 'Excellent']
+    const entropy = (pw.length * Math.log2(new Set(pw).size || 1)).toFixed(1)
+    return `Score: ${score}/6 (${labels[score]})\nEntropy: ~${entropy} bits\n\nChecks:\n  Length ≥12: ${checks.length ? '✓' : '✗'}\n  Lowercase: ${checks.lower ? '✓' : '✗'}\n  Uppercase: ${checks.upper ? '✓' : '✗'}\n  Digits: ${checks.digit ? '✓' : '✗'}\n  Special: ${checks.special ? '✓' : '✗'}\n  Not common: ${checks.noCommon ? '✓' : '✗'}\n\n${entropy > 80 ? '🟢 Very secure' : entropy > 60 ? '🟡 Decent' : '🔴 Weak — increase length & variety'}`
+  },
+  portScan: (host) => {
+    const ports = [21, 22, 23, 25, 53, 80, 110, 143, 443, 445, 3306, 3389, 5432, 8080, 8443]
+    const open = [80, 443].filter(() => Math.random() > 0.3)
+    return `⚠️ SIMULATION ONLY — real port scanning requires backend + permission from target owner.\n\nTarget: ${host || 'example.com'}\nScanned 15 common ports\n\nOPEN (simulated):\n${open.map(p => `  ${p}  ${p === 80 ? 'http' : 'https'}`).join('\n') || '  none'}\n\nCLOSED: ${15 - open.length}`
+  },
 }
 
-const openAnonymousSearch = (query) => { window.open(`https://duckduckgo.com/?q=${encodeURIComponent(query)}&kae=d&kp=-2`, '_blank', 'noopener,noreferrer') }
+const CYBER_TERMINAL_COMMANDS = {
+  help: `Available commands (educational):
+  help              Show this help
+  clear             Clear terminal
+  hash <text>       SHA-256 hash
+  base64 <text>     Base64 encode
+  unbase64 <text>   Base64 decode
+  hex <text>        Hex encode
+  rot13 <text>      ROT13 cipher
+  dns <domain>      DNS lookup (real)
+  ip <address>      IP geolocation (real)
+  whois <domain>    WHOIS info (opens browser)
+  portscan <host>   Simulated port scan
+  passcheck <pw>    Password strength
+  ctf               Random CTF-style challenge
+  about             About this terminal
+  ethics            Security ethics reminder`,
+  about: `CYPHER4X Cyber Lab v1.0
+
+An educational security toolkit for learning:
+• Networking fundamentals (DNS, IP, WHOIS)
+• Cryptography basics (hashing, encoding, ciphers)
+• Password security best practices
+• CTF-style challenge solving
+
+⚠️ This is NOT a real pentesting framework. Real security work requires authorization.`,
+  ethics: `🔒 Ethical Security Reminder:
+
+1. Only test systems you OWN or have WRITTEN permission to test.
+2. Unauthorized access is illegal in most countries (CFAA, GDPR, Computer Misuse Act, etc).
+3. Learn defense — become a white-hat.
+4. Report vulnerabilities responsibly.
+5. This tool is for EDUCATION only.`,
+}
+
+const CTF_CHALLENGES = [
+  { q: 'ROT13: "Uryyb, Jbeyq!" decodes to?', a: 'hello, world!' },
+  { q: 'Base64 "aGVsbG8=" decodes to?', a: 'hello' },
+  { q: 'What does DNS stand for?', a: 'domain name system' },
+  { q: 'SHA-256 of empty string starts with?', a: 'e3b0c442' },
+  { q: 'Default port for HTTPS?', a: '443' },
+  { q: 'What does XSS stand for?', a: 'cross-site scripting' },
+  { q: 'What does SQLi stand for?', a: 'sql injection' },
+]
+
+// ============ WEB SEARCH ============
+const TRUSTED = ['wikipedia.org','britannica.com','gov','edu','who.int','github.com','stackoverflow.com','mozilla.org','python.org','reactjs.org']
+const isTrusted = (u) => { if (!u) return false; try { const h = new URL(u).hostname.toLowerCase(); return TRUSTED.some(d => h.includes(d)) } catch { return false } }
+const searchWeb = async (query) => {
+  if (!TAVILY_API_KEY) return { error: "No API key" }
+  try {
+    const r = await fetch(TAVILY_URL, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${TAVILY_API_KEY}` }, body: JSON.stringify({ query, search_depth: "advanced", include_answer: true, max_results: 6 }) })
+    const d = await r.json()
+    const results = d.results || []
+    const safest = results.find(x => isTrusted(x.url)) || results[0]
+    return { answer: d.answer || results.map(x => x.content).join("\n\n") || "No results.", safestUrl: safest?.url }
+  } catch (e) { return { error: e.message } }
+}
+const openAnonymous = (q) => window.open(`https://duckduckgo.com/?q=${encodeURIComponent(q)}&kae=d`, '_blank', 'noopener,noreferrer')
 
 const RedBall = ({ isSpeaking = false }) => (
   <div style={styles.ballContainer}>
@@ -778,67 +520,72 @@ export default function App() {
   const [faceRecognition, setFaceRecognition] = useState(false); const [biometricAuth, setBiometricAuth] = useState(false)
   const [voiceGender, setVoiceGender] = useState('female')
   const [stats, setStats] = useState({ uptime: 0, cpuUsage: 0, cpuTemp: 0, ramUsage: 0, storageUsed: 0, storageTotal: 475, networkSpeed: 0, messages: 0 })
-  const [events] = useState([]); const [reminders] = useState([])
   const [overlayActive, setOverlayActive] = useState(false); const [overlayListening, setOverlayListening] = useState(false)
   const overlayRecognitionRef = useRef(null)
 
   // Interactive code gen
-  const [pendingCode, setPendingCode] = useState(null) // { step, answers: {} }
+  const [pendingCode, setPendingCode] = useState(null)
   const [copiedId, setCopiedId] = useState(null)
+  // Reply-to
+  const [replyingTo, setReplyingTo] = useState(null)
 
-  // Music & Video
+  // Music
   const [showMusicPanel, setShowMusicPanel] = useState(false)
-  const [musicBpm, setMusicBpm] = useState(120)
-  const [musicScale, setMusicScale] = useState('major')
-  const [musicBars, setMusicBars] = useState(4)
+  const [musicDesc, setMusicDesc] = useState('')
+  const [musicDuration, setMusicDuration] = useState(8)
+  const [musicQuality, setMusicQuality] = useState('medium')
   const [musicPlaying, setMusicPlaying] = useState(false)
+  const [musicInfo, setMusicInfo] = useState('')
+
+  // Video
   const [showVideoPanel, setShowVideoPanel] = useState(false)
+  const [videoDesc, setVideoDesc] = useState('')
+  const [videoDuration, setVideoDuration] = useState(5)
+  const [videoQuality, setVideoQuality] = useState('medium')
   const [videoRecording, setVideoRecording] = useState(false)
   const [videoProgress, setVideoProgress] = useState(0)
+  const [videoInfo, setVideoInfo] = useState('')
   const canvasRef = useRef(null)
   const videoRecorderRef = useRef(null)
 
-  // Jarvis Tools
-  const [showJarvis, setShowJarvis] = useState(false)
-  const [toolTab, setToolTab] = useState('password')
-  const [toolInput, setToolInput] = useState('')
-  const [toolOutput, setToolOutput] = useState('')
-  const [timerSeconds, setTimerSeconds] = useState(0)
-  const [timerRunning, setTimerRunning] = useState(false)
+  // Cyber Lab
+  const [showCyberLab, setShowCyberLab] = useState(false)
+  const [cyberTab, setCyberTab] = useState('terminal')
+  const [cyberInput, setCyberInput] = useState('')
+  const [cyberLines, setCyberLines] = useState([
+    { type: 'info', text: 'CYPHER4X Cyber Lab v1.0 — Educational Security Toolkit' },
+    { type: 'info', text: '⚠️ For learning only. Only test systems you own or have permission to test.' },
+    { type: 'info', text: 'Type "help" for commands, "ethics" for responsible use, "about" for info.' },
+  ])
+  const [cyberToolOutput, setCyberToolOutput] = useState('')
+  const [cyberTool, setCyberTool] = useState('passcheck')
+  const [cyberToolInput, setCyberToolInput] = useState('')
+  const [ctfChallenge, setCtfChallenge] = useState(null)
+  const [ctfAnswer, setCtfAnswer] = useState('')
+  const cyberEndRef = useRef(null)
 
   const synthRef = useRef(typeof window !== "undefined" ? window.speechSynthesis : null)
   const recognitionRef = useRef(null); const msgCounter = useRef(0)
   const fileInputRef = useRef(null); const bgInputRef = useRef(null)
+  const chatEndRef = useRef(null)
 
-  // Sound effect helper
   const playBeep = useCallback((freq = 800, duration = 0.08) => {
     if (!settings.soundFx) return
     try {
-      const Ctx = window.AudioContext || window.webkitAudioContext
-      if (!Ctx) return
-      const ctx = new Ctx()
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-      osc.frequency.value = freq
-      osc.type = 'sine'
-      gain.gain.setValueAtTime(0.1, ctx.currentTime)
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration)
-      osc.connect(gain).connect(ctx.destination)
-      osc.start(); osc.stop(ctx.currentTime + duration)
+      const Ctx = window.AudioContext || window.webkitAudioContext; if (!Ctx) return
+      const ctx = new Ctx(); const osc = ctx.createOscillator(); const g = ctx.createGain()
+      osc.frequency.value = freq; osc.type = 'sine'
+      g.gain.setValueAtTime(0.1, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration)
+      osc.connect(g).connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + duration)
     } catch (e) {}
   }, [settings.soundFx])
 
-  // Haptic helper
-  const vibrate = useCallback((pattern = 10) => {
-    if (!settings.haptic) return
-    try { navigator.vibrate && navigator.vibrate(pattern) } catch (e) {}
-  }, [settings.haptic])
+  const vibrate = useCallback((p = 10) => { if (!settings.haptic) return; try { navigator.vibrate && navigator.vibrate(p) } catch (e) {} }, [settings.haptic])
 
-  // BOOT
+  // Boot
   useEffect(() => {
     if (!isBooting) return
-    const title = "CYPHER4X"
-    const credit = "Created by Hackers Hub led by Crypty"
+    const title = "CYPHER4X"; const credit = "Created by Hackers Hub led by Crypty"
     let ti = 0, ci = 0, phase = 'title'
     const interval = setInterval(() => {
       if (phase === 'title') {
@@ -851,21 +598,16 @@ export default function App() {
           setTimeout(() => {
             setIsBooting(false)
             const auth = getAuth()
-            if (auth && userExists(auth.email, auth.pin)) {
-              setEmail(auth.email); setPin(auth.pin); loginUser(auth.email, auth.pin)
-            } else {
+            if (auth && userExists(auth.email, auth.pin)) { setEmail(auth.email); setPin(auth.pin); loginUser(auth.email, auth.pin) }
+            else {
               setUserMode('guest'); setGuestMessageCount(0)
               const sp = localStorage.getItem('cypher4x_personality')
-              if (!sp) setShowPersonalityModal(true)
-              else setAiPersonality(sp)
+              if (!sp) setShowPersonalityModal(true); else setAiPersonality(sp)
               if (settings.welcomeEnabled) {
-                const today = new Date().toDateString()
-                const lw = localStorage.getItem('cypher4x_welcome_date')
+                const today = new Date().toDateString(); const lw = localStorage.getItem('cypher4x_welcome_date')
                 if (lw !== today) {
-                  localStorage.setItem('cypher4x_welcome_date', today)
-                  setShowWelcomeOverlay(true)
-                  const msg = "Hello! I'm CYPHER4X, your AI assistant. Welcome!"
-                  setWelcomeMessage(msg); speakText(msg)
+                  localStorage.setItem('cypher4x_welcome_date', today); setShowWelcomeOverlay(true)
+                  const msg = "Hello! I'm CYPHER4X, your AI assistant. Welcome!"; setWelcomeMessage(msg); speakText(msg)
                 }
               }
             }
@@ -876,53 +618,43 @@ export default function App() {
     return () => clearInterval(interval)
   }, [isBooting, settings.welcomeEnabled])
 
+  useEffect(() => { if (settings.autoScroll && showChatOverview) chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [conversation, showChatOverview, settings.autoScroll])
+  useEffect(() => { cyberEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [cyberLines])
+
   const handleAuthSubmit = () => {
-    if (!email || !pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) { setAuthError("Please enter a valid email and 4-digit PIN."); return }
+    if (!email || !pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) { setAuthError("Valid email and 4-digit PIN required."); return }
     if (showLogin) {
       if (userExists(email, pin)) { loginUser(email, pin); setShowAuthModal(false) }
-      else setAuthError("No account found. Please sign up.")
+      else setAuthError("No account found.")
     } else {
-      if (userExists(email, pin)) { setAuthError("Account already exists."); return }
+      if (userExists(email, pin)) { setAuthError("Account exists."); return }
       addUser(email, pin)
       const empty = { profile: null, conversation: [], commandHistory: [], events: [], reminders: [], faceRecognition: false, biometricAuth: false, voiceGender: 'female', viewMode: 'android', personality: 'polite', backgroundImage: null, customStyle: null, settings }
       saveUserData(email, pin, empty); loginUser(email, pin); setShowAuthModal(false)
     }
   }
   const loginUser = (email, pin) => { saveAuth(email, pin); setUserMode('loggedin'); loadUserDataByEmail(email, pin); setAuthError(''); setGuestMessageCount(0) }
-
   const loadUserDataByEmail = (email, pin) => {
-    const data = loadUserData(email, pin)
-    if (data) {
-      setProfile(data.profile || null); setConversation(data.conversation || [])
-      setCommandHistory(data.commandHistory || []); setVoiceGender(data.voiceGender || 'female')
-      setViewMode(data.viewMode || 'android'); setAiPersonality(data.personality || 'polite')
-      setBackgroundImage(data.backgroundImage || null)
-      if (data.customStyle) setCustomStyle(data.customStyle)
-      if (data.settings) setSettings({ ...settings, ...data.settings })
-      msgCounter.current = (data.conversation || []).length + 1
-      if (settings.welcomeEnabled) {
-        const today = new Date().toDateString(); const lw = localStorage.getItem('cypher4x_welcome_date')
-        if (lw !== today) {
-          localStorage.setItem('cypher4x_welcome_date', today)
-          setShowWelcomeOverlay(true)
-          const name = data.profile?.name || 'User'
-          const msg = `Welcome back, ${name}! I'm CYPHER4X.`
-          setWelcomeMessage(msg); speakText(msg)
-        }
-      }
+    const d = loadUserData(email, pin)
+    if (d) {
+      setProfile(d.profile || null); setConversation(d.conversation || []); setCommandHistory(d.commandHistory || [])
+      setVoiceGender(d.voiceGender || 'female'); setViewMode(d.viewMode || 'android')
+      setAiPersonality(d.personality || 'polite'); setBackgroundImage(d.backgroundImage || null)
+      if (d.customStyle) setCustomStyle(d.customStyle)
+      if (d.settings) setSettings({ ...settings, ...d.settings })
+      msgCounter.current = (d.conversation || []).length + 1
     }
   }
   const saveCurrentUserData = () => {
     if (userMode !== 'loggedin') return
-    saveUserData(email, pin, { profile, conversation, commandHistory, events, reminders, faceRecognition, biometricAuth, voiceGender, viewMode, personality: aiPersonality, backgroundImage, customStyle, settings })
+    saveUserData(email, pin, { profile, conversation, commandHistory, faceRecognition, biometricAuth, voiceGender, viewMode, personality: aiPersonality, backgroundImage, customStyle, settings })
   }
-  useEffect(() => { if (userMode === 'loggedin') saveCurrentUserData() }, [profile, conversation, commandHistory, events, reminders, faceRecognition, biometricAuth, voiceGender, viewMode, aiPersonality, backgroundImage, customStyle, settings])
+  useEffect(() => { if (userMode === 'loggedin') saveCurrentUserData() }, [profile, conversation, commandHistory, faceRecognition, biometricAuth, voiceGender, viewMode, aiPersonality, backgroundImage, customStyle, settings])
   useEffect(() => { if (aiPersonality === 'custom' && conversation.length > 3) { const s = analyzeUserStyle(conversation); if (s) setCustomStyle(s) } }, [conversation, aiPersonality])
 
   const handleLogout = () => {
     if (!confirm("Logout?")) return
     clearAuth(); setUserMode('guest'); setProfile(null); setConversation([]); setCommandHistory([])
-    setEvents([]); setReminders([]); setFaceRecognition(false); setBiometricAuth(false)
     setVoiceGender('female'); setViewMode('android'); setSidebarOpen(false); setGuestMessageCount(0)
     setShowWelcomeOverlay(false); setShowAuthModal(false); msgCounter.current = 0
   }
@@ -934,10 +666,10 @@ export default function App() {
     const r = new SR(); r.continuous = !isOneOff; r.interimResults = true; r.lang = 'en-US'
     r.onstart = () => { setIsListening(true); setInterimTranscript('') }
     r.onend = () => { setIsListening(false); setInterimTranscript(''); if (!isOneOff && isFullscreenCall) try { r.start() } catch (e) {} }
-    r.onerror = (event) => { if (event.error === 'not-allowed') { alert('Allow microphone.'); setIsFullscreenCall(false); setIsCallActive(false); setRecordingMode(false); setIsListening(false); return } if (!isOneOff && isFullscreenCall) setTimeout(() => { try { r.start() } catch (e) {} }, 500) }
-    r.onresult = async (event) => {
+    r.onerror = (event) => { if (event.error === 'not-allowed') { alert('Allow mic.'); setIsFullscreenCall(false); setIsCallActive(false); setRecordingMode(false); setIsListening(false); return } if (!isOneOff && isFullscreenCall) setTimeout(() => { try { r.start() } catch (e) {} }, 500) }
+    r.onresult = async (e) => {
       let f = '', i = ''
-      for (let k = event.resultIndex; k < event.results.length; k++) { const res = event.results[k]; if (res.isFinal) f += res[0].transcript; else i += res[0].transcript }
+      for (let k = e.resultIndex; k < e.results.length; k++) { const res = e.results[k]; if (res.isFinal) f += res[0].transcript; else i += res[0].transcript }
       if (f) { setInterimTranscript(''); setRecordingMode(false); if (onFinal) onFinal(f); else await processUserQuery(f) }
       else if (i) setInterimTranscript(i)
     }
@@ -949,8 +681,7 @@ export default function App() {
     try {
       synthRef.current.cancel()
       const u = new SpeechSynthesisUtterance(text)
-      u.rate = settings.voiceSpeed || 1
-      u.pitch = voiceGender === 'female' ? 1.3 : 1.0
+      u.rate = settings.voiceSpeed || 1; u.pitch = voiceGender === 'female' ? 1.3 : 1.0
       u.onstart = () => setIsAISpeaking(true)
       u.onend = () => { setIsAISpeaking(false); if (onEnd) onEnd() }
       u.onerror = () => { setIsAISpeaking(false); if (onEnd) onEnd() }
@@ -960,27 +691,16 @@ export default function App() {
 
   const executeCommand = (query) => {
     const lower = query.toLowerCase().trim()
-    if (lower.includes('whatsapp business') || lower.includes('whatsapp bussiness')) {
-      const grp = query.match(/group(?:\s+named)?\s+(.+)/i)
-      if (grp) return { response: openWhatsAppGroup(grp[1].trim()) }
-      return { response: openApp('whatsappbusiness') }
-    }
-    const waGrp = lower.match(/(?:open\s+)?(?:my\s+)?whatsapp.*group(?:\s+named)?\s+(.+)/i)
-    if (waGrp) return { response: openWhatsAppGroup(waGrp[1].trim()) }
-    const appMatch = lower.match(/^open\s+(?:my\s+)?(whatsapp|instagram|facebook|twitter|telegram|youtube|spotify|gmail|maps|netflix|linkedin|reddit|tiktok|amazon|wikipedia|github)(?:\s+(?:on\s+my\s+device)?)?(?:\s+and\s+open\s+my\s+group\s+named\s+(.+))?$/i)
-    if (appMatch) { const k = appMatch[1]; const g = appMatch[2]; if (k === 'whatsapp' && g) return { response: openWhatsAppGroup(g) }; return { response: openApp(k) } }
-    const bare = lower.match(/^(?:open\s+)?(whatsapp|instagram|youtube|telegram|spotify|facebook|twitter|tiktok)$/)
-    if (bare) return { response: openApp(bare[1]) }
-    if ((lower.startsWith('secret ') || lower.startsWith('anonymous ')) && settings.secretMode) {
-      const t = query.replace(/^(secret|anonymous)\s+/i, ''); openAnonymousSearch(t); return { response: `Anonymous search for "${t}". 🔒` }
-    }
-    if (lower.startsWith('web ') || lower.startsWith('search web ')) { const t = query.replace(/^(web|search web)\s+/i, ''); openAnonymousSearch(t); return { response: `Searching "${t}"...` } }
-    if (lower.startsWith('play ')) { const s = lower.replace('play ', '').trim(); window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(s)}`, '_blank', 'noopener,noreferrer'); return { response: `Playing "${s}" on YouTube! 🎵` } }
-    if (lower === 'time' || lower.includes('what time')) return { response: `Current time: ${new Date().toLocaleTimeString()}. ⏰` }
-    if (lower === 'date' || lower.includes('what date') || lower === 'today') return { response: `Today is ${new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. 📅` }
-    if (lower.startsWith('calc ') || lower.includes('calculate')) {
-      try { const e = lower.replace('calculate','').replace('calc','').trim(); const r = Function(`"use strict"; return (${e})`)(); if (typeof r === 'number') return { response: `Answer: ${r}. 🧮` } } catch (err) {}
-    }
+    if (lower.includes('whatsapp business')) { const g = query.match(/group(?:\s+named)?\s+(.+)/i); if (g) return { response: openWhatsAppGroup(g[1].trim()) }; return { response: openApp('whatsappbusiness') } }
+    const waGrp = lower.match(/(?:open\s+)?(?:my\s+)?whatsapp.*group(?:\s+named)?\s+(.+)/i); if (waGrp) return { response: openWhatsAppGroup(waGrp[1].trim()) }
+    const appMatch = lower.match(/^open\s+(?:my\s+)?(whatsapp|instagram|facebook|telegram|youtube|spotify|gmail|maps|github)(?:\s+(?:on\s+my\s+device)?)?(?:\s+and\s+open\s+my\s+group\s+named\s+(.+))?$/i)
+    if (appMatch) { const k = appMatch[1], g = appMatch[2]; if (k === 'whatsapp' && g) return { response: openWhatsAppGroup(g) }; return { response: openApp(k) } }
+    if ((lower.startsWith('secret ') || lower.startsWith('anonymous ')) && settings.secretMode) { const t = query.replace(/^(secret|anonymous)\s+/i, ''); openAnonymous(t); return { response: `Anonymous search: "${t}" 🔒` } }
+    if (lower.startsWith('web ') || lower.startsWith('search web ')) { const t = query.replace(/^(web|search web)\s+/i, ''); openAnonymous(t); return { response: `Searching "${t}"...` } }
+    if (lower.startsWith('play ')) { const s = lower.replace('play ', '').trim(); window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(s)}`, '_blank'); return { response: `Playing "${s}"! 🎵` } }
+    if (lower === 'time' || lower.includes('what time')) return { response: `Time: ${new Date().toLocaleTimeString()} ⏰` }
+    if (lower === 'date' || lower.includes('what date') || lower === 'today') return { response: `Today is ${new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} 📅` }
+    if (lower.startsWith('calc ') || lower.includes('calculate')) { try { const e = lower.replace('calculate','').replace('calc','').trim(); const r = Function(`"use strict"; return (${e})`)(); if (typeof r === 'number') return { response: `Answer: ${r} 🧮` } } catch (err) {} }
     return null
   }
 
@@ -990,78 +710,67 @@ export default function App() {
     setIsProcessing(true); setInterimTranscript(''); setRecordingMode(false)
     vibrate(15); playBeep(700, 0.06)
 
-    const userMsg = { id: ++msgCounter.current, role: 'user', content: query, time: Date.now() }
+    const userMsg = { id: ++msgCounter.current, role: 'user', content: query, time: Date.now(), replyTo: replyingTo?.id || null, replyToText: replyingTo?.content?.slice(0, 80) || null }
     setConversation(prev => [...prev, userMsg])
     setCommandHistory(prev => [...prev, { command: query, timestamp: Date.now() }])
+    setReplyingTo(null)
 
-    // ---- INTERACTIVE CODE GENERATION FLOW ----
-    // If pending code request, treat query as an answer
     if (pendingCode) {
-      const nextAnswers = { ...pendingCode.answers, [pendingCode.step]: query }
-      const nextStepIdx = ['language','purpose','detail'].findIndex(k => !nextAnswers[k])
-      if (nextStepIdx === -1) {
-        // All questions answered → generate
-        const code = generateLongCode(nextAnswers.language, nextAnswers.purpose, nextAnswers.detail)
+      const next = { ...pendingCode.answers, [pendingCode.step]: query }
+      const idx = ['language','purpose','detail'].findIndex(k => !next[k])
+      if (idx === -1) {
+        const code = generateLongCode(next.language, next.purpose, next.detail)
         const styled = applyPersonality(code, aiPersonality, customStyle)
         const m = { id: ++msgCounter.current, role: 'assistant', content: styled, time: Date.now() }
-        setConversation(prev => [...prev, m])
-        setPendingCode(null)
+        setConversation(prev => [...prev, m]); setPendingCode(null)
         if (settings.codeAutoOverview) setShowChatOverview(true)
-        if (settings.readAloud) speakText('Here is your generated code. Tap the copy button to copy it.')
       } else {
-        const nextKey = ['language','purpose','detail'][nextStepIdx]
-        setPendingCode({ step: nextKey, answers: nextAnswers })
-        const q = CODE_QUESTIONS.find(c => c.key === nextKey)
-        const m = { id: ++msgCounter.current, role: 'assistant', content: q.q, time: Date.now() }
-        setConversation(prev => [...prev, m])
-        if (settings.readAloud || settings.autoStartVoice) speakText(q.q)
+        const nk = ['language','purpose','detail'][idx]
+        setPendingCode({ step: nk, answers: next })
+        const qs = { language: "What programming language? (JavaScript, Python, React, etc.)", purpose: "What should the code do?", detail: "Any extra details? (e.g., dark theme, localStorage)" }
+        const q = qs[nk]; setConversation(prev => [...prev, { id: ++msgCounter.current, role: 'assistant', content: q, time: Date.now() }])
+        if (settings.readAloud || settings.autoStartVoice) speakText(q)
       }
       setIsProcessing(false); return
     }
 
-    // Detect code request → start flow
     if (isCodeRequest(query)) {
-      const detectedLang = detectLanguage(query)
-      const detectedPurpose = query.replace(/^(write|create|generate|make|build)\s+(me\s+)?(an?\s+)?/i, '').replace(/\bcode\b/gi, '').trim() || 'a general application'
-      const m = {
-        id: ++msgCounter.current,
-        role: 'assistant',
-        content: `I'd love to write code for you! 🎨 Let me ask 3 quick questions so I can tailor it.\n\n**Q1 — ${CODE_QUESTIONS[0].q}**\n\n_Detected: ${detectedLang}. Reply or say "auto" to use this._`,
-        time: Date.now()
-      }
+      const lang = detectLanguage(query)
+      const purpose = query.replace(/^(write|create|generate|make|build)\s+(me\s+)?(an?\s+)?/i, '').replace(/\bcode\b/gi, '').trim() || 'a general application'
+      const m = { id: ++msgCounter.current, role: 'assistant', content: `I'll write code for you! 🎨 3 quick questions:\n\n**Q1 — What programming language? (JavaScript, Python, React, etc.)**\n\n_Detected: ${lang}. Reply "auto" to use it._`, time: Date.now() }
       setConversation(prev => [...prev, m])
-      setPendingCode({ step: 'language', answers: { language: null }, detected: { language: detectedLang, purpose: detectedPurpose } })
-      if (settings.readAloud || settings.autoStartVoice) speakText('I will ask you three quick questions to generate your code.')
+      setPendingCode({ step: 'language', answers: { language: null }, detected: { language: lang, purpose } })
+      if (settings.readAloud || settings.autoStartVoice) speakText('Three questions to generate your code.')
       setIsProcessing(false); return
     }
 
-    const cmdResult = executeCommand(query)
-    if (cmdResult) {
-      const styled = applyPersonality(cmdResult.response, aiPersonality, customStyle)
+    const cmd = executeCommand(query)
+    if (cmd) {
+      const styled = applyPersonality(cmd.response, aiPersonality, customStyle)
       const m = { id: ++msgCounter.current, role: 'assistant', content: styled, time: Date.now() }
       setConversation(prev => [...prev, m]); if (settings.readAloud) speakText(styled)
       setIsProcessing(false); return
     }
 
     const lower = query.toLowerCase()
-    const casual = ['hello','hi','hey','good morning','good afternoon','good evening',"what's up",'sup','yo','howdy','hey there']
+    const casual = ['hello','hi','hey','good morning','good afternoon','good evening',"what's up",'sup','yo']
     if (casual.some(p => lower.includes(p))) {
-      const replies = ["Hey there! How can I help?","Hi! What can I do for you?","Hello! Ready to assist!","Good to see you!","Hey! How can I help?","Hi there!"]
-      const reply = applyPersonality(replies[Math.floor(Math.random()*replies.length)], aiPersonality, customStyle)
-      const m = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
-      setConversation(prev => [...prev, m]); if (settings.readAloud) speakText(reply)
+      const reps = ["Hey there!","Hi!","Hello!","Hey!","Hi there!"]
+      const r = applyPersonality(reps[Math.floor(Math.random()*reps.length)], aiPersonality, customStyle)
+      const m = { id: ++msgCounter.current, role: 'assistant', content: r, time: Date.now() }
+      setConversation(prev => [...prev, m]); if (settings.readAloud) speakText(r)
       setIsProcessing(false); return
     }
     if (lower.includes('how are you') || lower.includes('feeling')) {
-      const replies = ["I'm fantastic! How about you?","Doing great!","In top shape!","Feeling wonderful!"]
-      const reply = applyPersonality(replies[Math.floor(Math.random()*replies.length)], aiPersonality, customStyle)
-      const m = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
-      setConversation(prev => [...prev, m]); if (settings.readAloud) speakText(reply)
+      const reps = ["I'm fantastic!","Doing great!","In top shape!","Wonderful!"]
+      const r = applyPersonality(reps[Math.floor(Math.random()*reps.length)], aiPersonality, customStyle)
+      const m = { id: ++msgCounter.current, role: 'assistant', content: r, time: Date.now() }
+      setConversation(prev => [...prev, m]); if (settings.readAloud) speakText(r)
       setIsProcessing(false); return
     }
 
     const result = await searchWeb(query)
-    let reply = result.error ? `Search error: ${result.error}` : (result.answer || "I couldn't find an answer.")
+    let reply = result.error ? `Search error: ${result.error}` : (result.answer || "No answer found.")
     if (!result.error && result.safestUrl && settings.safeLinks) reply += `\n\n🔗 Recommended source: ${result.safestUrl}`
     reply = applyPersonality(reply, aiPersonality, customStyle)
     const m = { id: ++msgCounter.current, role: 'assistant', content: reply, time: Date.now() }
@@ -1069,7 +778,7 @@ export default function App() {
     if (settings.readAloud) speakText(reply.replace(/🔗.*$/s, ''))
     playBeep(500, 0.08); vibrate(10)
     setIsProcessing(false)
-  }, [isProcessing, userMode, aiPersonality, customStyle, settings, pendingCode, vibrate, playBeep])
+  }, [isProcessing, userMode, aiPersonality, customStyle, settings, pendingCode, replyingTo, vibrate, playBeep])
 
   // Overview voice
   const setupOverviewRecognition = useCallback(() => {
@@ -1107,33 +816,29 @@ export default function App() {
 
   const handleEditMessage = useCallback((id) => {
     const msg = conversation.find(m => m.id === id); if (!msg || msg.role !== 'user') return
-    const nc = prompt("Edit your message:", msg.content)
+    const nc = prompt("Edit:", msg.content)
     if (nc !== null && nc.trim()) setConversation(prev => prev.map(m => m.id === id ? { ...m, content: nc.trim() } : m))
   }, [conversation])
-  const handleDeleteMessage = useCallback((id) => { if (settings.confirmDelete && !confirm("Delete this message?")) return; setConversation(prev => prev.filter(m => m.id !== id)) }, [settings.confirmDelete])
+  const handleDeleteMessage = useCallback((id) => { if (settings.confirmDelete && !confirm("Delete?")) return; setConversation(prev => prev.filter(m => m.id !== id)) }, [settings.confirmDelete])
   const handleShareMessage = useCallback(async (msg) => {
     const c = msg.content
     if (navigator.share) { try { await navigator.share({ title: 'CYPHER4X', text: c }) } catch (e) {} }
     else { try { await navigator.clipboard.writeText(c); alert('Copied!') } catch (e) {} }
   }, [])
-  const copyCode = async (code, id) => {
-    try { await navigator.clipboard.writeText(code); setCopiedId(id); setTimeout(() => setCopiedId(null), 1500); vibrate(20) } catch (e) { alert('Copy failed') }
-  }
+  const copyCode = async (code, id) => { try { await navigator.clipboard.writeText(code); setCopiedId(id); setTimeout(() => setCopiedId(null), 1500); vibrate(20) } catch (e) {} }
 
-  // Parse assistant messages for code blocks
+  const handleReply = (msg) => { setReplyingTo({ id: msg.id, content: msg.content }); setShowChatOverview(true) }
+
   const renderMessageContent = (msg) => {
     const content = msg.content
-    const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g
-    const parts = []
-    let lastIndex = 0
-    let match
-    let idx = 0
-    while ((match = codeBlockRegex.exec(content)) !== null) {
-      if (match.index > lastIndex) parts.push({ type: 'text', value: content.slice(lastIndex, match.index) })
-      parts.push({ type: 'code', lang: match[1] || 'text', value: match[2], key: `${msg.id}-${idx++}` })
-      lastIndex = match.index + match[0].length
+    const regex = /```(\w+)?\n([\s\S]*?)```/g
+    const parts = []; let last = 0; let m; let idx = 0
+    while ((m = regex.exec(content)) !== null) {
+      if (m.index > last) parts.push({ type: 'text', value: content.slice(last, m.index) })
+      parts.push({ type: 'code', lang: m[1] || 'text', value: m[2], key: `${msg.id}-${idx++}` })
+      last = m.index + m[0].length
     }
-    if (lastIndex < content.length) parts.push({ type: 'text', value: content.slice(lastIndex) })
+    if (last < content.length) parts.push({ type: 'text', value: content.slice(last) })
     if (parts.length === 0) parts.push({ type: 'text', value: content })
 
     return parts.map((p, i) => p.type === 'code' ? (
@@ -1151,19 +856,6 @@ export default function App() {
       <span key={i} style={styles.chatOverviewMsgText}>{p.value}</span>
     ))
   }
-
-  const handleFileShare = useCallback((e) => {
-    const files = e.target.files; if (!files || files.length === 0) return
-    const f = files[0]; if (f.size > 20 * 1024 * 1024) { alert("File too large!"); return }
-    const rd = new FileReader()
-    rd.onloadend = () => {
-      const fd = { id: ++msgCounter.current, role: 'user', content: `📎 ${f.name}`, time: Date.now(), file: { name: f.name, type: f.type, data: rd.result, size: f.size } }
-      setConversation(prev => [...prev, fd])
-      const am = { id: ++msgCounter.current, role: 'assistant', content: `Received: ${f.name}`, time: Date.now() }
-      setConversation(prev => [...prev, am]); speakText(`Received your file.`)
-    }
-    rd.readAsDataURL(f); e.target.value = ''
-  }, [speakText])
 
   const toggleFullscreenCall = useCallback(() => {
     if (isFullscreenCall) {
@@ -1188,11 +880,7 @@ export default function App() {
     r.onstart = () => { setIsRecording(true); setIsListening(true); setInterimTranscript('') }
     r.onend = () => { setIsRecording(false); setIsListening(false) }
     r.onerror = (event) => { setIsRecording(false); setRecordingMode(false); setIsListening(false); if (event.error === 'not-allowed') alert('Allow mic.'); else alert('Error: ' + event.error) }
-    r.onresult = async (event) => {
-      let f = '', i = ''
-      for (let k = event.resultIndex; k < event.results.length; k++) { const res = event.results[k]; if (res.isFinal) f += res[0].transcript; else i += res[0].transcript }
-      if (f) { setInterimTranscript(''); setRecordingMode(false); await processUserQuery(f) } else if (i) setInterimTranscript(i)
-    }
+    r.onresult = async (event) => { let f = '', i = ''; for (let k = event.resultIndex; k < event.results.length; k++) { const res = event.results[k]; if (res.isFinal) f += res[0].transcript; else i += res[0].transcript } if (f) { setInterimTranscript(''); setRecordingMode(false); await processUserQuery(f) } else if (i) setInterimTranscript(i) }
     recognitionRef.current = r
     try { r.start() } catch (e) { alert('Failed: ' + e.message); setRecordingMode(false) }
   }, [isRecording, isProcessing, isFullscreenCall, processUserQuery, vibrate])
@@ -1237,102 +925,107 @@ export default function App() {
     return () => clearInterval(t)
   }, [conversation])
 
-  // Music handlers
+  // Music handler
   const handleGenerateMusic = () => {
     try {
       setMusicPlaying(true)
-      const notes = generateMelody(musicBpm, musicScale, musicBars)
-      const { ctx, duration } = playMelody(notes, musicBpm)
+      const style = guessMusicStyle(musicDesc)
+      const bars = Math.round(musicDuration * style.bpm / 60 / 4)
+      setMusicInfo(`Style: ${style.name} • Mood: ${style.mood} • ${style.bpm} BPM • ${bars} bars`)
+      const notes = generateRichMelody(style.bpm, style.scale, Math.max(2, bars), musicQuality)
+      const { ctx, duration } = playRichMelody(notes, musicQuality)
       setTimeout(() => { setMusicPlaying(false); try { ctx.close() } catch (e) {} }, (duration + 1) * 1000)
     } catch (e) { alert('Music error: ' + e.message); setMusicPlaying(false) }
   }
 
-  // Video handlers
+  // Video handler
   const handleStartVideo = async () => {
     if (!canvasRef.current) return
+    const style = guessVideoStyle(videoDesc)
+    setVideoInfo(`Style: ${style.label} • ${videoDuration}s • ${videoQuality} quality`)
     setVideoRecording(true)
-    const rec = startCanvasVideo(canvasRef.current, (t) => setVideoProgress(Math.floor(t * 10) % 100))
+    const rec = startCanvasVideo(canvasRef.current, style, (t) => setVideoProgress(Math.floor(t * 10) % 100))
     videoRecorderRef.current = rec
     setTimeout(async () => {
       if (!videoRecorderRef.current) return
       const blob = await videoRecorderRef.current.stop()
-      videoRecorderRef.current = null
-      setVideoRecording(false)
+      videoRecorderRef.current = null; setVideoRecording(false)
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a'); a.href = url; a.download = `cypher4x_video_${Date.now()}.webm`; a.click()
       URL.revokeObjectURL(url)
-    }, 5000)
-  }
-  const handleStopVideo = async () => {
-    if (!videoRecorderRef.current) return
-    const blob = await videoRecorderRef.current.stop()
-    videoRecorderRef.current = null
-    setVideoRecording(false)
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a'); a.href = url; a.download = `cypher4x_video_${Date.now()}.webm`; a.click()
-    URL.revokeObjectURL(url)
+    }, videoDuration * 1000)
   }
 
-  // Jarvis tools
-  const runJarvisTool = () => {
+  // Cyber terminal
+  const runCyberCommand = async (cmd) => {
+    const parts = cmd.trim().split(/\s+/)
+    const base = parts[0]?.toLowerCase()
+    const args = parts.slice(1).join(' ')
     let out = ''
     try {
-      switch (toolTab) {
-        case 'password': {
-          const len = Math.min(64, Math.max(4, parseInt(toolInput) || 16))
-          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+~'
-          out = Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+      switch (base) {
+        case 'help': out = CYBER_TERMINAL_COMMANDS.help; break
+        case 'about': out = CYBER_TERMINAL_COMMANDS.about; break
+        case 'ethics': out = CYBER_TERMINAL_COMMANDS.ethics; break
+        case 'clear': setCyberLines([{ type: 'info', text: 'Cleared.' }]); return
+        case 'hash': out = await CYBER_TOOLS.hash(args); break
+        case 'base64': out = CYBER_TOOLS.base64(args); break
+        case 'unbase64': out = CYBER_TOOLS.unbase64(args); break
+        case 'hex': out = CYBER_TOOLS.hex(args); break
+        case 'rot13': out = CYBER_TOOLS.rot13(args); break
+        case 'dns': out = await CYBER_TOOLS.dns(args); break
+        case 'ip': out = await CYBER_TOOLS.ip(args); break
+        case 'whois': out = await CYBER_TOOLS.whois(args); break
+        case 'portscan': out = CYBER_TOOLS.portScan(args); break
+        case 'passcheck': out = CYBER_TOOLS.passwordStrength(args); break
+        case 'ctf': { const ch = CTF_CHALLENGES[Math.floor(Math.random() * CTF_CHALLENGES.length)]; setCtfChallenge(ch); out = `🎯 CTF Challenge:\n${ch.q}\n\nType "ctfcheck <answer>" to verify.`; break }
+        case 'ctfcheck': {
+          if (!ctfChallenge) { out = 'No active CTF. Type "ctf" to start.'; break }
+          out = args.toLowerCase().trim() === ctfChallenge.a.toLowerCase() ? '✅ Correct!' : `❌ Wrong. Answer: ${ctfChallenge.a}`
+          setCtfChallenge(null)
           break
         }
-        case 'base64': out = btoa(toolInput); break
-        case 'unbase64': try { out = atob(toolInput) } catch (e) { out = 'Invalid Base64' }; break
-        case 'upper': out = toolInput.toUpperCase(); break
-        case 'lower': out = toolInput.toLowerCase(); break
-        case 'reverse': out = toolInput.split('').reverse().join(''); break
-        case 'count': out = `Chars: ${toolInput.length}, Words: ${toolInput.split(/\s+/).filter(Boolean).length}`; break
-        case 'urlencode': out = encodeURIComponent(toolInput); break
-        case 'urldecode': out = decodeURIComponent(toolInput); break
-        case 'random': {
-          const [min, max] = toolInput.split(',').map(s => parseInt(s.trim()))
-          const lo = isNaN(min) ? 1 : min, hi = isNaN(max) ? 100 : max
-          out = String(Math.floor(Math.random() * (hi - lo + 1)) + lo)
-          break
-        }
-        case 'dice': { const n = parseInt(toolInput) || 1; out = Array.from({ length: n }, () => Math.floor(Math.random() * 6) + 1).join(', '); break }
-        case 'hash': {
-          // Simple hash (not crypto secure)
-          let h = 0; for (let i = 0; i < toolInput.length; i++) { h = ((h << 5) - h) + toolInput.charCodeAt(i); h |= 0 }
-          out = Math.abs(h).toString(16).padStart(8, '0')
-          break
-        }
-        default: out = 'Select a tool'
+        default: out = `Unknown: ${base}. Type "help" for commands.`
       }
     } catch (e) { out = 'Error: ' + e.message }
-    setToolOutput(out)
-    vibrate(15)
+    setCyberLines(prev => [...prev, { type: 'cmd', text: `$ ${cmd}` }, { type: 'out', text: out }])
   }
 
-  // Timer
-  useEffect(() => {
-    if (!timerRunning || timerSeconds <= 0) return
-    const t = setInterval(() => {
-      setTimerSeconds(s => { if (s <= 1) { setTimerRunning(false); playBeep(1000, 0.3); vibrate([200,100,200]); return 0 } return s - 1 })
-    }, 1000)
-    return () => clearInterval(t)
-  }, [timerRunning, timerSeconds, playBeep, vibrate])
+  const handleCyberSubmit = (e) => { e.preventDefault(); if (!cyberInput.trim()) return; runCyberCommand(cyberInput); setCyberInput('') }
+
+  // Cyber tool
+  const runCyberTool = async () => {
+    let out = ''
+    try {
+      switch (cyberTool) {
+        case 'passcheck': out = CYBER_TOOLS.passwordStrength(cyberToolInput); break
+        case 'hash': out = await CYBER_TOOLS.hash(cyberToolInput); break
+        case 'base64': out = CYBER_TOOLS.base64(cyberToolInput); break
+        case 'unbase64': out = CYBER_TOOLS.unbase64(cyberToolInput); break
+        case 'hex': out = CYBER_TOOLS.hex(cyberToolInput); break
+        case 'rot13': out = CYBER_TOOLS.rot13(cyberToolInput); break
+        case 'dns': out = await CYBER_TOOLS.dns(cyberToolInput); break
+        case 'ip': out = await CYBER_TOOLS.ip(cyberToolInput); break
+        case 'portscan': out = CYBER_TOOLS.portScan(cyberToolInput); break
+        case 'whois': out = await CYBER_TOOLS.whois(cyberToolInput); break
+        default: out = 'Unknown tool'
+      }
+    } catch (e) { out = 'Error: ' + e.message }
+    setCyberToolOutput(out)
+  }
 
   const handleAvatarChange = useCallback((e) => { const f = e.target.files[0]; if (!f) return; if (!f.type.startsWith('image/')) { alert("Select image!"); return }; const rd = new FileReader(); rd.onloadend = () => setProfileForm(p => ({ ...p, avatar: rd.result })); rd.readAsDataURL(f) }, [])
-  const saveProfile = useCallback(() => { if (!profileForm.name.trim() || !profileForm.username.trim()) { alert("Name & Username required!"); return } const np = { ...profileForm, username: profileForm.username.toLowerCase().replace(/[^a-z0-9_]/g,''), updatedAt: new Date().toISOString() }; setProfile(np); setEditingProfile(false); speakText(`Profile updated, ${np.name}!`) }, [profileForm, speakText])
+  const saveProfile = useCallback(() => { if (!profileForm.name.trim() || !profileForm.username.trim()) { alert("Name & Username required!"); return } const np = { ...profileForm, username: profileForm.username.toLowerCase().replace(/[^a-z0-9_]/g,''), updatedAt: new Date().toISOString() }; setProfile(np); setEditingProfile(false); speakText(`Updated, ${np.name}!`) }, [profileForm, speakText])
   const openEditProfile = useCallback(() => { setProfileForm({ name: profile?.name || "", username: profile?.username || "", avatar: profile?.avatar || "", bio: profile?.bio || "" }); setEditingProfile(true); setSidebarOpen(false) }, [profile])
-  const resetAllData = useCallback(() => { if (!confirm("Reset ALL data?")) return; if (userMode === 'loggedin') saveUserData(email, pin, { profile: null, conversation: [], commandHistory: [], events: [], reminders: [], faceRecognition: false, biometricAuth: false, voiceGender: 'female', viewMode: 'android', personality: 'polite', backgroundImage: null, customStyle: null, settings }); setProfile(null); setConversation([]); setCommandHistory([]); setEvents([]); setReminders([]); setFaceRecognition(false); setBiometricAuth(false); setVoiceGender('female'); setViewMode('android'); setBackgroundImage(null); setAiPersonality('polite'); setCustomStyle(null); setSidebarOpen(false) }, [userMode, email, pin, settings])
+  const resetAllData = useCallback(() => { if (!confirm("Reset ALL data?")) return; if (userMode === 'loggedin') saveUserData(email, pin, { profile: null, conversation: [], commandHistory: [], faceRecognition: false, biometricAuth: false, voiceGender: 'female', viewMode: 'android', personality: 'polite', backgroundImage: null, customStyle: null, settings }); setProfile(null); setConversation([]); setCommandHistory([]); setFaceRecognition(false); setBiometricAuth(false); setVoiceGender('female'); setViewMode('android'); setBackgroundImage(null); setAiPersonality('polite'); setCustomStyle(null); setSidebarOpen(false) }, [userMode, email, pin, settings])
 
   const clearConversation = useCallback(() => setConversation([]), [])
   const clearCommands = useCallback(() => setCommandHistory([]), [])
   const exportChat = useCallback(() => {
-    const data = { conversation, commandHistory, events, reminders, profile, exportedAt: new Date().toISOString() }
+    const data = { conversation, commandHistory, profile, exportedAt: new Date().toISOString() }
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `cypher4x_export_${Date.now()}.json`; a.click(); URL.revokeObjectURL(url)
-  }, [conversation, commandHistory, events, reminders, profile])
+  }, [conversation, commandHistory, profile])
 
   const formatUptime = (s) => `${Math.floor(s/3600).toString().padStart(2,'0')}:${Math.floor((s%3600)/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`
   const formatTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -1378,7 +1071,7 @@ export default function App() {
       <div style={styles.guestLimitOverlay}>
         <div style={styles.guestLimitCard}>
           <h2 style={styles.guestLimitTitle}>Free Trial Limit Reached</h2>
-          <p style={styles.guestLimitText}>You've used all 5 free messages. Please login or sign up.</p>
+          <p style={styles.guestLimitText}>You've used all 5 free messages. Login or sign up to continue.</p>
           <div style={styles.guestLimitButtons}>
             <button onClick={() => { setShowGuestLimit(false); setShowLogin(true); setShowAuthModal(true) }} style={styles.guestLimitLoginBtn}>Login</button>
             <button onClick={() => { setShowGuestLimit(false); setShowLogin(false); setShowAuthModal(true) }} style={styles.guestLimitSignupBtn}>Sign Up</button>
@@ -1419,7 +1112,7 @@ export default function App() {
     )
   }
 
-  // ============ SETTINGS (many working toggles) ============
+  // ============ SETTINGS ============
   if (showSettings) {
     return (
       <div style={styles.settingsFullscreen}>
@@ -1442,9 +1135,8 @@ export default function App() {
             <div style={styles.settingItem}><span>Auto-start Voice</span><label className="toggle-switch"><input type="checkbox" checked={settings.autoStartVoice} onChange={(e) => setSettings({ ...settings, autoStartVoice: e.target.checked })} /><span className="toggle-slider"></span></label></div>
             <div style={styles.settingItem}><span>Read Aloud Responses</span><label className="toggle-switch"><input type="checkbox" checked={settings.readAloud} onChange={(e) => setSettings({ ...settings, readAloud: e.target.checked })} /><span className="toggle-slider"></span></label></div>
             <div style={styles.settingItem}><span>Safe Links</span><label className="toggle-switch"><input type="checkbox" checked={settings.safeLinks} onChange={(e) => setSettings({ ...settings, safeLinks: e.target.checked })} /><span className="toggle-slider"></span></label></div>
-            <div style={styles.settingItem}><span>Secret Mode (DuckDuckGo)</span><label className="toggle-switch"><input type="checkbox" checked={settings.secretMode} onChange={(e) => setSettings({ ...settings, secretMode: e.target.checked })} /><span className="toggle-slider"></span></label></div>
+            <div style={styles.settingItem}><span>Secret Mode</span><label className="toggle-switch"><input type="checkbox" checked={settings.secretMode} onChange={(e) => setSettings({ ...settings, secretMode: e.target.checked })} /><span className="toggle-slider"></span></label></div>
           </div>
-
           <div style={styles.settingsSection}>
             <h3 style={styles.settingsSectionTitle}>Interface</h3>
             <div style={styles.settingItem}><span>Auto-scroll Chat</span><label className="toggle-switch"><input type="checkbox" checked={settings.autoScroll} onChange={(e) => setSettings({ ...settings, autoScroll: e.target.checked })} /><span className="toggle-slider"></span></label></div>
@@ -1453,26 +1145,22 @@ export default function App() {
             <div style={styles.settingItem}><span>Compact Mode</span><label className="toggle-switch"><input type="checkbox" checked={settings.compactMode} onChange={(e) => setSettings({ ...settings, compactMode: e.target.checked })} /><span className="toggle-slider"></span></label></div>
             <div style={styles.settingItem}><span>High Contrast</span><label className="toggle-switch"><input type="checkbox" checked={settings.highContrast} onChange={(e) => setSettings({ ...settings, highContrast: e.target.checked })} /><span className="toggle-slider"></span></label></div>
           </div>
-
           <div style={styles.settingsSection}>
             <h3 style={styles.settingsSectionTitle}>Feedback</h3>
-            <div style={styles.settingItem}><span>Haptic Feedback (vibrate)</span><label className="toggle-switch"><input type="checkbox" checked={settings.haptic} onChange={(e) => setSettings({ ...settings, haptic: e.target.checked })} /><span className="toggle-slider"></span></label></div>
+            <div style={styles.settingItem}><span>Haptic Feedback</span><label className="toggle-switch"><input type="checkbox" checked={settings.haptic} onChange={(e) => setSettings({ ...settings, haptic: e.target.checked })} /><span className="toggle-slider"></span></label></div>
             <div style={styles.settingItem}><span>Sound Effects</span><label className="toggle-switch"><input type="checkbox" checked={settings.soundFx} onChange={(e) => setSettings({ ...settings, soundFx: e.target.checked })} /><span className="toggle-slider"></span></label></div>
             <div style={styles.settingItem}><span>Confirm Before Delete</span><label className="toggle-switch"><input type="checkbox" checked={settings.confirmDelete} onChange={(e) => setSettings({ ...settings, confirmDelete: e.target.checked })} /><span className="toggle-slider"></span></label></div>
           </div>
-
           <div style={styles.settingsSection}>
             <h3 style={styles.settingsSectionTitle}>AI Behavior</h3>
             <div style={styles.settingItem}><span>Code: Auto-open Overview</span><label className="toggle-switch"><input type="checkbox" checked={settings.codeAutoOverview} onChange={(e) => setSettings({ ...settings, codeAutoOverview: e.target.checked })} /><span className="toggle-slider"></span></label></div>
-            <div style={styles.settingItem}><span>Floating Assistant Button</span><label className="toggle-switch"><input type="checkbox" checked={settings.overlayButton} onChange={(e) => setSettings({ ...settings, overlayButton: e.target.checked })} /><span className="toggle-slider"></span></label></div>
+            <div style={styles.settingItem}><span>Floating Assistant</span><label className="toggle-switch"><input type="checkbox" checked={settings.overlayButton} onChange={(e) => setSettings({ ...settings, overlayButton: e.target.checked })} /><span className="toggle-slider"></span></label></div>
           </div>
-
           <div style={styles.settingsSection}>
             <h3 style={styles.settingsSectionTitle}>Voice</h3>
             <div style={styles.settingItem}><span>Voice Speed</span><input type="range" min="0.5" max="2" step="0.1" value={settings.voiceSpeed} onChange={(e) => setSettings({ ...settings, voiceSpeed: parseFloat(e.target.value) })} style={styles.settingsRange} /><span style={styles.settingsValue}>{settings.voiceSpeed}x</span></div>
             <div style={styles.settingItem}><span>Voice Gender</span><select value={voiceGender} onChange={(e) => setVoiceGender(e.target.value)} style={styles.settingsSelect}><option value="male">Male</option><option value="female">Female</option></select></div>
           </div>
-
           <div style={styles.settingsSection}>
             <h3 style={styles.settingsSectionTitle}>AI Personality</h3>
             <div style={styles.personalityGridSettings}>
@@ -1485,7 +1173,6 @@ export default function App() {
             </div>
             {aiPersonality === 'custom' && customStyle && <p style={styles.bgHint}>Learned — Short: {customStyle.short ? 'yes' : 'no'}, Formal: {customStyle.formal ? 'yes' : 'no'}, Emoji: {customStyle.emoji ? 'yes' : 'no'}, Excited: {customStyle.excited ? 'yes' : 'no'} (from {customStyle.count} msgs)</p>}
           </div>
-
           <div style={styles.settingsSection}>
             <h3 style={styles.settingsSectionTitle}>Background</h3>
             <div style={styles.backgroundControls}>
@@ -1495,7 +1182,6 @@ export default function App() {
             {backgroundImage && <div style={styles.bgPreview}><img src={backgroundImage} alt="Preview" style={styles.bgPreviewImg} /></div>}
             <p style={styles.bgHint}>The Red Ball remains on top.</p>
           </div>
-
           <div style={styles.settingsSection}>
             <h3 style={styles.settingsSectionTitle}>About Overlay</h3>
             <p style={styles.bgHint}>Download the App for the overlay Feature to work.</p>
@@ -1506,7 +1192,7 @@ export default function App() {
     )
   }
 
-  // ============ MUSIC PANEL ============
+  // ============ MUSIC ============
   if (showMusicPanel) {
     return (
       <div style={styles.settingsFullscreen}>
@@ -1516,19 +1202,30 @@ export default function App() {
         </div>
         <div style={styles.settingsBodyFull}>
           <div style={styles.settingsSection}>
-            <h3 style={styles.settingsSectionTitle}>Settings</h3>
-            <div style={styles.settingItem}><span>Tempo (BPM): {musicBpm}</span><input type="range" min="60" max="200" step="5" value={musicBpm} onChange={(e) => setMusicBpm(parseInt(e.target.value))} style={styles.settingsRange} /></div>
-            <div style={styles.settingItem}><span>Scale</span><select value={musicScale} onChange={(e) => setMusicScale(e.target.value)} style={styles.settingsSelect}><option value="major">Major</option><option value="minor">Minor</option><option value="pentatonic">Pentatonic</option></select></div>
-            <div style={styles.settingItem}><span>Bars: {musicBars}</span><input type="range" min="2" max="16" step="1" value={musicBars} onChange={(e) => setMusicBars(parseInt(e.target.value))} style={styles.settingsRange} /></div>
+            <h3 style={styles.settingsSectionTitle}>Describe Your Music</h3>
+            <input value={musicDesc} onChange={(e) => setMusicDesc(e.target.value)} placeholder="e.g. love song, sad piano, happy pop, epic orchestral..." style={styles.settingsSelect} />
+            <p style={styles.bgHint}>Try: love, pink, sad, happy, chill, epic</p>
           </div>
-          <p style={styles.bgHint}>CYPHER4X will compose a random melody using Web Audio API. Each generation is unique.</p>
+          <div style={styles.settingsSection}>
+            <h3 style={styles.settingsSectionTitle}>Duration</h3>
+            <div style={styles.settingItem}><span>{musicDuration} seconds</span><input type="range" min="4" max="60" step="2" value={musicDuration} onChange={(e) => setMusicDuration(parseInt(e.target.value))} style={styles.settingsRange} /></div>
+          </div>
+          <div style={styles.settingsSection}>
+            <h3 style={styles.settingsSectionTitle}>Quality</h3>
+            <select value={musicQuality} onChange={(e) => setMusicQuality(e.target.value)} style={styles.settingsSelect}>
+              <option value="low">Low — single layer</option>
+              <option value="medium">Medium — melody + bass</option>
+              <option value="high">High — melody + bass + rich tone</option>
+            </select>
+          </div>
+          {musicInfo && <p style={{ color: '#4f8', textAlign: 'center', fontSize: 12 }}>{musicInfo}</p>}
         </div>
         <button onClick={handleGenerateMusic} disabled={musicPlaying} style={styles.settingsDoneFull}>{musicPlaying ? 'Playing...' : 'Generate & Play'}</button>
       </div>
     )
   }
 
-  // ============ VIDEO PANEL ============
+  // ============ VIDEO ============
   if (showVideoPanel) {
     return (
       <div style={styles.settingsFullscreen}>
@@ -1537,63 +1234,85 @@ export default function App() {
           <button onClick={() => setShowVideoPanel(false)} style={styles.settingsCloseFull}><Icon name="close" size={28} color="#fff" /></button>
         </div>
         <div style={styles.settingsBodyFull}>
-          <p style={styles.bgHint}>CYPHER4X generates a particle animation using Canvas and records it as WebM video for download.</p>
-          <canvas ref={canvasRef} width={400} height={300} style={{ width: '100%', borderRadius: 12, background: '#000', marginTop: 12 }} />
-          {videoRecording && <p style={{ color: '#ff6688', textAlign: 'center', marginTop: 8 }}>● Recording... {videoProgress}%</p>}
+          <div style={styles.settingsSection}>
+            <h3 style={styles.settingsSectionTitle}>Describe Your Video</h3>
+            <input value={videoDesc} onChange={(e) => setVideoDesc(e.target.value)} placeholder="e.g. anime sakura, cyberpunk, cartoon, space..." style={styles.settingsSelect} />
+            <p style={styles.bgHint}>Try: anime, movie, cartoon, cyber, nature, space, abstract</p>
+          </div>
+          <div style={styles.settingsSection}>
+            <h3 style={styles.settingsSectionTitle}>Duration</h3>
+            <div style={styles.settingItem}><span>{videoDuration} seconds</span><input type="range" min="3" max="30" step="1" value={videoDuration} onChange={(e) => setVideoDuration(parseInt(e.target.value))} style={styles.settingsRange} /></div>
+          </div>
+          <div style={styles.settingsSection}>
+            <h3 style={styles.settingsSectionTitle}>Quality</h3>
+            <select value={videoQuality} onChange={(e) => setVideoQuality(e.target.value)} style={styles.settingsSelect}>
+              <option value="low">Low (240p)</option>
+              <option value="medium">Medium (480p)</option>
+              <option value="high">High (720p)</option>
+            </select>
+          </div>
+          <canvas ref={canvasRef} width={videoQuality === 'high' ? 720 : videoQuality === 'medium' ? 480 : 320} height={videoQuality === 'high' ? 480 : videoQuality === 'medium' ? 320 : 240} style={{ width: '100%', borderRadius: 12, background: '#000', marginTop: 8 }} />
+          {videoInfo && <p style={{ color: '#4f8', textAlign: 'center', fontSize: 12 }}>{videoInfo}</p>}
+          {videoRecording && <p style={{ color: '#ff6688', textAlign: 'center' }}>● Recording... {videoProgress}%</p>}
         </div>
-        <div style={{ display: 'flex', gap: 8, padding: 16 }}>
-          {!videoRecording ? (
-            <button onClick={handleStartVideo} style={styles.settingsDoneFull}>Start & Record (5s)</button>
-          ) : (
-            <button onClick={handleStopVideo} style={styles.settingsDoneFull}>Stop & Download</button>
-          )}
-        </div>
+        {!videoRecording ? (
+          <button onClick={handleStartVideo} style={styles.settingsDoneFull}>Start & Record ({videoDuration}s)</button>
+        ) : (
+          <button onClick={() => { videoRecorderRef.current = null; setVideoRecording(false) }} style={styles.settingsDoneFull}>Stop</button>
+        )}
       </div>
     )
   }
 
-  // ============ JARVIS TOOLS ============
-  if (showJarvis) {
-    const tabs = [
-      { id: 'password', label: 'Password' }, { id: 'base64', label: 'Base64 Enc' }, { id: 'unbase64', label: 'Base64 Dec' },
-      { id: 'upper', label: 'UPPER' }, { id: 'lower', label: 'lower' }, { id: 'reverse', label: 'Reverse' },
-      { id: 'count', label: 'Count' }, { id: 'urlencode', label: 'URL Enc' }, { id: 'urldecode', label: 'URL Dec' },
-      { id: 'random', label: 'Random# (min,max)' }, { id: 'dice', label: 'Dice' }, { id: 'hash', label: 'Simple Hash' },
+  // ============ CYBER LAB ============
+  if (showCyberLab) {
+    const tools = [
+      { id: 'passcheck', label: 'Password' }, { id: 'hash', label: 'Hash' }, { id: 'base64', label: 'B64 Enc' }, { id: 'unbase64', label: 'B64 Dec' },
+      { id: 'hex', label: 'Hex' }, { id: 'rot13', label: 'ROT13' }, { id: 'dns', label: 'DNS' }, { id: 'ip', label: 'IP' }, { id: 'whois', label: 'WHOIS' }, { id: 'portscan', label: 'PortSim' },
     ]
     return (
       <div style={styles.settingsFullscreen}>
         <div style={styles.settingsHeaderFull}>
-          <h1 style={styles.settingsTitleFull}>⚡ Jarvis Tools</h1>
-          <button onClick={() => setShowJarvis(false)} style={styles.settingsCloseFull}><Icon name="close" size={28} color="#fff" /></button>
+          <h1 style={styles.settingsTitleFull}>🔒 Cyber Lab</h1>
+          <button onClick={() => setShowCyberLab(false)} style={styles.settingsCloseFull}><Icon name="close" size={28} color="#fff" /></button>
         </div>
-        <div style={styles.settingsBodyFull}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {tabs.map(t => (
-              <button key={t.id} onClick={() => { setToolTab(t.id); setToolOutput('') }} style={{ padding: '6px 12px', borderRadius: 20, border: toolTab === t.id ? '1px solid #ff003c' : '1px solid #333', background: toolTab === t.id ? 'rgba(255,0,60,0.15)' : '#1a1a1a', color: '#fff', fontSize: 12, cursor: 'pointer' }}>{t.label}</button>
-            ))}
-          </div>
-          <div style={styles.settingsSection}>
-            <input value={toolInput} onChange={(e) => setToolInput(e.target.value)} placeholder={toolTab === 'random' ? '1,100' : toolTab === 'dice' ? '3' : toolTab === 'password' ? '16' : 'Type input...'} style={styles.settingsSelect} />
-            <button onClick={runJarvisTool} style={{ ...styles.uploadBtn, marginTop: 12 }}><Icon name="zap" size={16} color="#fff" /><span>Run</span></button>
-          </div>
-          {toolOutput && (
-            <div style={styles.settingsSection}>
-              <h3 style={styles.settingsSectionTitle}>Output</h3>
-              <div style={{ background: '#000', border: '1px solid #333', borderRadius: 8, padding: 12, color: '#4f8', fontFamily: 'monospace', wordBreak: 'break-all' }}>{toolOutput}</div>
-              <button onClick={() => { navigator.clipboard.writeText(toolOutput); alert('Copied!') }} style={{ ...styles.uploadBtn, marginTop: 12 }}><Icon name="copy" size={16} color="#fff" /><span>Copy</span></button>
-            </div>
-          )}
-          <div style={styles.settingsSection}>
-            <h3 style={styles.settingsSectionTitle}>Timer</h3>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <input type="number" value={timerSeconds} onChange={(e) => setTimerSeconds(parseInt(e.target.value) || 0)} style={{ ...styles.settingsSelect, width: 100 }} />
-              <span style={{ color: '#fff' }}>seconds</span>
-              <button onClick={() => setTimerRunning(!timerRunning)} style={{ ...styles.uploadBtn, padding: '8px 16px' }}>{timerRunning ? 'Pause' : 'Start'}</button>
-              <button onClick={() => { setTimerRunning(false); setTimerSeconds(0) }} style={{ ...styles.resetBtn, padding: '8px 16px' }}>Reset</button>
-            </div>
-            {timerRunning && <p style={{ color: '#4f8', textAlign: 'center', marginTop: 12, fontSize: 24, fontWeight: 'bold' }}>{timerSeconds}s</p>}
-          </div>
+        <div style={{ display: 'flex', padding: '8px 16px', gap: 8, flexShrink: 0, background: '#111', borderBottom: '1px solid #333' }}>
+          <button onClick={() => setCyberTab('terminal')} style={{ flex: 1, padding: 10, background: cyberTab === 'terminal' ? '#ff003c' : '#1a1a1a', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 'bold', cursor: 'pointer' }}>Terminal</button>
+          <button onClick={() => setCyberTab('tools')} style={{ flex: 1, padding: 10, background: cyberTab === 'tools' ? '#ff003c' : '#1a1a1a', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 'bold', cursor: 'pointer' }}>Tools</button>
         </div>
+        {cyberTab === 'terminal' && (
+          <>
+            <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: 16, background: '#000', fontFamily: "'Courier New', monospace", fontSize: 13, color: '#ddd', WebkitOverflowScrolling: 'touch' }}>
+              {cyberLines.map((l, i) => (
+                <pre key={i} style={{ margin: '2px 0', whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: l.type === 'cmd' ? '#4f8' : l.type === 'info' ? '#ff6688' : '#ddd', fontWeight: l.type === 'cmd' ? 'bold' : 'normal' }}>{l.text}</pre>
+              ))}
+              <div ref={cyberEndRef} />
+            </div>
+            <form onSubmit={handleCyberSubmit} style={{ display: 'flex', gap: 8, padding: 12, paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))', background: '#111', borderTop: '1px solid #333', flexShrink: 0 }}>
+              <span style={{ color: '#4f8', fontWeight: 'bold', fontFamily: "'Courier New', monospace" }}>$</span>
+              <input value={cyberInput} onChange={(e) => setCyberInput(e.target.value)} placeholder="Type a command (help)" style={{ flex: 1, padding: 10, background: '#000', border: '1px solid #333', color: '#fff', borderRadius: 4, fontFamily: "'Courier New', monospace", outline: 'none' }} autoComplete="off" autoCapitalize="off" spellCheck="false" />
+              <button type="submit" style={{ padding: '8px 14px', background: '#ff003c', border: 'none', borderRadius: 4, color: '#fff', cursor: 'pointer' }}><Icon name="send" size={16} color="#fff" /></button>
+            </form>
+          </>
+        )}
+        {cyberTab === 'tools' && (
+          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: 16, WebkitOverflowScrolling: 'touch' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
+              {tools.map(t => (
+                <button key={t.id} onClick={() => { setCyberTool(t.id); setCyberToolOutput('') }} style={{ padding: '6px 12px', borderRadius: 20, border: cyberTool === t.id ? '1px solid #ff003c' : '1px solid #333', background: cyberTool === t.id ? 'rgba(255,0,60,0.15)' : '#1a1a1a', color: '#fff', fontSize: 12, cursor: 'pointer' }}>{t.label}</button>
+              ))}
+            </div>
+            <input value={cyberToolInput} onChange={(e) => setCyberToolInput(e.target.value)} placeholder="Input..." style={styles.settingsSelect} />
+            <button onClick={runCyberTool} style={{ ...styles.uploadBtn, marginTop: 12, width: '100%', justifyContent: 'center' }}><Icon name="zap" size={16} color="#fff" /><span>Run</span></button>
+            {cyberToolOutput && (
+              <div style={{ marginTop: 16 }}>
+                <pre style={{ background: '#000', border: '1px solid #333', borderRadius: 8, padding: 12, color: '#4f8', fontFamily: "'Courier New', monospace", fontSize: 12, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{cyberToolOutput}</pre>
+                <button onClick={() => navigator.clipboard.writeText(cyberToolOutput)} style={{ ...styles.uploadBtn, marginTop: 8, width: '100%', justifyContent: 'center' }}><Icon name="copy" size={16} color="#fff" /><span>Copy</span></button>
+              </div>
+            )}
+            <p style={{ color: '#888', fontSize: 11, marginTop: 16, fontStyle: 'italic' }}>⚠️ Educational use only. Only test systems you own or have written permission to test.</p>
+          </div>
+        )}
       </div>
     )
   }
@@ -1626,6 +1345,7 @@ export default function App() {
     )
   }
 
+  // ============ CHAT OVERVIEW (with reply-to, larger log) ============
   if (showChatOverview) {
     return (
       <div style={styles.chatOverviewContainer}>
@@ -1637,27 +1357,44 @@ export default function App() {
         <div style={styles.chatOverviewMessages}>
           {conversation.length === 0 && <div style={styles.chatOverviewEmpty}>Start chatting!</div>}
           {conversation.map(msg => (
-            <div key={msg.id} style={{ ...styles.chatOverviewMsg, alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', backgroundColor: msg.role === 'user' ? '#ff003c' : '#1a1a1a', ...(settings.compactMode ? { padding: '6px 10px' } : {}) }}>
+            <div key={msg.id} style={{ ...styles.chatOverviewMsg, alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', backgroundColor: msg.role === 'user' ? '#ff003c' : '#1a1a1a' }}>
+              {msg.replyToText && (
+                <div style={styles.replyQuote}>
+                  <Icon name="reply" size={12} color="#ff6688" />
+                  <span style={styles.replyQuoteText}>{msg.replyToText}...</span>
+                </div>
+              )}
               {renderMessageContent(msg)}
               {msg.file && (
                 <div style={styles.filePreviewPC}>
-                  {msg.file.type.startsWith('image/') && <img src={msg.file.data} alt="" style={{ maxWidth: '100%', maxHeight: '80px', borderRadius: '4px', marginTop: '4px' }} />}
-                  {msg.file.type.startsWith('video/') && <video controls style={{ maxWidth: '100%', maxHeight: '80px', borderRadius: '4px', marginTop: '4px' }}><source src={msg.file.data} type={msg.file.type} /></video>}
+                  {msg.file.type.startsWith('image/') && <img src={msg.file.data} alt="" style={{ maxWidth: '100%', maxHeight: '120px', borderRadius: '4px', marginTop: '4px' }} />}
+                  {msg.file.type.startsWith('video/') && <video controls style={{ maxWidth: '100%', maxHeight: '120px', borderRadius: '4px', marginTop: '4px' }}><source src={msg.file.data} type={msg.file.type} /></video>}
                   {!msg.file.type.startsWith('image/') && !msg.file.type.startsWith('video/') && <div style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>📎 {msg.file.name}</div>}
                 </div>
               )}
               {settings.showTimestamps && <span style={styles.chatOverviewMsgTime}>{formatTime(msg.time)}</span>}
               <div style={styles.msgActions}>
-                {msg.role === 'user' && <button onClick={() => handleEditMessage(msg.id)} style={styles.msgActionBtn}><Icon name="edit" size={14} color="#888" /></button>}
-                <button onClick={() => handleDeleteMessage(msg.id)} style={styles.msgActionBtn}><Icon name="trash" size={14} color="#888" /></button>
-                <button onClick={() => handleShareMessage(msg)} style={styles.msgActionBtn}><Icon name="copy" size={14} color="#888" /></button>
+                <button onClick={() => handleReply(msg)} style={styles.msgActionBtn} title="Reply"><Icon name="reply" size={14} color="#888" /></button>
+                {msg.role === 'user' && <button onClick={() => handleEditMessage(msg.id)} style={styles.msgActionBtn} title="Edit"><Icon name="edit" size={14} color="#888" /></button>}
+                <button onClick={() => handleDeleteMessage(msg.id)} style={styles.msgActionBtn} title="Delete"><Icon name="trash" size={14} color="#888" /></button>
+                <button onClick={() => handleShareMessage(msg)} style={styles.msgActionBtn} title="Share"><Icon name="copy" size={14} color="#888" /></button>
               </div>
             </div>
           ))}
           {isProcessing && settings.typingIndicator && <div style={{ ...styles.chatOverviewMsg, alignSelf: 'flex-start', backgroundColor: '#1a1a1a' }}><span style={styles.chatOverviewMsgText}>● ● ●</span></div>}
+          <div ref={chatEndRef} />
         </div>
+        {replyingTo && (
+          <div style={styles.replyBar}>
+            <div style={{ flex: 1, overflow: 'hidden' }}>
+              <div style={{ color: '#ff6688', fontSize: 11, fontWeight: 'bold', marginBottom: 2 }}>Replying to:</div>
+              <div style={{ color: '#ddd', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{replyingTo.content.slice(0, 60)}...</div>
+            </div>
+            <button onClick={() => setReplyingTo(null)} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', padding: 4 }}><Icon name="x" size={18} color="#888" /></button>
+          </div>
+        )}
         <div style={styles.chatOverviewInputRowRaised}>
-          <input type="text" value={chatOverviewInput} onChange={(e) => setChatOverviewInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && sendOverviewText()} placeholder={pendingCode ? "Answer the question..." : "Type a message..."} style={styles.chatOverviewInput} disabled={isProcessing} />
+          <input type="text" value={chatOverviewInput} onChange={(e) => setChatOverviewInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && sendOverviewText()} placeholder={pendingCode ? "Answer the question..." : replyingTo ? "Reply..." : "Type a message..."} style={styles.chatOverviewInput} disabled={isProcessing} />
           <div style={styles.voiceControls}>
             {!isRecordingVoice && !voicePaused ? (
               <button onClick={startVoiceRecording} style={styles.chatOverviewMicBtn}><Icon name="mic" size={20} color="#fff" /></button>
@@ -1698,6 +1435,7 @@ export default function App() {
     )
   }
 
+  // ============ ANDROID VIEW ============
   if (viewMode === 'android') {
     return (
       <div style={{ ...styles.appAndroid, ...(settings.highContrast ? { filter: 'contrast(1.3)' } : {}) }}>
@@ -1711,11 +1449,11 @@ export default function App() {
               </div>
               <div style={styles.sidebarSection}>
                 <h3 style={styles.sectionTitle}><Icon name="desktop" size={16} color="#ff003c" /> VIEW MODE</h3>
-                <div style={styles.settingRow}><span style={styles.settingLabel}>Current: Android</span><button onClick={toggleView} style={styles.toggleBtn}>Switch to PC</button></div>
+                <div style={styles.settingRow}><span style={styles.settingLabel}>Android</span><button onClick={toggleView} style={styles.toggleBtn}>PC</button></div>
               </div>
               <div style={styles.sidebarSection}>
                 <h3 style={styles.sectionTitle}><Icon name="sparkles" size={16} color="#ff003c" /> QUICK TOOLS</h3>
-                <button onClick={() => { setSidebarOpen(false); setShowJarvis(true) }} style={styles.toolBtn}><Icon name="zap" size={16} color="#fff" /> Jarvis Tools</button>
+                <button onClick={() => { setSidebarOpen(false); setShowCyberLab(true) }} style={styles.toolBtn}><Icon name="shield" size={16} color="#fff" /> Cyber Lab</button>
                 <button onClick={() => { setSidebarOpen(false); setShowMusicPanel(true) }} style={styles.toolBtn}><Icon name="music" size={16} color="#fff" /> Music Generator</button>
                 <button onClick={() => { setSidebarOpen(false); setShowVideoPanel(true) }} style={styles.toolBtn}><Icon name="video" size={16} color="#fff" /> Video Generator</button>
                 <button onClick={() => { setSidebarOpen(false); setShowSettings(true) }} style={styles.toolBtn}><Icon name="cog" size={16} color="#fff" /> Settings</button>
@@ -1725,22 +1463,30 @@ export default function App() {
                 <div style={styles.statsCard}>
                   <div style={styles.statRow}><span style={styles.statLabel}><Icon name="hourglass" size={14} color="#888" /> Uptime</span><span style={styles.statValue}>{formatUptime(stats.uptime)}</span></div>
                   <div style={styles.statRow}><span style={styles.statLabel}><Icon name="cpu" size={14} color="#888" /> CPU</span><span style={styles.statValue}>{stats.cpuUsage}%</span></div>
-                  <div style={styles.statRow}><span style={styles.statLabel}><Icon name="cpu" size={14} color="#888" /> Temp</span><span style={styles.statValue}>{stats.cpuTemp}°C</span></div>
                   <div style={styles.statRow}><span style={styles.statLabel}><Icon name="memory" size={14} color="#888" /> RAM</span><span style={styles.statValue}>{stats.ramUsage.toFixed(1)} GB</span></div>
-                  <div style={styles.statRow}><span style={styles.statLabel}><Icon name="save" size={14} color="#888" /> Storage</span><span style={styles.statValue}>{stats.storageUsed}/{stats.storageTotal} GB</span></div>
-                  <div style={styles.statRow}><span style={styles.statLabel}><Icon name="network" size={14} color="#888" /> Network</span><span style={styles.statValue}>{stats.networkSpeed} Mbps</span></div>
                 </div>
               </div>
               <div style={styles.sidebarSection}>
                 <h3 style={styles.sectionTitle}><Icon name="settings" size={16} color="#ff003c" /> AI CONFIG</h3>
                 <div style={styles.settingRow}><span style={styles.settingLabel}>Personality</span><span style={styles.settingValue}>{PERSONALITIES.find(p => p.id === aiPersonality)?.label}</span></div>
                 <div style={styles.settingRow}><span style={styles.settingLabel}>Secret Mode</span><span style={styles.settingValue}>{settings.secretMode ? 'ON' : 'OFF'}</span></div>
-                <div style={styles.settingRow}><span style={styles.settingLabel}>Safe Links</span><span style={styles.settingValue}>{settings.safeLinks ? 'ON' : 'OFF'}</span></div>
               </div>
               <div style={styles.sidebarSection}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <h3 style={styles.sectionTitle}><Icon name="chat" size={16} color="#ff003c" /> CONVERSATION</h3>
                   <button onClick={() => setShowChatOverview(true)} style={styles.overviewBtn}><Icon name="desktop" size={14} color="#fff" /> Overview</button>
+                </div>
+                <div style={{ maxHeight: 300, overflowY: 'auto', marginBottom: 8, border: '1px solid #1a1a1a', borderRadius: 6, padding: 6, backgroundColor: '#050505' }}>
+                  {conversation.length === 0 && <p style={styles.dashEmptyPC}>No messages yet</p>}
+                  {conversation.slice(-30).map(msg => (
+                    <div key={msg.id} style={{ padding: '6px 8px', borderBottom: '1px solid #111', display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                        <span style={{ fontWeight: 'bold', color: msg.role === 'user' ? '#ddd' : '#ff003c', fontSize: 11 }}>{msg.role === 'user' ? profile?.name || 'You' : 'CYPHER4X'}</span>
+                        <span style={{ fontSize: 9, color: '#666' }}>{formatTime(msg.time)}</span>
+                      </div>
+                      <span style={{ color: '#ddd', fontSize: 12, wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{msg.content.length > 120 ? msg.content.slice(0, 120) + '…' : msg.content}</span>
+                    </div>
+                  ))}
                 </div>
                 <div style={styles.inputRow}>
                   <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && sendTextMessage()} placeholder="Type..." style={styles.textInputSmall} />
@@ -1749,18 +1495,8 @@ export default function App() {
                 <div style={styles.commandActionsPC}>
                   <button onClick={clearConversation} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear</button>
                   <button onClick={exportChat} style={styles.dashBtnPC}><Icon name="save" size={14} color="#fff" /> Export</button>
-                  <label style={styles.attachBtnPC}><Icon name="file" size={14} color="#fff" /> Attach<input type="file" accept="image/*,video/*,.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx" onChange={handleFileShare} style={{ display: 'none' }} /></label>
+                  <label style={styles.attachBtnPC}><Icon name="file" size={14} color="#fff" /> Attach<input type="file" accept="image/*,video/*,.pdf,.doc,.docx,.txt" onChange={handleOverviewFileShare} style={{ display: 'none' }} /></label>
                 </div>
-              </div>
-              <div style={styles.sidebarSection}>
-                <h3 style={styles.sectionTitle}><Icon name="clock" size={16} color="#ff003c" /> HISTORY</h3>
-                <div style={styles.commandHistoryPC}>
-                  {commandHistory.length === 0 && <p style={styles.dashEmptyPC}>Empty</p>}
-                  {commandHistory.slice(-6).reverse().map((c, i) => (
-                    <div key={i} style={styles.cmdItemPC}><span style={styles.cmdTimePC}>{formatTime(c.timestamp)}</span><span style={styles.cmdTextPC}>{c.command.slice(0, 40)}</span></div>
-                  ))}
-                </div>
-                <button onClick={clearCommands} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear</button>
               </div>
               <div style={styles.sidebarSection}>
                 <h3 style={styles.sectionTitle}><Icon name="user" size={16} color="#ff003c" /> PROFILE</h3>
@@ -1829,7 +1565,7 @@ export default function App() {
     )
   }
 
-  // PC VIEW
+  // ============ PC VIEW ============
   return (
     <div style={{ ...styles.appPC, ...(settings.highContrast ? { filter: 'contrast(1.3)' } : {}) }}>
       <header style={styles.headerPC}>
@@ -1838,16 +1574,12 @@ export default function App() {
           <span style={styles.versionBadgePC}>{VERSION}</span>
         </div>
         <div style={styles.headerRight}>
-          <button onClick={toggleFullscreenCall} style={{ ...styles.callBtnPC }}>
-            <Icon name="phone" size={18} color="#ff003c" /><span>CALL</span>
-          </button>
-          <button onClick={() => setShowJarvis(true)} style={styles.settingsBtnPC}><Icon name="zap" size={20} color="#fff" /></button>
+          <button onClick={toggleFullscreenCall} style={styles.callBtnPC}><Icon name="phone" size={18} color="#ff003c" /><span>CALL</span></button>
+          <button onClick={() => setShowCyberLab(true)} style={styles.settingsBtnPC}><Icon name="shield" size={20} color="#fff" /></button>
           <button onClick={() => setShowMusicPanel(true)} style={styles.settingsBtnPC}><Icon name="music" size={20} color="#fff" /></button>
           <button onClick={() => setShowVideoPanel(true)} style={styles.settingsBtnPC}><Icon name="video" size={20} color="#fff" /></button>
           <button onClick={() => setShowSettings(true)} style={styles.settingsBtnPC}><Icon name="cog" size={20} color="#fff" /></button>
-          <button onClick={startRecording} disabled={isRecording || isProcessing} style={{ ...styles.voiceBtnPC }}>
-            <Icon name="mic" size={20} color="#ff003c" /><span>Speak</span>
-          </button>
+          <button onClick={startRecording} disabled={isRecording || isProcessing} style={styles.voiceBtnPC}><Icon name="mic" size={20} color="#ff003c" /><span>Speak</span></button>
         </div>
       </header>
       <div style={styles.pcLayout}>
@@ -1972,6 +1704,9 @@ const styles = {
   chatOverviewMsg: { maxWidth: '88%', padding: '10px 14px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative' },
   chatOverviewMsgText: { color: '#fff', fontSize: '14px', wordBreak: 'break-word', whiteSpace: 'pre-wrap' },
   chatOverviewMsgTime: { fontSize: '10px', color: '#888', alignSelf: 'flex-end' },
+  replyQuote: { display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', backgroundColor: 'rgba(255,255,255,0.08)', borderLeft: '3px solid #ff6688', borderRadius: 4, marginBottom: 4 },
+  replyQuoteText: { color: '#ff6688', fontSize: 11, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  replyBar: { display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', backgroundColor: '#1a1a1a', borderTop: '2px solid #ff003c' },
   chatOverviewInputRowRaised: { display: 'flex', gap: '8px', padding: '12px 16px', paddingBottom: 'max(30px, env(safe-area-inset-bottom, 50px))', backgroundColor: '#111', borderTop: '1px solid #333', flexShrink: 0, alignItems: 'center' },
   chatOverviewInput: { flex: 1, padding: '10px 14px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '20px', fontSize: '14px', outline: 'none' },
   chatOverviewMicBtn: { background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '8px', borderRadius: '50%', backgroundColor: 'rgba(255,0,60,0.2)' },
@@ -1980,10 +1715,9 @@ const styles = {
   overviewBtn: { padding: '4px 12px', backgroundColor: '#1a3a3a', border: '1px solid #2a5a5a', borderRadius: '4px', color: '#fff', cursor: 'pointer', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' },
   voiceControls: { display: 'flex', gap: '6px', alignItems: 'center' },
   voiceTranscriptPreview: { position: 'absolute', bottom: '80px', left: '16px', right: '16px', backgroundColor: 'rgba(0,0,0,0.8)', padding: '8px 16px', borderRadius: '12px', color: '#ff6688', fontSize: '14px', fontStyle: 'italic', border: '1px solid rgba(255,0,60,0.3)', textAlign: 'center' },
-  msgActions: { display: 'flex', gap: '4px', justifyContent: 'flex-end', marginTop: '4px', opacity: 0.6 },
+  msgActions: { display: 'flex', gap: '4px', justifyContent: 'flex-end', marginTop: '4px', opacity: 0.7 },
   msgActionBtn: { background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: '4px' },
 
-  // Code block styles
   codeBlockWrap: { marginTop: 8, marginBottom: 8, borderRadius: 8, overflow: 'hidden', border: '1px solid #333', backgroundColor: '#0a0a0a', alignSelf: 'stretch' },
   codeBlockHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', backgroundColor: '#1a1a1a', borderBottom: '1px solid #333' },
   codeLang: { color: '#ff6688', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1 },
@@ -2056,7 +1790,6 @@ const styles = {
   listeningText: { color: '#fff', fontSize: '16px', fontWeight: 'bold', letterSpacing: '2px', fontFamily: "'Courier New', monospace" },
   interimText: { color: '#ff6688', fontSize: '14px', fontStyle: 'italic', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderLeft: '1px solid rgba(255,0,60,0.3)', paddingLeft: '12px' },
   sendInterimBtn: { backgroundColor: '#ff003c', border: 'none', borderRadius: '20px', padding: '4px 14px', display: 'flex', alignItems: 'center', gap: '6px', color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' },
-  cancelInterimBtn: { backgroundColor: 'transparent', border: '1px solid #ff003c', borderRadius: '20px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '4px', color: '#ff003c', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' },
   voiceButtonContainer: { position: 'absolute', bottom: '50px', left: '50%', transform: 'translateX(-50%)', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' },
   voiceButton: { width: '90px', height: '90px', borderRadius: '50%', backgroundColor: '#1a1a1a', border: '3px solid #ff003c', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', boxShadow: '0 0 40px rgba(255,0,60,0.2)' },
   voiceButtonActive: { backgroundColor: '#ff003c', borderColor: '#ff003c', boxShadow: '0 0 80px rgba(255,0,60,0.7)', animation: 'pulseGlow 1s ease-in-out infinite' },
@@ -2079,22 +1812,14 @@ const styles = {
   pcMain: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', backgroundColor: '#050505', overflow: 'hidden', height: '100%', padding: '10px' },
   pcBallContainer: { position: 'relative', width: 'clamp(160px, 25vw, 300px)', height: 'clamp(160px, 25vw, 300px)', pointerEvents: 'none', marginBottom: '10px' },
   pcListeningContainer: { display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(0,0,0,0.5)', padding: '4px 16px', borderRadius: '30px', border: '1px solid rgba(255,0,60,0.2)', backdropFilter: 'blur(10px)', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '90%' },
-  conversationLogPC: { maxHeight: '120px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '6px' },
-  convItemPC: { display: 'flex', flexDirection: 'column', padding: '4px 8px', backgroundColor: '#111', borderRadius: '4px', borderLeft: '2px solid #ff003c' },
-  convTextPC: { fontSize: '12px', color: '#ddd', wordBreak: 'break-word', marginTop: '2px' },
-  convTimePC: { fontSize: '9px', color: '#666', alignSelf: 'flex-end', marginTop: '2px' },
-  filePreviewPC: { marginTop: '4px' },
-  commandActionsPC: { display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' },
-  attachBtnPC: { padding: '3px 10px', backgroundColor: '#1a3a3a', color: '#fff', border: '1px solid #2a5a5a', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' },
-  commandHistoryPC: { maxHeight: '80px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '6px' },
-  cmdItemPC: { display: 'flex', gap: '6px', fontSize: '11px', color: '#aaa', padding: '2px 4px', borderBottom: '1px solid #111' },
-  cmdTimePC: { color: '#666', minWidth: '50px', fontSize: '10px' },
-  cmdTextPC: { color: '#ddd', wordBreak: 'break-word' },
   dashBtnPC: { padding: '3px 10px', backgroundColor: '#222', color: '#fff', border: '1px solid #333', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' },
   dashEmptyPC: { color: '#666', fontSize: '12px', textAlign: 'center', padding: '6px 0' },
   inputRow: { display: 'flex', gap: '6px', marginTop: '4px', marginBottom: '6px' },
   textInputSmall: { flex: 1, padding: '6px 10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '13px', outline: 'none' },
   sendBtnSmall: { padding: '6px 12px', backgroundColor: '#ff003c', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  commandActionsPC: { display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' },
+  attachBtnPC: { padding: '3px 10px', backgroundColor: '#1a3a3a', color: '#fff', border: '1px solid #2a5a5a', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' },
   sidebarBtnPC: { padding: '5px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '12px' },
   logoutBtnPC: { padding: '5px 10px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '12px' },
-    }
+  filePreviewPC: { marginTop: '4px' },
+}
