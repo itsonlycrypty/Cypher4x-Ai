@@ -67,7 +67,7 @@ const VERSION = "v26"
 const VERSION_FULL = "CYPHER4X v26.0.0"
 const APP_START_TIME = Date.now()
 
-// NEW: Global flag to restrict all tools for everyone as requested
+// GLOBAL FLAG: Set to true to enable tools again
 const TOOLS_ENABLED = false 
 
 // ==================================================
@@ -422,8 +422,8 @@ export default function App() {
     secretMode: false, overlayButton: false, safeLinks: true, autoScroll: true, haptic: true,
     soundFx: false, showTimestamps: true, typingIndicator: true, readAloud: false,
     highContrast: false, compactMode: false, codeAutoOverview: true, confirmDelete: true,
-    restrictTools: true,       // NEW — restrict music/video/terminal/tools to logged-in users
-    locationEnabled: false,    // NEW — allows weather lookup
+    restrictTools: true,       
+    locationEnabled: false,    
   })
 
   // ----- DASHBOARD (date/time/day/temp) -----
@@ -495,7 +495,7 @@ export default function App() {
   const recognitionRef = useRef(null); const msgCounter = useRef(0)
   const fileInputRef = useRef(null); const bgInputRef = useRef(null); const chatEndRef = useRef(null)
   
-  // NEW: Ref to track if we've greeted the user this session
+  // Ref to track if we've greeted the user this session
   const hasGreeted = useRef(false)
 
   const playBeep = useCallback((f = 800, d = 0.08) => {
@@ -645,7 +645,7 @@ export default function App() {
     return true
   }
 
-  // NEW: AI GREETING LOGIC
+  // AI GREETING LOGIC
   useEffect(() => {
     if (!isBooting && !isEnteringAI && !hasGreeted.current && activeChatId) {
       hasGreeted.current = true
@@ -1217,8 +1217,6 @@ export default function App() {
       </div>
       <div style={styles.settingsBodyFull}>
         
-        {/* REMOVED AI DASHBOARD FROM HERE - NOW ON HOME */}
-
         <div style={styles.settingsSection}>
           <h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Location Services</h3>
           <div style={styles.settingItem}><span>Enable Location (Weather)</span><label className="toggle-switch"><input type="checkbox" checked={settings.locationEnabled} onChange={(e) => setSettings({ ...settings, locationEnabled: e.target.checked })} /><span className="toggle-slider"></span></label></div>
@@ -1636,7 +1634,7 @@ export default function App() {
 // STYLES (unchanged, shared)
 // ==================================================
 const styles = {
-  appAndroid: { minHeight: '100vh', height: '100dvh', color: '#e0e0e0', fontFamily: "'Segoe UI','Courier New',monospace", overflow: 'hidden', margin: 0, padding: 0 },
+  appAndroid: { minHeight: '100vh', height: '100vh', color: '#e0e0e0', fontFamily: "'Segoe UI','Courier New',monospace", overflow: 'hidden', margin: 0, padding: 0 },
   bootContainer: { backgroundColor: '#000', minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' },
   bootBackground: { position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center,#1a0000 0%,#000 70%)' },
   bootContent: { position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: 500, padding: 20 },
@@ -1810,7 +1808,7 @@ const styles = {
   settingsBtnPC: { backgroundColor: 'rgba(0,0,0,0.6)', border: '1px solid #333', borderRadius: 16, padding: '4px 10px', display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#fff', marginLeft: 6 },
   floatingBtn: { position: 'absolute', bottom: 150, right: 25, width: 56, height: 56, borderRadius: '50%', border: '2px solid', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.5)', transition: 'all 0.3s ease' },
 
-  mainContentAndroid: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', height: '100dvh', margin: 0, padding: 0 },
+  mainContentAndroid: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', height: '100vh', margin: 0, padding: 0 },
   backgroundAndroid: { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 0 },
   ballContainer: { position: 'relative', width: 300, height: 300, pointerEvents: 'none', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' },
   ball3DContainer: { perspective: 800, transformStyle: 'preserve-3d' },
@@ -1836,7 +1834,7 @@ const styles = {
   voiceLabel: { color: '#fff', fontSize: 12, fontWeight: 'bold', letterSpacing: 1, marginTop: 4 },
   hamburgerBtn: { backgroundColor: 'transparent', border: 'none', cursor: 'pointer', zIndex: 15, padding: 8, borderRadius: 4 },
 
-  appPC: { minHeight: '100vh', height: '100dvh', color: '#e0e0e0', fontFamily: "'Segoe UI','Courier New',monospace", overflow: 'hidden', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '100vw' },
+  appPC: { minHeight: '100vh', height: '100vh', color: '#e0e0e0', fontFamily: "'Segoe UI','Courier New',monospace", overflow: 'hidden', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '100vw' },
   headerPC: { padding: '6px 12px', borderBottom: '1px solid', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, backgroundColor: '#0a0000', flexWrap: 'wrap', gap: 4, minHeight: 44 },
   headerLeft: { display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
   titlePC: { margin: 0, fontSize: 'clamp(16px,4vw,22px)', fontWeight: 'bold', letterSpacing: 2 },
