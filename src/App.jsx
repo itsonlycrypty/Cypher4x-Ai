@@ -98,11 +98,11 @@ const isPureGreeting = (text) => {
 // ==================================================
 const KNOWLEDGE = [
   { match: /ethical hacking|penetration test|white ?hat|cyber ?security|cybersecurity|learn hacking/i, answer: `**Ethical Hacking — Learning Path**\n\nEthical hacking = finding vulnerabilities **legally and with permission**.\n\n**📚 Roadmap**\n1. **Networking** — TCP/IP, DNS, HTTP. TryHackMe Pre-Security\n2. **Linux** — bash, permissions. OverTheWire Bandit\n3. **Web** — HTML/CSS/JS, HTTP, cookies\n4. **Programming** — Python + Bash\n5. **Core security** — OWASP Top 10, crypto, auth\n6. **Labs** — TryHackMe, HackTheBox, PortSwigger\n7. **Certs** — CompTIA Security+ → CEH → OSCP\n\n**⚠️ Rules**\n• Only test systems you OWN or have permission for\n• Unauthorized access is illegal\n• Bug bounties: HackerOne, Bugcrowd\n\n**🧰 Tools:** Nmap, Wireshark, Burp Suite, Metasploit\n\n💡 Open the **🔒 Cyber Lab** to practice.` },
-  { match: /(what is|explain|define) (javascript|js)\b/i, answer: `**JavaScript (JS)**\n\nHigh-level, interpreted language — the **only** one browsers natively run. Also runs on servers via **Node.js**.\n\n\`\`\`javascript\nconst greet = (name) => \`Hello, \${name}!\`\nconsole.log(greet('World'))\n\`\`\`\n\n**Ecosystem:** React, Vue, Next.js, Express.` },
+  { match: /(what is|explain|define) (javascript|js)\b/i, answer: `**JavaScript (JS)**\n\nHigh-level, interpreted language — the **only** one browsers natively run.\n\n\`\`\`javascript\nconst greet = (name) => \`Hello, \${name}!\`\nconsole.log(greet('World'))\n\`\`\`\n\n**Ecosystem:** React, Vue, Next.js, Express.` },
   { match: /(what is|explain|define) (python)\b/i, answer: `**Python**\n\nA high-level, readable language. #1 for **AI/ML, data science, automation**.\n\n\`\`\`python\nfrom dataclasses import dataclass\n\n@dataclass\nclass User:\n    id: int\n    name: str\n\nfor u in [User(1, "Alice"), User(2, "Bob")]:\n    print(f"Hello, {u.name}!")\n\`\`\`\n\n**Packages:** Django, Flask, PyTorch, pandas.` },
   { match: /(what is|explain) (react|react\.?js)/i, answer: `**React**\n\nA JavaScript library for building **user interfaces** from reusable components.\n\n\`\`\`jsx\nimport { useState, useEffect } from 'react'\n\nexport default function Counter() {\n  const [n, setN] = useState(0)\n  useEffect(() => { document.title = \`Count: \${n}\` }, [n])\n  return <button onClick={() => setN(n + 1)}>{n}</button>\n}\n\`\`\`\n\n**Learn:** react.dev` },
   { match: /(how (to|do i) )?(learn|study|start) (programming|coding|to code)/i, answer: `**How to Learn Programming**\n\n1. **Pick ONE language** — Python or JavaScript\n2. **Fundamentals** — variables, loops, functions, arrays\n3. **Practice** — freeCodeCamp, Exercism, Codewars\n4. **Build small projects** — calculator → todo → weather\n5. **Tools** — Git, CLI, VS Code\n6. **Go deeper** — DS&A, SQL, HTTP\n\n**Timeline:** 1 month basics, 6-12 months to junior.` },
-  { match: /(what is|explain) (ai|artificial intelligence)\b/i, answer: `**Artificial Intelligence**\n\n**Branches:** ML, Deep Learning, NLP, CV, RL, Generative AI.\n\n**Modern:** GPT-4/5, Claude, Gemini, Llama, Stable Diffusion.\n\n**How LLMs work:** tokenize → transformer → predict next token → repeat.` },
+  { match: /(what is|explain) (ai|artificial intelligence)\b/i, answer: `**Artificial Intelligence**\n\n**Branches:** ML, Deep Learning, NLP, CV, RL, Generative AI.\n\n**Modern:** GPT-4/5, Claude, Gemini, Llama, Stable Diffusion.` },
   { match: /(what is|explain) (machine learning|ml)\b/i, answer: `**Machine Learning**\n\n**3 types:** Supervised, Unsupervised, Reinforcement.\n\n**Algorithms:** Linear Regression, Decision Trees, Random Forest, SVM, Neural Nets, K-Means.` },
   { match: /^(hi|hello|hey|yo|sup|howdy)\b/i, answer: `Hey there! 👋 I'm CYPHER4X. What can I help you with today?` },
 ]
@@ -176,7 +176,7 @@ const detectLanguage = (t) => {
 const generateLongCode = (lang, purpose, detail) => {
   const L = lang.toLowerCase()
   if (L.includes('react')) return `Here's a complete React application for: **${purpose}**${detail ? ` (${detail})` : ''}\n\n\`\`\`jsx\nimport { useState, useEffect, useCallback } from 'react'\n\nfunction useLocalStorage(key, initial) {\n  const [v, setV] = useState(() => {\n    try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : initial } catch { return initial }\n  })\n  useEffect(() => { try { localStorage.setItem(key, JSON.stringify(v)) } catch {} }, [key, v])\n  return [v, setV]\n}\n\nexport default function App() {\n  const [items, setItems] = useLocalStorage('items', [])\n  const [input, setInput] = useState('')\n  const add = useCallback(() => { if (!input.trim()) return; setItems(p => [{ id: Date.now(), text: input, done: false }, ...p]); setInput('') }, [input, setItems])\n  const toggle = (id) => setItems(p => p.map(i => i.id === id ? { ...i, done: !i.done } : i))\n  return (\n    <div style={{ padding: 20 }}>\n      <h1>${purpose}</h1>\n      <input value={input} onChange={e => setInput(e.target.value)} />\n      <button onClick={add}>Add</button>\n      <ul>{items.map(i => <li key={i.id} onClick={() => toggle(i.id)}>{i.text}</li>)}</ul>\n    </div>\n  )\n}\n\`\`\``
-  if (L.includes('python')) return `Here's a complete Python program for: **${purpose}**\n\n\`\`\`python\nimport json, argparse\nfrom dataclasses import dataclass, asdict\nfrom datetime import datetime\n\n@dataclass\nclass Item:\n    id: int\n    title: str\n    done: bool = False\n\nclass Store:\n    def __init__(self, path="items.json"):\n        self.path = path\n        self.items = []\n        self._load()\n    def _load(self):\n        try:\n            with open(self.path) as f: self.items = [Item(**d) for d in json.load(f)]\n        except FileNotFoundError: pass\n    def save(self):\n        with open(self.path, "w") as f: json.dump([asdict(i) for i in self.items], f, indent=2)\n    def add(self, title):\n        nid = max((i.id for i in self.items), default=0) + 1\n        item = Item(id=nid, title=title)\n        self.items.append(item); self.save(); return item\n\ndef main():\n    p = argparse.ArgumentParser()\n    p.add_argument("cmd", choices=["add", "list"])\n    p.add_argument("title", nargs="?")\n    args = p.parse_args()\n    s = Store()\n    if args.cmd == "add" and args.title:\n        item = s.add(args.title); print(f"Added #{item.id}")\n    else:\n        for i in s.items: print(f"{'✓' if i.done else '○'} #{i.id} {i.title}")\n\nif __name__ == "__main__": main()\n\`\`\``
+  if (L.includes('python')) return `Here's a complete Python program for: **${purpose}**\n\n\`\`\`python\nimport json, argparse\nfrom dataclasses import dataclass, asdict\n\n@dataclass\nclass Item:\n    id: int\n    title: str\n    done: bool = False\n\nclass Store:\n    def __init__(self, path="items.json"):\n        self.path = path\n        self.items = []\n        self._load()\n    def _load(self):\n        try:\n            with open(self.path) as f: self.items = [Item(**d) for d in json.load(f)]\n        except FileNotFoundError: pass\n    def save(self):\n        with open(self.path, "w") as f: json.dump([asdict(i) for i in self.items], f, indent=2)\n    def add(self, title):\n        nid = max((i.id for i in self.items), default=0) + 1\n        item = Item(id=nid, title=title)\n        self.items.append(item); self.save(); return item\n\ndef main():\n    p = argparse.ArgumentParser()\n    p.add_argument("cmd", choices=["add", "list"])\n    p.add_argument("title", nargs="?")\n    args = p.parse_args()\n    s = Store()\n    if args.cmd == "add" and args.title:\n        item = s.add(args.title); print(f"Added #{item.id}")\n    else:\n        for i in s.items: print(f"{'✓' if i.done else '○'} #{i.id} {i.title}")\n\nif __name__ == "__main__": main()\n\`\`\``
   return `Here's a complete **${lang}** solution for: **${purpose}**${detail ? ` (${detail})` : ''}\n\n\`\`\`javascript\n// ${purpose}\n'use strict';\n\nclass App {\n  constructor() { this.items = [] }\n  async init() { await this.load(); return this }\n  async load() { await new Promise(r => setTimeout(r, 10)) }\n  add(text) { const item = { id: Date.now(), text, created: new Date().toISOString() }; this.items.push(item); return item }\n  list() { return [...this.items] }\n  remove(id) { this.items = this.items.filter(i => i.id !== id) }\n}\n\n(async () => {\n  const app = await new App().init();\n  app.add('Sample'); console.log(app.list());\n})();\n\`\`\``
 }
 const isCodeRequest = (q) => {
@@ -198,6 +198,132 @@ const searchWeb = async (query) => {
   } catch (e) { return { error: e.message } }
 }
 const openAnonymous = (q) => window.open(`https://duckduckgo.com/?q=${encodeURIComponent(q)}&kae=d`, '_blank', 'noopener,noreferrer')
+
+// ==================================================
+// LOCAL MUSIC SYNTH ENGINE
+// ==================================================
+const MUSIC_STYLES = {
+  love:    { scale: 'major',      bpm: 78,  mood: 'romantic',    root: 60, prog: [[0,4,7],[5,9,12],[7,11,14],[5,9,12]] },
+  pink:    { scale: 'major',      bpm: 100, mood: 'dreamy',      root: 62, prog: [[0,4,7],[9,12,16],[5,9,12],[7,11,14]] },
+  sad:     { scale: 'minor',      bpm: 68,  mood: 'melancholic', root: 57, prog: [[0,3,7],[5,8,12],[7,10,14],[3,7,10]] },
+  happy:   { scale: 'major',      bpm: 128, mood: 'upbeat',      root: 60, prog: [[0,4,7],[7,11,14],[9,12,16],[5,9,12]] },
+  chill:   { scale: 'pentatonic', bpm: 88,  mood: 'relaxed',     root: 60, prog: [[0,4,7],[5,9,12],[7,11,14],[5,9,12]] },
+  epic:    { scale: 'minor',      bpm: 140, mood: 'intense',     root: 55, prog: [[0,3,7],[5,8,12],[8,12,15],[7,10,14]] },
+  default: { scale: 'major',      bpm: 118, mood: 'balanced',    root: 60, prog: [[0,4,7],[5,9,12],[7,11,14],[5,9,12]] },
+}
+const guessMusicStyle = (d) => {
+  const x = (d || '').toLowerCase()
+  for (const k of Object.keys(MUSIC_STYLES)) if (x.includes(k)) return { ...MUSIC_STYLES[k], name: k }
+  return { ...MUSIC_STYLES.default, name: 'balanced' }
+}
+const m2hz = (m) => 440 * Math.pow(2, (m - 69) / 12)
+const kick = (c, t, dst) => { const o = c.createOscillator(), g = c.createGain(); o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.15); g.gain.setValueAtTime(0.9, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.25); o.connect(g).connect(dst); o.start(t); o.stop(t + 0.3) }
+const snare = (c, t, dst) => { const b = c.createBuffer(1, c.sampleRate * 0.2, c.sampleRate); const d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2); const s = c.createBufferSource(); s.buffer = b; const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1000; const g = c.createGain(); g.gain.value = 0.6; s.connect(hp).connect(g).connect(dst); s.start(t) }
+const hihat = (c, t, dst, open = false) => { const b = c.createBuffer(1, c.sampleRate * (open ? 0.3 : 0.06), c.sampleRate); const d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; const s = c.createBufferSource(); s.buffer = b; const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 7000; const g = c.createGain(); g.gain.setValueAtTime(0.3, t); g.gain.exponentialRampToValueAtTime(0.001, t + (open ? 0.25 : 0.05)); s.connect(hp).connect(g).connect(dst); s.start(t) }
+const bassNote = (c, t, dur, f, dst) => { const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 500; const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.5, t + 0.02); g.gain.exponentialRampToValueAtTime(0.001, t + dur); o.connect(lp).connect(g).connect(dst); o.start(t); o.stop(t + dur + 0.05) }
+const padChord = (c, t, dur, fs, dst) => fs.forEach((f, i) => { const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f * (1 + (i - 1) * 0.003); const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1800; const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.12, t + 0.3); g.gain.setValueAtTime(0.12, t + dur - 0.3); g.gain.linearRampToValueAtTime(0, t + dur); o.connect(lp).connect(g).connect(dst); o.start(t); o.stop(t + dur + 0.05) })
+const leadNote = (c, t, dur, f, dst) => { const o = c.createOscillator(); o.type = 'triangle'; o.frequency.value = f; const v = c.createOscillator(); v.frequency.value = 5; const vg = c.createGain(); vg.gain.value = 3; v.connect(vg).connect(o.frequency); const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.28, t + 0.03); g.gain.exponentialRampToValueAtTime(0.001, t + dur); o.connect(g).connect(dst); o.start(t); v.start(t); o.stop(t + dur + 0.1); v.stop(t + dur + 0.1) }
+const robotVoice = (c, t, dur, f, dst) => {
+  const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f
+  const master = c.createGain(); master.gain.setValueAtTime(0, t); master.gain.linearRampToValueAtTime(0.35, t + 0.05); master.gain.setValueAtTime(0.35, t + dur - 0.05); master.gain.linearRampToValueAtTime(0, t + dur)
+  o.connect(master).connect(dst)
+  const formants = [800, 1150, 2900], gains = [1.0, 0.5, 0.2]
+  formants.forEach((fr, i) => { const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = fr; bp.Q.value = 8; const g = c.createGain(); g.gain.value = gains[i] * 0.15; o.connect(bp).connect(g).connect(dst) })
+  o.start(t); o.stop(t + dur + 0.05)
+}
+function generateRichMelody(bpm, scale, bars, quality) {
+  const scales = { major: [0,2,4,5,7,9,11], minor: [0,2,3,5,7,8,10], pentatonic: [0,2,4,7,9] }
+  const s = scales[scale] || scales.major
+  const beat = 60 / bpm
+  const notes = []
+  for (let b = 0; b < bars * 4; b++) {
+    if (Math.random() < 0.15) { notes.push({ t: b * beat, freq: 0, dur: beat * 0.5 }); continue }
+    const deg = s[Math.floor(Math.random() * s.length)]
+    const oct = Math.random() < 0.3 ? 12 : 0
+    notes.push({ t: b * beat, freq: m2hz(60 + deg + oct), dur: beat * (Math.random() < 0.3 ? 1 : 0.5) })
+  }
+  return notes
+}
+function playRichMelody(notes, quality = 'medium', bpm = 120) {
+  const Ctx = window.AudioContext || window.webkitAudioContext
+  if (!Ctx) throw new Error('Web Audio not supported')
+  const ctx = new Ctx()
+  const master = ctx.createGain(); master.gain.value = 0.7; master.connect(ctx.destination)
+  const dbus = ctx.createGain(); dbus.gain.value = quality === 'low' ? 0.4 : 0.7; dbus.connect(master)
+  const mbus = ctx.createGain(); mbus.gain.value = 0.8; mbus.connect(master)
+  const beat = 60 / bpm
+  const start = ctx.currentTime + 0.05
+  const totalBars = Math.ceil(notes.length / 4)
+  // drums
+  for (let b = 0; b < totalBars * 4; b++) {
+    const t = start + b * beat
+    if (b % 4 === 0 || b % 4 === 2) kick(ctx, t, dbus)
+    if (b % 4 === 1 || b % 4 === 3) snare(ctx, t, dbus)
+    hihat(ctx, t, dbus, b % 4 === 3)
+    hihat(ctx, t + beat / 2, dbus, false)
+  }
+  // melody + bass + voice
+  notes.forEach(n => {
+    if (!n.freq) return
+    const t = start + n.t
+    leadNote(ctx, t, n.dur, n.freq, mbus)
+    if (quality !== 'low' && Math.random() < 0.4) bassNote(ctx, t, beat * 0.9, n.freq / 2, mbus)
+    if (quality === 'high' && Math.random() < 0.2) robotVoice(ctx, t, n.dur * 1.5, n.freq, mbus)
+  })
+  const totalDur = notes.reduce((m, n) => Math.max(m, n.t + n.dur), 0) + 1
+  return { ctx, duration: totalDur }
+}
+
+// ==================================================
+// LOCAL VIDEO ENGINE
+// ==================================================
+const VIDEO_STYLES = {
+  anime:   { palette: ['#ffb6d5','#ff4f9a','#ffffff','#ffd1e8'], label: 'Anime',     scene: 'sakura' },
+  movie:   { palette: ['#0b0b0b','#1a1a2e','#ffcc00','#e94560'], label: 'Cinematic', scene: 'movie' },
+  cartoon: { palette: ['#ffe066','#ff6b6b','#4ecdc4','#a8e6cf'], label: 'Cartoon',   scene: 'cartoon' },
+  cyber:   { palette: ['#00ff41','#008f11','#0d0208','#ff003c'], label: 'Cyberpunk', scene: 'matrix' },
+  nature:  { palette: ['#2ecc71','#27ae60','#f39c12','#a8e6cf'], label: 'Nature',    scene: 'nature' },
+  space:   { palette: ['#000','#1a0033','#ff00ff','#00ffff'],     label: 'Space',     scene: 'space' },
+  abstract:{ palette: ['#ff003c','#ff69b4','#ffa500','#00ffff'],  label: 'Abstract',  scene: 'blobs' },
+  default: { palette: ['#ff003c','#ff6688','#ffa500','#ffff00'],  label: 'Default',   scene: 'particles' },
+}
+const guessVideoStyle = (d) => {
+  const x = (d || '').toLowerCase()
+  for (const k of Object.keys(VIDEO_STYLES)) if (x.includes(k)) return VIDEO_STYLES[k]
+  return VIDEO_STYLES.default
+}
+function drawWatermark(ctx, W, H, text) {
+  ctx.save(); ctx.font = 'bold 14px monospace'; ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.textAlign = 'right'; ctx.fillText(text, W - 12, H - 12)
+  ctx.font = '11px monospace'; ctx.fillStyle = 'rgba(255,0,60,0.75)'; ctx.fillText(VERSION, W - 12, H - 28); ctx.restore()
+}
+function startCanvasVideo(canvas, style, userDesc, wm, onProgress) {
+  const ctx = canvas.getContext('2d'); const W = canvas.width, H = canvas.height
+  let t = 0, raf; const stream = canvas.captureStream(30)
+  const pal = style.palette, scene = style.scene
+  const parts = Array.from({ length: 120 }, () => ({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2, r: Math.random() * 4 + 1, rot: Math.random() * Math.PI * 2, c: pal[Math.floor(Math.random() * pal.length)] }))
+  const stars = Array.from({ length: 100 }, () => ({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.6 + 0.3 }))
+  const draw = () => {
+    t += 0.03
+    if (scene === 'matrix') { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); ctx.font = '14px monospace'; for (let i = 0; i < 40; i++) { const x = i * W / 40, y = ((t * 60 + i * 30) % H); ctx.fillStyle = `rgba(0,255,65,${0.3 + Math.random() * 0.6})`; ctx.fillText(String.fromCharCode(0x30A0 + Math.floor(Math.random() * 96)), x, y) } }
+    else if (scene === 'space') { const g = ctx.createRadialGradient(W / 2, H / 2, 20, W / 2, H / 2, W); g.addColorStop(0, '#1a0033'); g.addColorStop(1, '#000'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); stars.forEach(s => { ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fillStyle = `rgba(255,255,255,${0.3 + Math.random() * 0.7})`; ctx.fill(); s.x -= 0.15; if (s.x < 0) s.x = W }); const px = W / 2 + Math.sin(t) * 30, py = H / 2; const pg = ctx.createRadialGradient(px - 15, py - 15, 5, px, py, 60); pg.addColorStop(0, '#ff00ff'); pg.addColorStop(1, '#330033'); ctx.beginPath(); ctx.arc(px, py, 55, 0, Math.PI * 2); ctx.fillStyle = pg; ctx.fill() }
+    else if (scene === 'movie') { ctx.fillStyle = '#0b0b0b'; ctx.fillRect(0, 0, W, H); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H * 0.12); ctx.fillRect(0, H * 0.88, W, H * 0.12); const creds = ['CYPHER4X PRODUCTIONS', 'directed by You', 'cinematography · AI', 'starring · Characters', 'music · Synth Engine', 'A CYPHER4X FILM']; ctx.font = '14px monospace'; ctx.textAlign = 'center'; creds.forEach((l, i) => { const y = (t * 40 + i * 40) % H; if (y > H * 0.15 && y < H * 0.85) { ctx.fillStyle = i === 0 ? '#ffcc00' : 'rgba(255,255,255,0.8)'; ctx.fillText(l, W / 2, y) } }) }
+    else if (scene === 'sakura') { const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#ffb6d5'); g.addColorStop(1, '#ff4f9a'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.beginPath(); ctx.arc(W * 0.78, H * 0.22, 40, 0, Math.PI * 2); ctx.fillStyle = '#fff8d6'; ctx.fill(); parts.forEach(p => { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.beginPath(); ctx.ellipse(0, 0, p.r * 2.5, p.r, 0, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fill(); ctx.restore(); p.y += 1.2; p.x += Math.sin(t + p.y * 0.05) * 0.8; p.rot += 0.02; if (p.y > H) { p.y = -10; p.x = Math.random() * W } }) }
+    else if (scene === 'nature') { const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#87ceeb'); g.addColorStop(1, '#2ecc71'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.beginPath(); ctx.arc(W * 0.2, H * 0.18, 30, 0, Math.PI * 2); ctx.fillStyle = '#f39c12'; ctx.fill(); ctx.beginPath(); ctx.moveTo(0, H * 0.7); for (let x = 0; x <= W; x += 20) ctx.lineTo(x, H * 0.7 + Math.sin(x * 0.02 + t) * 20); ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath(); ctx.fillStyle = '#27ae60'; ctx.fill(); parts.forEach(p => { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.beginPath(); ctx.ellipse(0, 0, p.r * 2, p.r * 0.8, 0, 0, Math.PI * 2); ctx.fillStyle = 'rgba(46,204,113,0.9)'; ctx.fill(); ctx.restore(); p.y += 0.8; p.x += Math.sin(t + p.x * 0.05) * 0.6; p.rot += 0.02; if (p.y > H) { p.y = -10; p.x = Math.random() * W } }) }
+    else if (scene === 'cartoon') { const g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#ffe066'); g.addColorStop(1, '#ff6b6b'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); parts.slice(0, 20).forEach((p, i) => { const x = (i * W / 20 + t * 20) % W; const y = H * 0.5 + Math.sin(t * 3 + i) * 60; ctx.beginPath(); if (i % 3 === 0) ctx.arc(x, y, 20, 0, Math.PI * 2); else if (i % 3 === 1) ctx.rect(x - 15, y - 15, 30, 30); else { ctx.moveTo(x, y - 20); ctx.lineTo(x + 20, y + 15); ctx.lineTo(x - 20, y + 15); ctx.closePath() } ctx.fillStyle = ['#4ecdc4', '#a8e6cf', '#ffffff'][i % 3]; ctx.fill() }) }
+    else if (scene === 'blobs') { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); parts.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 5, 0, Math.PI * 2); const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 5); g.addColorStop(0, p.c + 'cc'); g.addColorStop(1, p.c + '00'); ctx.fillStyle = g; ctx.fill(); p.x += p.vx; p.y += p.vy; if (p.x < 0 || p.x > W) p.vx *= -1; if (p.y < 0 || p.y > H) p.vy *= -1 }) }
+    else { const g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, pal[0]); g.addColorStop(1, pal[1] || pal[0]); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); parts.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fillStyle = p.c; ctx.fill(); p.x += p.vx; p.y += p.vy; if (p.x < 0 || p.x > W) p.vx *= -1; if (p.y < 0 || p.y > H) p.vy *= -1 }) }
+    ctx.save(); ctx.textAlign = 'center'; ctx.font = 'bold 42px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.95)'; ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 12; ctx.fillText('CYPHER4X', W / 2, H / 2 - 8); ctx.font = '16px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fillText(style.label + ' Style', W / 2, H / 2 + 22); if (userDesc) { ctx.font = 'italic 13px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fillText('"' + userDesc.slice(0, 40) + '"', W / 2, H / 2 + 50) } ctx.restore()
+    drawWatermark(ctx, W, H, wm || 'CYPHER4X')
+    onProgress && onProgress(t)
+    raf = requestAnimationFrame(draw)
+  }
+  draw()
+  const recorder = new MediaRecorder(stream, { mimeType: 'video/webm', videoBitsPerSecond: 2500000 })
+  const chunks = []
+  recorder.ondataavailable = e => e.data.size > 0 && chunks.push(e.data)
+  recorder.start()
+  return { stop: () => new Promise(res => { recorder.onstop = () => res(new Blob(chunks, { type: 'video/webm' })); cancelAnimationFrame(raf); recorder.stop() }) }
+}
 
 // ==================================================
 // RED BALL
@@ -229,7 +355,7 @@ export default function App() {
   const [bootTypedText, setBootTypedText] = useState(''); const [bootTypedCredit, setBootTypedCredit] = useState('')
   const [isEnteringAI, setIsEnteringAI] = useState(false)
   const [enterProgress, setEnterProgress] = useState(0)
-  const [enterMessage, setEnterMessage] = useState('Initializing session...')
+  const [enterMessage, setEnterMessage] = useState('Updating...')
   const [viewMode, setViewMode] = useState('android'); const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(false); const [welcomeMessage, setWelcomeMessage] = useState('')
   const [showSettings, setShowSettings] = useState(false)
@@ -290,11 +416,14 @@ export default function App() {
   const [videoQuality, setVideoQuality] = useState('medium'); const [videoGenerating, setVideoGenerating] = useState(false)
   const [videoTaskId, setVideoTaskId] = useState(null); const [videoResultUrl, setVideoResultUrl] = useState(null)
   const [videoInfo, setVideoInfo] = useState(''); const [videoPolling, setVideoPolling] = useState(false)
+  const [videoRecording, setVideoRecording] = useState(false)
+  const [videoProgress, setVideoProgress] = useState(0)
+  const canvasRef = useRef(null); const videoRecorderRef = useRef(null)
 
   // CYBER LAB
   const [showCyberLab, setShowCyberLab] = useState(false); const [cyberTab, setCyberTab] = useState('terminal')
   const [cyberInput, setCyberInput] = useState(''); const [cyberLines, setCyberLines] = useState([
-    { type: 'info', text: 'CYPHER4X Terminal v25.0.0 — type "help" for commands' },
+    { type: 'info', text: `${VERSION_FULL} Terminal — type "help" for commands` },
     { type: 'info', text: '⚠️ Simulated shell. Educational use only.' },
   ])
   const [cyberToolOutput, setCyberToolOutput] = useState(''); const [cyberTool, setCyberTool] = useState('passcheck')
@@ -334,7 +463,7 @@ export default function App() {
               if (!sp) setShowPersonalityModal(true); else setAiPersonality(sp)
               if (settings.welcomeEnabled) {
                 const t = new Date().toDateString(), lw = localStorage.getItem('cypher4x_welcome_date')
-                if (lw !== t) { localStorage.setItem('cypher4x_welcome_date', t); setShowWelcomeOverlay(true); const m = "Hello! I'm CYPHER4X v25, your AI assistant."; setWelcomeMessage(m); speakText(m) }
+                if (lw !== t) { localStorage.setItem('cypher4x_welcome_date', t); setShowWelcomeOverlay(true); const m = `Hello! I'm ${VERSION_FULL}, your AI assistant.`; setWelcomeMessage(m); speakText(m) }
               }
             }
           }, 800)
@@ -344,21 +473,20 @@ export default function App() {
     return () => clearInterval(iv)
   }, [isBooting, settings.welcomeEnabled])
 
-  // ENTRY OVERLAY
+  // ENTRY OVERLAY — 12 seconds
   useEffect(() => {
     if (isBooting) return
     setIsEnteringAI(true)
     setEnterProgress(0)
-    setEnterMessage('Connecting to CYPHER4X core...')
+    setEnterMessage('Updating...')
     const messages = [
-      { at: 0,  text: 'Connecting to CYPHER4X core...' },
-      { at: 20, text: 'Loading neural pathways...' },
-      { at: 40, text: 'Calibrating voice engine...' },
-      { at: 60, text: 'Preparing your workspace...' },
-      { at: 80, text: 'Almost ready...' },
-      { at: 95, text: 'Welcome to CYPHER4X v25!' },
+      { at: 0,  text: 'Updating...' },
+      { at: 25, text: 'Loading engine...' },
+      { at: 50, text: 'Syncing data...' },
+      { at: 75, text: 'Almost ready...' },
+      { at: 95, text: 'Welcome!' },
     ]
-    const start = Date.now(), duration = 10000
+    const start = Date.now(), duration = 12000
     const interval = setInterval(() => {
       const elapsed = Date.now() - start
       const pct = Math.min((elapsed / duration) * 100, 100)
@@ -389,9 +517,7 @@ export default function App() {
       loginUser(email, pin); setShowAuthModal(false)
     }
   }
-  const loginUser = (e, p) => {
-    saveAuth(e, p); setUserMode('loggedin'); loadUserDataByEmail(e, p); setAuthError(''); setGuestMessageCount(0)
-  }
+  const loginUser = (e, p) => { saveAuth(e, p); setUserMode('loggedin'); loadUserDataByEmail(e, p); setAuthError(''); setGuestMessageCount(0) }
   const loadUserDataByEmail = (e, p) => {
     const d = loadUserData(e, p)
     if (d) {
@@ -646,7 +772,7 @@ export default function App() {
   // SETTINGS / PROFILE
   const handlePersonalitySelect = (id) => {
     setAiPersonality(id); setSettings({ ...settings, personality: id }); localStorage.setItem('cypher4x_personality', id); setShowPersonalityModal(false)
-    if (settings.welcomeEnabled) { const t = new Date().toDateString(), lw = localStorage.getItem('cypher4x_welcome_date'); if (lw !== t) { localStorage.setItem('cypher4x_welcome_date', t); setShowWelcomeOverlay(true); const m = "Hello! I'm CYPHER4X v25."; setWelcomeMessage(m); speakText(m) } }
+    if (settings.welcomeEnabled) { const t = new Date().toDateString(), lw = localStorage.getItem('cypher4x_welcome_date'); if (lw !== t) { localStorage.setItem('cypher4x_welcome_date', t); setShowWelcomeOverlay(true); const m = `Hello! I'm ${VERSION_FULL}.`; setWelcomeMessage(m); speakText(m) } }
   }
   const handleBackgroundChange = (e) => {
     const f = e.target.files[0]; if (!f) return
@@ -678,66 +804,91 @@ export default function App() {
     return () => clearInterval(t)
   }, [])
 
-  // MUSIC
+  // MUSIC — API first, local fallback
   const handleGenerateMusic = async () => {
     if (!musicDesc.trim()) { alert('Describe the music you want first.'); return }
+    setMusicGenerating(true); setMusicInfo('📡 Trying Tunova API...'); setMusicDownloadUrl(null)
+
+    const fallbackLocalMusic = () => {
+      try {
+        const style = guessMusicStyle(musicDesc)
+        const bars = Math.max(2, Math.round(musicDuration * style.bpm / 60 / 4))
+        setMusicInfo(`🎵 Built-in synth — ${style.name} • ${style.bpm} BPM • ${bars} bars`)
+        const notes = generateRichMelody(style.bpm, style.scale, bars, musicQuality)
+        const { ctx, duration } = playRichMelody(notes, musicQuality, style.bpm)
+        setMusicPlaying(true)
+        setTimeout(() => { setMusicPlaying(false); try { ctx.close() } catch {} }, (duration + 1) * 1000)
+      } catch (e) { setMusicInfo('❌ Synth error: ' + e.message) }
+      setMusicGenerating(false)
+    }
+
     try {
-      setMusicGenerating(true)
-      setMusicInfo('📡 Sending request to Tunova...')
-      setMusicDownloadUrl(null)
       const res = await fetch('/api/music', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: musicDesc, duration: musicDuration }) })
       const data = await res.json()
-      if (!res.ok || data.error) {
-        setMusicInfo(`❌ ${data.error}${data.detail ? '\n\nDetails: ' + data.detail : ''}`)
-        setMusicGenerating(false); return
-      }
+      if (!res.ok || data.error) { console.log('[Tunova]', data); setMusicInfo('⚠️ Tunova unavailable — using built-in synth...'); return fallbackLocalMusic() }
       const taskId = data.id || data.task_id || data.data?.id || data.result?.id
-      if (!taskId) { setMusicInfo('❌ No task ID. Response: ' + JSON.stringify(data).slice(0, 200)); setMusicGenerating(false); return }
-      setMusicInfo(`✓ Task created. Polling for track...`)
+      if (!taskId) { console.log('[Tunova] no task id', data); setMusicInfo('⚠️ No task ID — using built-in synth...'); return fallbackLocalMusic() }
+      setMusicInfo('✓ Tunova task created. Polling...')
       let attempts = 0
       const poll = setInterval(async () => {
         attempts++
         try {
           const check = await fetch(`/api/music-status?task_id=${taskId}`)
           const status = await check.json()
-          const url = status.audio_url || status.url || status.data?.audio_url || status.result?.audio_url || status.output?.url
-          const done = status.status === 'complete' || status.status === 'succeeded' || url
-          const failed = status.status === 'failed' || status.error
-          if (done && url) {
+          const url = status.audio_url || status.url || status.data?.audio_url || status.result?.audio_url
+          if (url) {
             clearInterval(poll)
-            setMusicDownloadUrl(url); setMusicInfo('✓ Music ready! Playing...')
+            setMusicDownloadUrl(url); setMusicInfo('✓ Tunova music ready!')
             const audio = new Audio(url); audio.volume = 0.9
-            audio.play().catch(e => console.warn('Autoplay blocked:', e))
-            setMusicAudioRef(audio); setMusicPlaying(true)
-            audio.onended = () => setMusicPlaying(false)
-          } else if (failed) {
-            clearInterval(poll); setMusicInfo(`❌ Failed: ${status.error || status.status}`)
+            audio.play().catch(() => {})
+            setMusicAudioRef(audio); setMusicPlaying(true); audio.onended = () => setMusicPlaying(false)
+            setMusicGenerating(false)
+          } else if (status.status === 'failed' || status.error) {
+            clearInterval(poll); setMusicInfo('⚠️ Tunova failed — using built-in synth...'); fallbackLocalMusic()
           } else {
-            setMusicInfo(`⏳ Generating... (${attempts * 3}s) — ${status.status || 'pending'}`)
+            setMusicInfo(`⏳ Tunova generating... (${attempts * 3}s)`)
           }
         } catch (e) {
-          if (attempts >= 40) { clearInterval(poll); setMusicInfo('❌ Timeout') }
+          if (attempts >= 20) { clearInterval(poll); setMusicInfo('⚠️ Tunova timeout — using built-in synth...'); fallbackLocalMusic() }
         }
-        if (attempts >= 40) clearInterval(poll)
+        if (attempts >= 20) { clearInterval(poll); fallbackLocalMusic() }
       }, 3000)
-      setMusicGenerating(false)
-    } catch (e) { setMusicInfo('❌ ' + e.message); setMusicGenerating(false) }
+    } catch (e) { console.log('[Tunova] Error:', e); setMusicInfo('⚠️ Tunova offline — using built-in synth...'); fallbackLocalMusic() }
   }
 
-  // VIDEO
+  // VIDEO — API first, local fallback
   const handleGenerateVideo = async () => {
     if (!videoDesc.trim()) { alert('Describe the video you want first.'); return }
+    setVideoGenerating(true); setVideoInfo('📡 Trying Agnes AI...'); setVideoResultUrl(null); setVideoTaskId(null)
+
+    const fallbackLocal = () => {
+      const style = guessVideoStyle(videoDesc)
+      setVideoInfo(`🎬 Built-in engine — ${style.label} style • ${videoDuration}s. Tap "Render" below.`)
+      setVideoGenerating(false)
+      // Auto-start local render
+      setTimeout(() => {
+        if (!canvasRef.current) return
+        setVideoRecording(true)
+        const rec = startCanvasVideo(canvasRef.current, style, videoDesc, profile?.name || 'CYPHER4X', (t) => setVideoProgress(Math.floor((t % 1) * 100)))
+        videoRecorderRef.current = rec
+        setTimeout(async () => {
+          if (!videoRecorderRef.current) return
+          const blob = await videoRecorderRef.current.stop()
+          videoRecorderRef.current = null; setVideoRecording(false)
+          const url = URL.createObjectURL(blob)
+          setVideoResultUrl(url)
+          setVideoInfo('✓ Video ready! Tap download.')
+        }, videoDuration * 1000)
+      }, 100)
+    }
+
     try {
-      setVideoGenerating(true); setVideoInfo('📡 Sending request to Agnes AI...'); setVideoResultUrl(null); setVideoTaskId(null)
       const res = await fetch('/api/video', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: videoDesc, duration: videoDuration, quality: videoQuality }) })
       const data = await res.json()
-      if (!res.ok || data.error) {
-        setVideoInfo(`❌ ${data.error}${data.detail ? '\n\n' + data.detail : ''}${data.hint ? '\n\n💡 ' + data.hint : ''}`)
-        setVideoGenerating(false); return
-      }
+      if (!res.ok || data.error) { console.log('[Agnes]', data); setVideoInfo('⚠️ Agnes unavailable — using built-in engine...'); return fallbackLocal() }
       const vId = data.video_id || data.id || data.task_id || data.data?.id
-      if (!vId) { setVideoInfo('❌ No video_id. Response: ' + JSON.stringify(data).slice(0, 200)); setVideoGenerating(false); return }
-      setVideoTaskId(vId); setVideoInfo('✓ Task created. Polling for result...'); setVideoPolling(true)
+      if (!vId) { console.log('[Agnes] no id', data); setVideoInfo('⚠️ No task ID — using built-in engine...'); return fallbackLocal() }
+      setVideoTaskId(vId); setVideoInfo('✓ Agnes task created. Polling...'); setVideoPolling(true); setVideoGenerating(false)
       let attempts = 0
       const poll = setInterval(async () => {
         attempts++
@@ -745,31 +896,29 @@ export default function App() {
           const check = await fetch(`/api/video-status?video_id=${vId}`)
           const status = await check.json()
           const url = status.video_url || status.url || status.output?.url || status.data?.video_url
-          if (url) {
-            clearInterval(poll); setVideoResultUrl(url); setVideoInfo('✓ Video ready!'); setVideoPolling(false)
-          } else if (status.status === 'failed' || status.error) {
-            clearInterval(poll); setVideoInfo('❌ Failed: ' + (status.error || status.status || 'unknown')); setVideoPolling(false)
-          } else {
-            setVideoInfo(`⏳ Generating... (${attempts * 5}s) — ${status.status || 'pending'}`)
-          }
-        } catch (e) {
-          if (attempts >= 60) { clearInterval(poll); setVideoInfo('❌ Timeout'); setVideoPolling(false) }
-        }
-        if (attempts >= 60) { clearInterval(poll); setVideoPolling(false) }
+          if (url) { clearInterval(poll); setVideoResultUrl(url); setVideoInfo('✓ Agnes video ready!'); setVideoPolling(false) }
+          else if (status.status === 'failed' || status.error) { clearInterval(poll); setVideoInfo('⚠️ Agnes failed — using built-in engine...'); setVideoPolling(false); fallbackLocal() }
+          else { setVideoInfo(`⏳ Agnes generating... (${attempts * 5}s)`) }
+        } catch (e) { if (attempts >= 15) { clearInterval(poll); setVideoPolling(false); fallbackLocal() } }
+        if (attempts >= 15) { clearInterval(poll); setVideoPolling(false); fallbackLocal() }
       }, 5000)
-      setVideoGenerating(false)
-    } catch (e) { setVideoInfo('❌ ' + e.message); setVideoGenerating(false); setVideoPolling(false) }
+    } catch (e) { console.log('[Agnes] Error:', e); setVideoInfo('⚠️ Agnes offline — using built-in engine...'); fallbackLocal() }
+  }
+
+  const handleStopLocalVideo = async () => {
+    if (!videoRecorderRef.current) return
+    const blob = await videoRecorderRef.current.stop()
+    videoRecorderRef.current = null; setVideoRecording(false)
+    const url = URL.createObjectURL(blob); setVideoResultUrl(url)
+    setVideoInfo('✓ Video ready! Tap download.')
   }
 
   // CYBER TERMINAL — Termux style
   const runCyberCommand = async (cmd) => {
-    const parts = cmd.trim().split(/\s+/)
-    const base = parts[0]?.toLowerCase()
-    const args = parts.slice(1).join(' ')
-    const arg1 = parts[1], arg2 = parts[2]
+    const parts = cmd.trim().split(/\s+/); const base = parts[0]?.toLowerCase()
+    const args = parts.slice(1).join(' '); const arg1 = parts[1], arg2 = parts[2]
     let out = ''
-
-    const helpText = `CYPHER4X Terminal v25.0.0 — available commands:
+    const helpText = `CYPHER4X Terminal ${VERSION} — available commands:
 
 Files:    pwd, ls, cd, cat, mkdir, touch, rm, cp, mv, tree
 System:   whoami, uname, uptime, date, df, free, ps, top, neofetch
@@ -778,25 +927,12 @@ Security: hash, md5, base64, unbase64, hex, rot13, passcheck, ctf, ctfcheck
 Utility:  echo, calc, clear, history, man, which, env, sleep
 Pkg mgr:  pkg (search/install/list/update), apt
 Meta:     help, about, ethics`
-
     try {
       switch (base) {
         case 'pwd': out = '/data/data/com.termux/files/home'; break
-        case 'ls': {
-          const path = arg1 || '~'
-          if (!arg1 || path === '~' || path === '/sdcard') out = 'Documents/  Downloads/  Pictures/  Projects/  README.md  notes.txt  .bashrc'
-          else out = `ls: ${path}: No such file or directory`
-          break
-        }
+        case 'ls': { const p = arg1 || '~'; if (!arg1 || p === '~' || p === '/sdcard') out = 'Documents/  Downloads/  Pictures/  Projects/  README.md  notes.txt  .bashrc'; else out = `ls: ${p}: No such file or directory`; break }
         case 'cd': out = `Now in ${arg1 || '~'}`; break
-        case 'cat': {
-          if (!arg1) { out = 'Usage: cat <file>'; break }
-          if (arg1 === 'README.md') out = '# CYPHER4X v25\n\nAI assistant with terminal.'
-          else if (arg1 === 'notes.txt') out = 'TODO:\n- Learn Python\n- Build a bot\n- Sleep'
-          else if (arg1 === '.bashrc') out = 'export PS1="\\w \\$ "\nexport EDITOR=nano'
-          else out = `cat: ${arg1}: No such file`
-          break
-        }
+        case 'cat': { if (!arg1) { out = 'Usage: cat <file>'; break } if (arg1 === 'README.md') out = `# ${VERSION_FULL}\n\nAI assistant with terminal.`; else if (arg1 === 'notes.txt') out = 'TODO:\n- Learn Python\n- Build a bot\n- Sleep'; else if (arg1 === '.bashrc') out = 'export PS1="\\w \\$ "\nexport EDITOR=nano'; else out = `cat: ${arg1}: No such file`; break }
         case 'mkdir': out = arg1 ? `Created directory: ${arg1}` : 'Usage: mkdir <dir>'; break
         case 'touch': out = arg1 ? `Created file: ${arg1}` : 'Usage: touch <file>'; break
         case 'rm': out = arg1 ? `Removed: ${arg1}` : 'Usage: rm <file>'; break
@@ -805,10 +941,7 @@ Meta:     help, about, ethics`
         case 'tree': out = `.\n├── Documents/\n├── Downloads/\n├── Pictures/\n├── Projects/\n│   ├── bot.py\n│   └── todo.js\n├── README.md\n└── notes.txt\n\n2 directories, 3 files`; break
 
         case 'whoami': out = userMode === 'loggedin' ? email : 'guest@cypher4x'; break
-        case 'uname':
-          if (arg1 === '-a') out = `Linux localhost 5.15.0-cypher4x #1 SMP PREEMPT ${new Date().toUTCString()} aarch64 GNU/Linux`
-          else out = 'Linux'
-          break
+        case 'uname': out = arg1 === '-a' ? `Linux localhost 5.15.0-cypher4x #1 SMP PREEMPT ${new Date().toUTCString()} aarch64 GNU/Linux` : 'Linux'; break
         case 'uptime': out = ` ${new Date().toLocaleTimeString()} up ${fmtU(stats.uptime)}, 1 user, load average: 0.15, 0.28, 0.32`; break
         case 'date': out = new Date().toString(); break
         case 'df': out = `Filesystem      Size  Used Avail Use% Mounted on\n/dev/block/xx   475G   ${stats.storageUsed}G  ${475 - stats.storageUsed}G  ${Math.round(stats.storageUsed / 475 * 100)}% /data`; break
@@ -817,146 +950,35 @@ Meta:     help, about, ethics`
         case 'top': out = `top - ${new Date().toLocaleTimeString()} up ${fmtU(stats.uptime)}\nTasks: 12 total, 1 running, 11 sleeping\n%Cpu(s): ${stats.cpuUsage} us\nMiB Mem: ${stats.ramUsage.toFixed(1)}G used\n\n  PID USER   PR  NI   VIRT   RES  S  %CPU %MEM COMMAND\n  128 root   20   0  45.2m  12.8m S   ${stats.cpuUsage}.0  1.5 cypher4x\n  256 user   20   0  12.4m   4.2m S   2.0   0.5 bash`; break
         case 'neofetch': out = `    ██████╗██╗   ██╗██████╗ ██╗  ██╗███████╗██████╗ ██╗  ██╗\n   ██╔════╝╚██╗ ██╔╝██╔══██╗██║  ██║██╔════╝██╔══██╗╚██╗██╔╝\n   ██║      ╚████╔╝ ██████╔╝███████║█████╗  ██████╔╝ ╚███╔╝\n   ██║       ╚██╔╝  ██╔═══╝ ██╔══██║██╔══╝  ██╔══██╗ ██╔██╗\n   ╚██████╗   ██║   ██║     ██║  ██║███████╗██║  ██║██╔╝ ██╗\n    ╚═════╝   ╚═╝   ╚═╝     ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝\n\n  user@cypher4x\n  ─────────────\n  OS:        ${VERSION_FULL}\n  Kernel:    cypher4x 5.15.0\n  Shell:     csh 1.0\n  Terminal:  Web-TTY\n  CPU:       Virtual (${stats.cpuUsage}%)\n  Memory:    ${stats.ramUsage.toFixed(1)}G / 6.5G\n  Uptime:    ${fmtU(stats.uptime)}`; break
 
-        case 'ping': {
-          if (!arg1) { out = 'Usage: ping <host>'; break }
-          out = `PING ${arg1} (${arg1 === 'google.com' ? '142.250.185.78' : '127.0.0.1'}) 56(84) bytes of data.`
-          for (let i = 0; i < 4; i++) out += `\n64 bytes from ${arg1}: icmp_seq=${i + 1} ttl=117 time=${(20 + Math.random() * 30).toFixed(1)} ms`
-          out += `\n\n--- ${arg1} ping statistics ---\n4 packets transmitted, 4 received, 0% packet loss`
-          break
-        }
+        case 'ping': { if (!arg1) { out = 'Usage: ping <host>'; break } out = `PING ${arg1} (${arg1 === 'google.com' ? '142.250.185.78' : '127.0.0.1'}) 56(84) bytes of data.`; for (let i = 0; i < 4; i++) out += `\n64 bytes from ${arg1}: icmp_seq=${i + 1} ttl=117 time=${(20 + Math.random() * 30).toFixed(1)} ms`; out += `\n\n--- ${arg1} ping statistics ---\n4 packets transmitted, 4 received, 0% packet loss`; break }
         case 'ifconfig': out = `wlan0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500\n        inet 192.168.1.${Math.floor(Math.random() * 200) + 10}  netmask 255.255.255.0\n        ether 04:5f:3c:${Math.floor(Math.random() * 99)}:${Math.floor(Math.random() * 99)}:${Math.floor(Math.random() * 99)}\n        RX packets 14523  bytes 12.5 MB\n        TX packets 8912  bytes 3.2 MB\n\nlo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536\n        inet 127.0.0.1  netmask 255.0.0.0`; break
-        case 'curl': {
-          if (!arg1) { out = 'Usage: curl <url>'; break }
-          setCyberLines(prev => [...prev, { type: 'cmd', text: `$ ${cmd}` }, { type: 'out', text: `Fetching ${arg1}...` }])
-          try {
-            const r = await fetch(arg1); const text = await r.text()
-            out = `HTTP ${r.status}\n\n${text.slice(0, 800)}${text.length > 800 ? '\n...[truncated]' : ''}`
-          } catch (e) { out = 'curl: ' + e.message }
-          setCyberLines(prev => [...prev, { type: 'out', text: out }])
-          return
-        }
-        case 'wget': {
-          if (!arg1) { out = 'Usage: wget <url>'; break }
-          window.open(arg1, '_blank', 'noopener,noreferrer')
-          out = `--${new Date().toISOString()}--  ${arg1}\nOpening in new tab...\n100%[======================================>] complete`
-          break
-        }
-        case 'dns': {
-          if (!arg1) { out = 'Usage: dns <domain>'; break }
-          try {
-            const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(arg1)}&type=A`)
-            const d = await r.json()
-            if (d.Answer) out = `;; ANSWER SECTION:\n${d.Answer.map(a => `${arg1}.\t${a.TTL}\tIN\tA\t${a.data}`).join('\n')}`
-            else out = `;; No records for ${arg1}`
-          } catch (e) { out = 'dns: ' + e.message }
-          break
-        }
-        case 'ip': {
-          if (!arg1) { out = 'Usage: ip <address>'; break }
-          try {
-            const r = await fetch(`https://ipapi.co/${encodeURIComponent(arg1)}/json/`)
-            const d = await r.json()
-            out = `IP: ${d.ip}\nCity: ${d.city}\nRegion: ${d.region}\nCountry: ${d.country_name}\nPostal: ${d.postal}\nLat/Lon: ${d.latitude},${d.longitude}\nISP: ${d.org}\nASN: ${d.asn}\nTimezone: ${d.timezone}`
-          } catch (e) { out = 'ip: ' + e.message }
-          break
-        }
+        case 'curl': { if (!arg1) { out = 'Usage: curl <url>'; break } setCyberLines(prev => [...prev, { type: 'cmd', text: `$ ${cmd}` }, { type: 'out', text: `Fetching ${arg1}...` }]); try { const r = await fetch(arg1); const text = await r.text(); out = `HTTP ${r.status}\n\n${text.slice(0, 800)}${text.length > 800 ? '\n...[truncated]' : ''}` } catch (e) { out = 'curl: ' + e.message } setCyberLines(prev => [...prev, { type: 'out', text: out }]); return }
+        case 'wget': { if (!arg1) { out = 'Usage: wget <url>'; break } window.open(arg1, '_blank', 'noopener,noreferrer'); out = `--${new Date().toISOString()}--  ${arg1}\nOpening in new tab...\n100%[======================================>] complete`; break }
+        case 'dns': { if (!arg1) { out = 'Usage: dns <domain>'; break } try { const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(arg1)}&type=A`); const d = await r.json(); if (d.Answer) out = `;; ANSWER SECTION:\n${d.Answer.map(a => `${arg1}.\t${a.TTL}\tIN\tA\t${a.data}`).join('\n')}`; else out = `;; No records for ${arg1}` } catch (e) { out = 'dns: ' + e.message } break }
+        case 'ip': { if (!arg1) { out = 'Usage: ip <address>'; break } try { const r = await fetch(`https://ipapi.co/${encodeURIComponent(arg1)}/json/`); const d = await r.json(); out = `IP: ${d.ip}\nCity: ${d.city}\nRegion: ${d.region}\nCountry: ${d.country_name}\nPostal: ${d.postal}\nLat/Lon: ${d.latitude},${d.longitude}\nISP: ${d.org}\nASN: ${d.asn}\nTimezone: ${d.timezone}` } catch (e) { out = 'ip: ' + e.message } break }
         case 'whois': out = `WHOIS requires a backend proxy.\nTry: https://who.is/whois/${encodeURIComponent(arg1 || 'example.com')}`; break
-        case 'portscan': {
-          if (!arg1) { out = 'Usage: portscan <host>'; break }
-          out = `⚠️ SIMULATION ONLY — real scanning requires authorization\n\nStarting scan on ${arg1}\n`
-          const ports = [21, 22, 23, 25, 53, 80, 110, 143, 443, 445, 3306, 3389, 5432, 8080]
-          ports.forEach(p => {
-            const state = Math.random() > 0.75 ? 'open' : 'closed'
-            out += `  Port ${p}: ${state}\n`
-          })
-          out += `\nScan complete.`
-          break
-        }
+        case 'portscan': { if (!arg1) { out = 'Usage: portscan <host>'; break } out = `⚠️ SIMULATION ONLY — real scanning requires authorization\n\nStarting scan on ${arg1}\n`; const ports = [21, 22, 23, 25, 53, 80, 110, 143, 443, 445, 3306, 3389, 5432, 8080]; ports.forEach(p => { const state = Math.random() > 0.75 ? 'open' : 'closed'; out += `  Port ${p}: ${state}\n` }); out += `\nScan complete.`; break }
 
-        case 'hash': {
-          if (!args) { out = 'Usage: hash <text>'; break }
-          const buf = new TextEncoder().encode(args); const h = await crypto.subtle.digest('SHA-256', buf)
-          out = Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join('')
-          break
-        }
-        case 'md5': {
-          if (!args) { out = 'Usage: md5 <text>'; break }
-          let h = 0; for (let i = 0; i < args.length; i++) { h = ((h << 5) - h) + args.charCodeAt(i); h |= 0 }
-          out = Math.abs(h).toString(16).padStart(8, '0').repeat(4)
-          break
-        }
+        case 'hash': { if (!args) { out = 'Usage: hash <text>'; break } const buf = new TextEncoder().encode(args); const h = await crypto.subtle.digest('SHA-256', buf); out = Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join(''); break }
+        case 'md5': { if (!args) { out = 'Usage: md5 <text>'; break } let h = 0; for (let i = 0; i < args.length; i++) { h = ((h << 5) - h) + args.charCodeAt(i); h |= 0 } out = Math.abs(h).toString(16).padStart(8, '0').repeat(4); break }
         case 'base64': out = (() => { try { return btoa(args) } catch { return 'Invalid' } })(); break
         case 'unbase64': out = (() => { try { return atob(args) } catch { return 'Invalid' } })(); break
         case 'rot13': out = args.replace(/[a-zA-Z]/g, c => String.fromCharCode((c <= 'Z' ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26)); break
         case 'hex': out = Array.from(new TextEncoder().encode(args)).map(b => b.toString(16).padStart(2, '0')).join(' '); break
-        case 'passcheck': {
-          if (!args) { out = 'Usage: passcheck <password>'; break }
-          let s = 0
-          const c = { len: args.length >= 12, low: /[a-z]/.test(args), up: /[A-Z]/.test(args), dig: /\d/.test(args), sp: /[^A-Za-z0-9]/.test(args), ok: !/^(password|123456|qwerty|admin)/i.test(args) }
-          s = Object.values(c).filter(Boolean).length
-          out = `Password: ${'*'.repeat(args.length)}\n\nScore: ${s}/6\nLength: ${args.length}\nEntropy: ~${(args.length * Math.log2(new Set(args).size || 1)).toFixed(1)} bits\n\nChecks:\n  Length ≥12: ${c.len ? '✓' : '✗'}\n  Lowercase: ${c.low ? '✓' : '✗'}\n  Uppercase: ${c.up ? '✓' : '✗'}\n  Digits: ${c.dig ? '✓' : '✗'}\n  Special: ${c.sp ? '✓' : '✗'}\n  Not common: ${c.ok ? '✓' : '✗'}\n\n${s >= 5 ? '🟢 Strong' : s >= 3 ? '🟡 Medium' : '🔴 Weak'}`
-          break
-        }
-        case 'ctf': {
-          const challenges = [
-            { q: 'ROT13 of "Uryyb" is?', a: 'hello' },
-            { q: 'Base64 "aGVsbG8=" decodes to?', a: 'hello' },
-            { q: 'DNS stands for?', a: 'domain name system' },
-            { q: 'HTTPS port?', a: '443' },
-            { q: 'XSS stands for?', a: 'cross-site scripting' },
-          ]
-          const ch = challenges[Math.floor(Math.random() * challenges.length)]
-          setCtfChallenge(ch)
-          out = `🎯 CTF Challenge:\n${ch.q}\n\nType "ctfcheck <answer>" to verify.`
-          break
-        }
-        case 'ctfcheck':
-          if (!ctfChallenge) { out = 'No active CTF.'; break }
-          out = args.toLowerCase().trim() === ctfChallenge.a.toLowerCase() ? '✅ Correct!' : `❌ Wrong. Answer: ${ctfChallenge.a}`
-          setCtfChallenge(null)
-          break
+        case 'passcheck': { if (!args) { out = 'Usage: passcheck <password>'; break } let s = 0; const c = { len: args.length >= 12, low: /[a-z]/.test(args), up: /[A-Z]/.test(args), dig: /\d/.test(args), sp: /[^A-Za-z0-9]/.test(args), ok: !/^(password|123456|qwerty|admin)/i.test(args) }; s = Object.values(c).filter(Boolean).length; out = `Password: ${'*'.repeat(args.length)}\n\nScore: ${s}/6\nLength: ${args.length}\nEntropy: ~${(args.length * Math.log2(new Set(args).size || 1)).toFixed(1)} bits\n\nChecks:\n  Length ≥12: ${c.len ? '✓' : '✗'}\n  Lowercase: ${c.low ? '✓' : '✗'}\n  Uppercase: ${c.up ? '✓' : '✗'}\n  Digits: ${c.dig ? '✓' : '✗'}\n  Special: ${c.sp ? '✓' : '✗'}\n  Not common: ${c.ok ? '✓' : '✗'}\n\n${s >= 5 ? '🟢 Strong' : s >= 3 ? '🟡 Medium' : '🔴 Weak'}`; break }
+        case 'ctf': { const ch = [{ q: 'ROT13 of "Uryyb" is?', a: 'hello' }, { q: 'Base64 "aGVsbG8=" decodes to?', a: 'hello' }, { q: 'DNS stands for?', a: 'domain name system' }, { q: 'HTTPS port?', a: '443' }][Math.floor(Math.random() * 4)]; setCtfChallenge(ch); out = `🎯 CTF Challenge:\n${ch.q}\n\nType "ctfcheck <answer>" to verify.`; break }
+        case 'ctfcheck': if (!ctfChallenge) { out = 'No active CTF.'; break } out = args.toLowerCase().trim() === ctfChallenge.a.toLowerCase() ? '✅ Correct!' : `❌ Wrong. Answer: ${ctfChallenge.a}`; setCtfChallenge(null); break
 
         case 'echo': out = args; break
         case 'calc': { try { out = String(Function(`"use strict"; return (${args})`)()) } catch { out = 'Invalid expression' } break }
         case 'clear': setCyberLines([{ type: 'info', text: 'Terminal cleared.' }]); return
-        case 'history': {
-          const cmds = cyberLines.filter(l => l.type === 'cmd').map(l => l.text.replace(/^\$ /, ''))
-          out = cmds.length ? cmds.join('\n') : 'No history yet'
-          break
-        }
-        case 'man': {
-          if (!arg1) { out = 'What manual page do you want?'; break }
-          const man = {
-            ls: 'ls - list directory contents\n\nUsage: ls [path]',
-            cd: 'cd - change directory\n\nUsage: cd <path>',
-            ping: 'ping - send ICMP echo requests\n\nUsage: ping <host>',
-            hash: 'hash - SHA-256 hash of text\n\nUsage: hash <text>',
-            dns: 'dns - DNS lookup\n\nUsage: dns <domain>',
-            curl: 'curl - transfer a URL\n\nUsage: curl <url>',
-            pkg: 'pkg - package manager (SIMULATED)\n\nUsage: pkg [search|install|list|update]',
-          }
-          out = man[arg1] || `No manual entry for ${arg1}`
-          break
-        }
+        case 'history': { const cmds = cyberLines.filter(l => l.type === 'cmd').map(l => l.text.replace(/^\$ /, '')); out = cmds.length ? cmds.join('\n') : 'No history yet'; break }
+        case 'man': { if (!arg1) { out = 'What manual page do you want?'; break } const man = { ls: 'ls - list directory contents', cd: 'cd - change directory', ping: 'ping - send ICMP echo requests', hash: 'hash - SHA-256 hash of text', dns: 'dns - DNS lookup', curl: 'curl - transfer a URL', pkg: 'pkg - package manager (SIMULATED)' }; out = man[arg1] || `No manual entry for ${arg1}`; break }
         case 'which': out = arg1 ? `/data/data/com.termux/files/usr/bin/${arg1}` : 'Usage: which <cmd>'; break
         case 'env': out = `USER=${userMode === 'loggedin' ? email : 'guest'}\nHOME=/data/data/com.termux/files/home\nSHELL=/bin/csh\nTERM=xterm-256color\nPATH=/usr/bin:/bin\nLANG=en_US.UTF-8\nCYPHER4X_VERSION=${VERSION}`; break
-        case 'sleep': {
-          const n = parseInt(arg1) || 1
-          const secs = Math.min(n, 10)
-          setCyberLines(prev => [...prev, { type: 'cmd', text: `$ ${cmd}` }, { type: 'out', text: `Sleeping for ${secs} seconds...` }])
-          await new Promise(r => setTimeout(r, secs * 1000))
-          setCyberLines(prev => [...prev, { type: 'out', text: `Awake after ${secs}s` }])
-          return
-        }
+        case 'sleep': { const n = parseInt(arg1) || 1; const secs = Math.min(n, 10); setCyberLines(prev => [...prev, { type: 'cmd', text: `$ ${cmd}` }, { type: 'out', text: `Sleeping for ${secs} seconds...` }]); await new Promise(r => setTimeout(r, secs * 1000)); setCyberLines(prev => [...prev, { type: 'out', text: `Awake after ${secs}s` }]); return }
 
-        case 'pkg': {
-          if (arg1 === 'search') out = `Searching for "${arg2 || 'python'}"...\n\nResults (SIMULATED):\n  python        - Python interpreter\n  python-pip    - Package manager\n  python-dev    - Dev headers`
-          else if (arg1 === 'install') out = `Installing ${arg2 || 'package'}...\n(Simulated — real pkg is not available in browsers)\nProgress: [##########] 100%\n✓ Installed (fake)`
-          else if (arg1 === 'list') out = `Installed packages:\n  bash 5.2\n  curl 8.0\n  openssl 3.0\n  python 3.11 (simulated)\n  git 2.40 (simulated)`
-          else if (arg1 === 'update') out = `Checking for updates...\n(Simulated)\nAll packages up to date.`
-          else out = `pkg - package manager (SIMULATED)\n\nUsage:\n  pkg search <query>\n  pkg install <name>\n  pkg list\n  pkg update`
-          break
-        }
+        case 'pkg': { if (arg1 === 'search') out = `Searching for "${arg2 || 'python'}"...\n\nResults (SIMULATED):\n  python        - Python interpreter\n  python-pip    - Package manager\n  python-dev    - Dev headers`; else if (arg1 === 'install') out = `Installing ${arg2 || 'package'}...\n(Simulated — real pkg is not available in browsers)\nProgress: [##########] 100%\n✓ Installed (fake)`; else if (arg1 === 'list') out = `Installed packages:\n  bash 5.2\n  curl 8.0\n  openssl 3.0\n  python 3.11 (simulated)\n  git 2.40 (simulated)`; else if (arg1 === 'update') out = `Checking for updates...\n(Simulated)\nAll packages up to date.`; else out = `pkg - package manager (SIMULATED)\n\nUsage:\n  pkg search <query>\n  pkg install <name>\n  pkg list\n  pkg update`; break }
         case 'apt': out = `apt - Advanced Package Tool (SIMULATED)\n\nReal apt requires root + Linux. Not available in browsers.\nFor real terminal on Android, install Termux from F-Droid.`; break
 
         case 'help': out = helpText; break
@@ -974,12 +996,7 @@ Meta:     help, about, ethics`
     let out = ''
     try {
       switch (cyberTool) {
-        case 'passcheck': {
-          const pw = cyberToolInput; if (!pw) { out = 'Enter a password'; break }
-          let s = 0; const c = { len: pw.length >= 12, low: /[a-z]/.test(pw), up: /[A-Z]/.test(pw), dig: /\d/.test(pw), sp: /[^A-Za-z0-9]/.test(pw), ok: !/^(password|123456)/i.test(pw) }
-          s = Object.values(c).filter(Boolean).length
-          out = `Score ${s}/6\nEntropy ~${(pw.length * Math.log2(new Set(pw).size || 1)).toFixed(1)} bits`; break
-        }
+        case 'passcheck': { const pw = cyberToolInput; if (!pw) { out = 'Enter a password'; break } let s = 0; const c = { len: pw.length >= 12, low: /[a-z]/.test(pw), up: /[A-Z]/.test(pw), dig: /\d/.test(pw), sp: /[^A-Za-z0-9]/.test(pw), ok: !/^(password|123456)/i.test(pw) }; s = Object.values(c).filter(Boolean).length; out = `Score ${s}/6\nEntropy ~${(pw.length * Math.log2(new Set(pw).size || 1)).toFixed(1)} bits`; break }
         case 'hash': { const b = new TextEncoder().encode(cyberToolInput); const h = await crypto.subtle.digest('SHA-256', b); out = Array.from(new Uint8Array(h)).map(x => x.toString(16).padStart(2, '0')).join(''); break }
         case 'base64': out = (() => { try { return btoa(cyberToolInput) } catch { return 'Invalid' } })(); break
         case 'unbase64': out = (() => { try { return atob(cyberToolInput) } catch { return 'Invalid' } })(); break
@@ -1016,19 +1033,27 @@ Meta:     help, about, ethics`
 
   if (isEnteringAI) return (
     <div style={styles.enterOverlay}>
-      <style>{`@keyframes spinRing2 { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } } @keyframes pulse2 { 0%, 100% { opacity: 0.6; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1.02); } }`}</style>
+      <style>{`
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse3 { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+      `}</style>
       <div style={styles.enterBackground} />
       <div style={styles.enterContent}>
-        <div style={styles.enterRingWrap}>
-          <div style={styles.enterRingOuter} />
-          <div style={styles.enterRingMiddle} />
-          <div style={styles.enterRingSpinner} />
-          <div style={styles.enterCenterLogo}><span style={styles.enterLogoText}>4X</span></div>
+        <h1 style={{ ...styles.enterTitle, animation: 'pulse3 1.8s ease-in-out infinite' }}>CYPHER4X</h1>
+        <p style={styles.enterSubtitleSmall}>{VERSION_FULL}</p>
+        <div style={styles.enterUpdatingWrap}>
+          <div style={styles.enterUpdatingLabel}>Updating</div>
+          <div style={styles.enterUpdatingDots}>
+            <span style={{ animation: 'pulse3 1s 0s ease-in-out infinite' }}>.</span>
+            <span style={{ animation: 'pulse3 1s 0.2s ease-in-out infinite' }}>.</span>
+            <span style={{ animation: 'pulse3 1s 0.4s ease-in-out infinite' }}>.</span>
+          </div>
         </div>
-        <h1 style={styles.enterTitle}>CYPHER4X</h1>
-        <p style={styles.enterMessage}>{enterMessage}</p>
-        <div style={styles.enterProgressBarWrap}><div style={{ ...styles.enterProgressBar, width: `${enterProgress}%` }} /></div>
+        <div style={styles.enterProgressBarWrap}>
+          <div style={{ ...styles.enterProgressBar, width: `${enterProgress}%` }} />
+        </div>
         <span style={styles.enterPercent}>{Math.round(enterProgress)}%</span>
+        <p style={styles.enterMessageSmall}>{enterMessage}</p>
       </div>
     </div>
   )
@@ -1094,9 +1119,10 @@ Meta:     help, about, ethics`
   if (showMusicPanel) return (
     <div style={styles.settingsFullscreen}><div style={styles.settingsHeaderFull}><h1 style={styles.settingsTitleFull}>🎵 Music Generator</h1><button onClick={() => setShowMusicPanel(false)} style={styles.settingsCloseFull}><Icon name="close" size={28} color="#fff" /></button></div>
       <div style={styles.settingsBodyFull}>
-        <div style={styles.settingsSection}><h3 style={styles.settingsSectionTitle}>Describe Your Music</h3><input value={musicDesc} onChange={(e) => setMusicDesc(e.target.value)} placeholder="e.g. romantic piano with soft vocals..." style={styles.settingsSelect} /><p style={styles.bgHint}>Powered by Tunova (Suno v5.5). Full songs with vocals.</p></div>
+        <div style={styles.settingsSection}><h3 style={styles.settingsSectionTitle}>Describe Your Music</h3><input value={musicDesc} onChange={(e) => setMusicDesc(e.target.value)} placeholder="e.g. romantic piano with soft vocals..." style={styles.settingsSelect} /><p style={styles.bgHint}>Tries Tunova API → falls back to built-in synth if unavailable.</p></div>
         <div style={styles.settingsSection}><h3 style={styles.settingsSectionTitle}>Duration</h3><div style={styles.settingItem}><span>{musicDuration}s</span><input type="range" min="15" max="180" step="5" value={musicDuration} onChange={(e) => setMusicDuration(parseInt(e.target.value))} style={styles.settingsRange} /></div></div>
-        {musicInfo && <pre style={{ color: musicInfo.startsWith('❌') ? '#ff6688' : '#4f8', textAlign: 'center', fontSize: 12, fontWeight: 'bold', whiteSpace: 'pre-wrap', fontFamily: 'monospace', padding: 12, background: '#0a0a0a', borderRadius: 8, border: '1px solid #333' }}>{musicInfo}</pre>}
+        <div style={styles.settingsSection}><h3 style={styles.settingsSectionTitle}>Quality</h3><select value={musicQuality} onChange={(e) => setMusicQuality(e.target.value)} style={styles.settingsSelect}><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></div>
+        {musicInfo && <pre style={{ color: musicInfo.startsWith('❌') ? '#ff6688' : musicInfo.startsWith('⚠️') ? '#ffcc00' : '#4f8', textAlign: 'center', fontSize: 12, fontWeight: 'bold', whiteSpace: 'pre-wrap', fontFamily: 'monospace', padding: 12, background: '#0a0a0a', borderRadius: 8, border: '1px solid #333' }}>{musicInfo}</pre>}
         {musicDownloadUrl && <a href={musicDownloadUrl} download={`cypher4x_music_${Date.now()}.mp3`} style={{ ...styles.uploadBtn, justifyContent: 'center', textDecoration: 'none', marginTop: 12 }}><Icon name="download" size={16} color="#fff" /><span>Download Track</span></a>}
         {musicPlaying && musicAudioRef && <button onClick={() => { musicAudioRef.pause(); setMusicPlaying(false) }} style={{ ...styles.resetBtn, width: '100%', justifyContent: 'center', marginTop: 12 }}><Icon name="pause" size={16} color="#fff" /><span>Pause</span></button>}
       </div>
@@ -1108,14 +1134,20 @@ Meta:     help, about, ethics`
   if (showVideoPanel) return (
     <div style={styles.settingsFullscreen}><div style={styles.settingsHeaderFull}><h1 style={styles.settingsTitleFull}>🎬 Video Generator</h1><button onClick={() => setShowVideoPanel(false)} style={styles.settingsCloseFull}><Icon name="close" size={28} color="#fff" /></button></div>
       <div style={styles.settingsBodyFull}>
-        <div style={styles.settingsSection}><h3 style={styles.settingsSectionTitle}>Describe Your Video</h3><input value={videoDesc} onChange={(e) => setVideoDesc(e.target.value)} placeholder="e.g. cinematic drone shot over a city at sunset..." style={styles.settingsSelect} /><p style={styles.bgHint}>Powered by Agnes AI Video V2.0</p></div>
-        <div style={styles.settingsSection}><h3 style={styles.settingsSectionTitle}>Duration</h3><div style={styles.settingItem}><span>{videoDuration}s</span><input type="range" min="2" max="18" step="1" value={videoDuration} onChange={(e) => setVideoDuration(parseInt(e.target.value))} style={styles.settingsRange} /></div></div>
+        <div style={styles.settingsSection}><h3 style={styles.settingsSectionTitle}>Describe Your Video</h3><input value={videoDesc} onChange={(e) => setVideoDesc(e.target.value)} placeholder="e.g. cinematic drone shot, anime sakura..." style={styles.settingsSelect} /><p style={styles.bgHint}>Tries Agnes AI → falls back to built-in Canvas engine if unavailable.</p></div>
+        <div style={styles.settingsSection}><h3 style={styles.settingsSectionTitle}>Duration</h3><div style={styles.settingItem}><span>{videoDuration}s</span><input type="range" min="3" max="30" step="1" value={videoDuration} onChange={(e) => setVideoDuration(parseInt(e.target.value))} style={styles.settingsRange} /></div></div>
         <div style={styles.settingsSection}><h3 style={styles.settingsSectionTitle}>Quality</h3><select value={videoQuality} onChange={(e) => setVideoQuality(e.target.value)} style={styles.settingsSelect}><option value="low">480p</option><option value="medium">720p</option><option value="high">1080p</option></select></div>
-        {videoInfo && <pre style={{ color: videoInfo.startsWith('❌') ? '#ff6688' : '#4f8', textAlign: 'center', fontSize: 12, fontWeight: 'bold', whiteSpace: 'pre-wrap', fontFamily: 'monospace', padding: 12, background: '#0a0a0a', borderRadius: 8, border: '1px solid #333' }}>{videoInfo}</pre>}
+        <canvas ref={canvasRef} width={videoQuality === 'high' ? 720 : videoQuality === 'medium' ? 480 : 320} height={videoQuality === 'high' ? 480 : videoQuality === 'medium' ? 320 : 240} style={{ width: '100%', borderRadius: 12, background: '#000', marginTop: 8, display: videoRecording || videoResultUrl ? 'block' : 'none' }} />
+        {videoInfo && <pre style={{ color: videoInfo.startsWith('❌') ? '#ff6688' : videoInfo.startsWith('⚠️') ? '#ffcc00' : '#4f8', textAlign: 'center', fontSize: 12, fontWeight: 'bold', whiteSpace: 'pre-wrap', fontFamily: 'monospace', padding: 12, background: '#0a0a0a', borderRadius: 8, border: '1px solid #333' }}>{videoInfo}</pre>}
+        {videoRecording && <p style={{ color: '#ff6688', textAlign: 'center', marginTop: 8 }}>● Recording... {videoProgress}%</p>}
         {videoResultUrl && <video src={videoResultUrl} controls style={{ width: '100%', borderRadius: 12, marginTop: 12 }} />}
-        {videoResultUrl && <a href={videoResultUrl} download={`cypher4x_video_${Date.now()}.mp4`} style={{ ...styles.uploadBtn, justifyContent: 'center', textDecoration: 'none', marginTop: 12 }}><Icon name="download" size={16} color="#fff" /><span>Download Video</span></a>}
+        {videoResultUrl && <a href={videoResultUrl} download={`cypher4x_video_${Date.now()}.webm`} style={{ ...styles.uploadBtn, justifyContent: 'center', textDecoration: 'none', marginTop: 12 }}><Icon name="download" size={16} color="#fff" /><span>Download Video</span></a>}
       </div>
-      <button onClick={handleGenerateVideo} disabled={videoGenerating || videoPolling} style={styles.settingsDoneFull}>{videoGenerating ? 'Submitting...' : videoPolling ? 'Generating...' : 'Generate Video'}</button>
+      {videoRecording ? (
+        <button onClick={handleStopLocalVideo} style={styles.settingsDoneFull}>Stop & Save</button>
+      ) : (
+        <button onClick={handleGenerateVideo} disabled={videoGenerating || videoPolling} style={styles.settingsDoneFull}>{videoGenerating ? 'Submitting...' : videoPolling ? 'Generating...' : 'Generate Video'}</button>
+      )}
     </div>
   )
 
@@ -1340,17 +1372,15 @@ const styles = {
   enterOverlay: { position: 'fixed', inset: 0, backgroundColor: '#000', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', fontFamily: "'Courier New',monospace" },
   enterBackground: { position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, #1a0000 0%, #000 70%)' },
   enterContent: { position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: 420, padding: 20, animation: 'fadeUp 0.6s ease' },
-  enterRingWrap: { position: 'relative', width: 180, height: 180, margin: '0 auto 32px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  enterRingOuter: { position: 'absolute', inset: 0, borderRadius: '50%', border: '2px solid rgba(255,0,60,0.25)', animation: 'spinRing2 12s linear infinite', boxShadow: '0 0 40px rgba(255,0,60,0.15)' },
-  enterRingMiddle: { position: 'absolute', top: 15, left: 15, right: 15, bottom: 15, borderRadius: '50%', border: '1px solid rgba(255,0,60,0.4)', animation: 'spinRing2 8s linear infinite reverse' },
-  enterRingSpinner: { position: 'absolute', top: 8, left: 8, right: 8, bottom: 8, borderRadius: '50%', border: '3px solid transparent', borderTopColor: '#ff003c', borderRightColor: '#ff003c', animation: 'spinRing2 1.2s linear infinite', filter: 'drop-shadow(0 0 8px #ff003c)' },
-  enterCenterLogo: { width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle at 30% 25%, #ff6688 0%, #ff003c 50%, #990022 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset -10px -10px 20px rgba(80,0,20,0.7), inset 8px 8px 15px rgba(255,180,200,0.4), 0 0 40px rgba(255,0,60,0.6)', animation: 'pulse2 2s ease-in-out infinite' },
-  enterLogoText: { color: '#fff', fontSize: 28, fontWeight: 'bold', letterSpacing: 2, fontFamily: "'Courier New',monospace", textShadow: '0 0 12px rgba(255,255,255,0.7)' },
-  enterTitle: { color: '#ff003c', fontSize: 32, letterSpacing: 8, margin: '0 0 16px', fontWeight: 'bold', textShadow: '0 0 20px #ff003c, 0 0 40px #ff003c44' },
-  enterMessage: { color: '#ff6688', fontSize: 14, letterSpacing: 1, margin: '0 0 20px', minHeight: 20, fontFamily: "'Courier New',monospace" },
+  enterTitle: { color: '#ff003c', fontSize: 38, letterSpacing: 10, margin: '0 0 8px', fontWeight: 'bold', textShadow: '0 0 20px #ff003c, 0 0 40px #ff003c44' },
+  enterSubtitleSmall: { color: '#ff6688', fontSize: 12, letterSpacing: 3, marginBottom: 50, opacity: 0.7 },
+  enterUpdatingWrap: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 24 },
+  enterUpdatingLabel: { color: '#fff', fontSize: 22, fontWeight: 'bold', letterSpacing: 4, fontFamily: "'Courier New', monospace" },
+  enterUpdatingDots: { display: 'flex', alignItems: 'center', gap: 0, color: '#ff003c', fontSize: 22, fontWeight: 'bold' },
   enterProgressBarWrap: { width: '100%', height: 4, backgroundColor: '#1a1a1a', borderRadius: 4, overflow: 'hidden', marginBottom: 8, boxShadow: 'inset 0 0 6px #000' },
   enterProgressBar: { height: '100%', backgroundColor: '#ff003c', transition: 'width 0.1s linear', boxShadow: '0 0 20px #ff003c' },
   enterPercent: { color: '#ff6688', fontSize: 12, letterSpacing: 2, fontFamily: "'Courier New',monospace" },
+  enterMessageSmall: { color: '#888', fontSize: 11, letterSpacing: 2, marginTop: 16, fontFamily: "'Courier New', monospace", minHeight: 16 },
 
   personalityOverlay: { position: 'fixed', inset: 0, backgroundColor: '#000', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, overflowY: 'auto' },
   personalityCard: { width: '100%', maxWidth: 700, backgroundColor: '#111', border: '2px solid #ff003c', borderRadius: 16, padding: 30, textAlign: 'center' },
@@ -1501,8 +1531,8 @@ const styles = {
   backgroundAndroid: { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 0, background: 'radial-gradient(ellipse at center,#0a0000 0%,#000 100%)' },
   ballContainer: { position: 'relative', width: 300, height: 300, pointerEvents: 'none', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' },
   ball3DContainer: { perspective: 800, transformStyle: 'preserve-3d' },
-  ball3D: { width: 180, height: 180, borderRadius: '50%', position: 'relative', transformStyle: 'preserve-3d', background: `radial-gradient(circle at 30% 25%,rgba(255,200,220,0.9) 0%,transparent 45%),radial-gradient(circle at 40% 35%,#ff6688 0%,#ff3355 25%,#ff003c 50%,#990022 75%,#550011 100%)`, boxShadow: `inset -20px -20px 40px rgba(80,0,20,0.8),inset 15px 15px 30px rgba(255,180,200,0.4),0 0 50px rgba(255,0,60,0.5),0 0 100px rgba(255,0,60,0.3),0 0 150px rgba(255,0,60,0.15)`, animation: 'rotateGlobe 25s linear infinite' },
-  ball3DSpeaking: { boxShadow: `inset -20px -20px 40px rgba(80,0,20,0.8),inset 15px 15px 30px rgba(255,180,200,0.5),0 0 80px rgba(255,0,60,0.8),0 0 150px rgba(255,0,60,0.5),0 0 220px rgba(255,0,60,0.25)`, animation: 'rotateGlobe 25s linear infinite, ballPulse 1.2s ease-in-out infinite' },
+  ball3D: { width: 180, height: 180, borderRadius: '50%', position: 'relative', transformStyle: 'preserve-3d', background: `radial-gradient(circle at 30% 25%,rgba(255,200,220,0.9) 0%,transparent 45%),radial-gradient(circle at 40% 35%,#ff6688 0%,#ff3355 25%,#ff003c 50%,#990022 75%,#550011 100%)`, boxShadow: `inset -20px -20px 40px rgba(80,0,20,0.8),inset 15px 15px 30px rgba(255,180,200,0.4),0 0 50px rgba(255,0,60,0.5),0 0 100px rgba(255,0,60,0.3),0 0 150px rgba(255,0,60,0.15)` },
+  ball3DSpeaking: { boxShadow: `inset -20px -20px 40px rgba(80,0,20,0.8),inset 15px 15px 30px rgba(255,180,200,0.5),0 0 80px rgba(255,0,60,0.8),0 0 150px rgba(255,0,60,0.5),0 0 220px rgba(255,0,60,0.25)`, animation: 'ballShake 0.35s ease-in-out infinite' },
   ballHighlight: { position: 'absolute', top: '18%', left: '22%', width: '35%', height: '25%', borderRadius: '50%', background: 'radial-gradient(ellipse,rgba(255,255,255,0.6) 0%,transparent 70%)', filter: 'blur(4px)', pointerEvents: 'none' },
   ballInnerGlow: { position: 'absolute', top: '15%', left: '15%', width: '70%', height: '70%', borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,100,140,0.2) 0%,transparent 60%)', pointerEvents: 'none' },
   ring1: { position: 'absolute', top: '50%', left: '50%', width: 240, height: 240, marginLeft: -120, marginTop: -120, borderRadius: '50%', border: '2px solid rgba(255,0,60,0.25)', animation: 'spinRing 12s linear infinite' },
@@ -1548,4 +1578,4 @@ const styles = {
   commandActionsPC: { display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   sidebarBtnPC: { padding: '5px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
   logoutBtnPC: { padding: '5px 10px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
-  }
+    }
