@@ -173,20 +173,616 @@ const applyPersonality = (reply, p, cs) => {
 }
 
 // ==================================================
-// CODE GEN
+// DEEPSEEK-LEVEL CODE GENERATION
 // ==================================================
-const detectLanguage = (t) => {
-  const x = t.toLowerCase()
-  const m = [['javascript',['javascript','js','node']],['python',['python','py']],['react',['react','jsx']],['html',['html']],['css',['css']]]
-  for (const [l, k] of m) if (k.some(v => x.includes(v))) return l
-  return 'javascript'
-}
 const generateLongCode = (lang, purpose, detail) => {
   const L = lang.toLowerCase()
-  if (L.includes('react')) return `Here's a React app for: **${purpose}**${detail ? ` (${detail})` : ''}\n\n\`\`\`jsx\nimport { useState, useEffect } from 'react'\n\nfunction useLocalStorage(key, initial) {\n  const [v, setV] = useState(() => {\n    try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : initial } catch { return initial }\n  })\n  useEffect(() => { localStorage.setItem(key, JSON.stringify(v)) }, [key, v])\n  return [v, setV]\n}\n\nexport default function App() {\n  const [items, setItems] = useLocalStorage('items', [])\n  const [input, setInput] = useState('')\n  const add = () => { if (!input.trim()) return; setItems(p => [{ id: Date.now(), text: input }, ...p]); setInput('') }\n  return (\n    <div style={{ padding: 20 }}>\n      <h1>${purpose}</h1>\n      <input value={input} onChange={e => setInput(e.target.value)} />\n      <button onClick={add}>Add</button>\n      <ul>{items.map(i => <li key={i.id}>{i.text}</li>)}</ul>\n    </div>\n  )\n}\n\`\`\``
-  if (L.includes('python')) return `Here's a Python program for: **${purpose}**\n\n\`\`\`python\nimport json\nfrom dataclasses import dataclass, asdict\n\n@dataclass\nclass Item:\n    id: int\n    title: str\n    done: bool = False\n\ndef save(items, path="items.json"):\n    with open(path, "w") as f: json.dump([asdict(i) for i in items], f, indent=2)\n\nif __name__ == "__main__":\n    items = [Item(1, "Sample")]\n    save(items)\n    print("Saved!")\n\`\`\``
-  return `Here's a **${lang}** solution for: **${purpose}**\n\n\`\`\`javascript\n// ${purpose}\n'use strict';\n\nclass App {\n  constructor() { this.items = [] }\n  add(text) { this.items.push({ id: Date.now(), text }); return this.items[this.items.length-1] }\n  remove(id) { this.items = this.items.filter(i => i.id !== id) }\n  list() { return [...this.items] }\n}\n\nconst app = new App();\napp.add('Sample #1');\nconsole.log(app.list());\n\`\`\``
+  
+  if (L.includes('python')) {
+    return `# ${purpose} - Comprehensive Implementation
+# Author: Cypher4X AI
+# Version: 1.0.0
+# Description: A fully featured Python application designed for ${purpose}.
+# Features: Error handling, logging, data persistence, CLI interface, and modular design.
+
+import os
+import sys
+import json
+import logging
+import argparse
+from datetime import datetime
+from dataclasses import dataclass, asdict, field
+from typing import List, Optional, Dict, Any
+from enum import Enum
+
+# ==================================================
+# CONFIGURATION & LOGGING
+# ==================================================
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("app.log"),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger("Cypher4XApp")
+
+class AppConfig:
+    """Centralized configuration management."""
+    DATA_DIR = os.path.join(os.path.expanduser("~"), ".cypher4x_app")
+    DATA_FILE = os.path.join(DATA_DIR, "data.json")
+    
+    @classmethod
+    def ensure_dirs(cls):
+        if not os.path.exists(cls.DATA_DIR):
+            os.makedirs(cls.DATA_DIR)
+            logger.info(f"Created data directory: {cls.DATA_DIR}")
+
+# ==================================================
+# DATA MODELS
+# ==================================================
+class Status(Enum):
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+@dataclass
+class Item:
+    """Represents a single item in the system."""
+    id: int
+    title: str
+    description: str = ""
+    status: Status = Status.PENDING
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat())
+    updated_at: str = field(default_factory=lambda: datetime.now().isoformat())
+
+    def to_dict(self) -> Dict[str, Any]:
+        data = asdict(self)
+        data['status'] = self.status.value
+        return data
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'Item':
+        data['status'] = Status(data['status'])
+        return cls(**data)
+
+# ==================================================
+# CORE LOGIC
+# ==================================================
+class AppManager:
+    """Main application manager handling business logic and data persistence."""
+    
+    def __init__(self):
+        AppConfig.ensure_dirs()
+        self.items: List[Item] = []
+        self.load_data()
+
+    def load_data(self):
+        """Load data from JSON file."""
+        try:
+            if os.path.exists(AppConfig.DATA_FILE):
+                with open(AppConfig.DATA_FILE, 'r') as f:
+                    data = json.load(f)
+                    self.items = [Item.from_dict(i) for i in data]
+                logger.info(f"Loaded {len(self.items)} items.")
+            else:
+                logger.info("No data file found. Starting fresh.")
+        except Exception as e:
+            logger.error(f"Failed to load data: {e}")
+            self.items = []
+
+    def save_data(self):
+        """Save data to JSON file."""
+        try:
+            with open(AppConfig.DATA_FILE, 'w') as f:
+                json.dump([i.to_dict() for i in self.items], f, indent=4)
+            logger.info("Data saved successfully.")
+        except Exception as e:
+            logger.error(f"Failed to save data: {e}")
+
+    def add_item(self, title: str, description: str = "") -> Item:
+        """Add a new item to the system."""
+        item_id = max([i.id for i in self.items], default=0) + 1
+        new_item = Item(id=item_id, title=title, description=description)
+        self.items.append(new_item)
+        self.save_data()
+        logger.info(f"Added item: {new_item.title}")
+        return new_item
+
+    def get_item(self, item_id: int) -> Optional[Item]:
+        """Retrieve an item by ID."""
+        for item in self.items:
+            if item.id == item_id:
+                return item
+        return None
+
+    def update_item_status(self, item_id: int, status: Status) -> bool:
+        """Update the status of an item."""
+        item = self.get_item(item_id)
+        if item:
+            item.status = status
+            item.updated_at = datetime.now().isoformat()
+            self.save_data()
+            logger.info(f"Updated item {item_id} status to {status.value}")
+            return True
+        logger.warning(f"Item {item_id} not found.")
+        return False
+
+    def list_items(self, status_filter: Optional[Status] = None) -> List[Item]:
+        """List all items, optionally filtered by status."""
+        if status_filter:
+            return [i for i in self.items if i.status == status_filter]
+        return self.items
+
+# ==================================================
+# CLI INTERFACE
+# ==================================================
+def main():
+    parser = argparse.ArgumentParser(description=f"${purpose} - A comprehensive CLI tool.")
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+
+    # Command: add
+    parser_add = subparsers.add_parser("add", help="Add a new item")
+    parser_add.add_argument("title", type=str, help="Title of the item")
+    parser_add.add_argument("-d", "--description", type=str, default="", help="Description of the item")
+
+    # Command: list
+    parser_list = subparsers.add_parser("list", help="List items")
+    parser_list.add_argument("-s", "--status", type=str, choices=[s.value for s in Status], help="Filter by status")
+
+    # Command: update
+    parser_update = subparsers.add_parser("update", help="Update item status")
+    parser_update.add_argument("id", type=int, help="ID of the item")
+    parser_update.add_argument("status", type=str, choices=[s.value for s in Status], help="New status")
+
+    args = parser.parse_args()
+    manager = AppManager()
+
+    if args.command == "add":
+        item = manager.add_item(args.title, args.description)
+        print(f"✅ Added item: [{item.id}] {item.title}")
+    elif args.command == "list":
+        status_filter = Status(args.status) if args.status else None
+        items = manager.list_items(status_filter)
+        if not items:
+            print("No items found.")
+        else:
+            print(f"{'ID':<5} {'Status':<15} {'Title':<30}")
+            print("-" * 50)
+            for item in items:
+                print(f"{item.id:<5} {item.status.value:<15} {item.title:<30}")
+    elif args.command == "update":
+        success = manager.update_item_status(args.id, Status(args.status))
+        if success:
+            print(f"✅ Updated item {args.id} to {args.status}")
+        else:
+            print(f"❌ Item {args.id} not found.")
+    else:
+        parser.print_help()
+
+if __name__ == "__main__":
+    main()
+`
+  }
+
+  if (L.includes('react') || L.includes('jsx')) {
+    return `// ${purpose} - Comprehensive React Application
+// Author: Cypher4X AI
+// Version: 1.0.0
+// Description: A fully featured React app designed for ${purpose}.
+// Features: State management, API integration, Error boundaries, Loading states, Responsive design.
+
+import React, { useState, useEffect, useReducer, useCallback, useMemo } from 'react';
+
+// ==================================================
+// API SERVICE LAYER
+// ==================================================
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://api.example.com';
+
+const apiService = {
+  async fetchItems() {
+    try {
+      const response = await fetch(\`\${API_BASE_URL}/items\`);
+      if (!response.ok) throw new Error('Network response was not ok');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching items:', error);
+      throw error;
+    }
+  },
+  
+  async createItem(itemData) {
+    try {
+      const response = await fetch(\`\${API_BASE_URL}/items\`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(itemData)
+      });
+      if (!response.ok) throw new Error('Failed to create item');
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating item:', error);
+      throw error;
+    }
+  },
+  
+  async deleteItem(id) {
+    try {
+      const response = await fetch(\`\${API_BASE_URL}/items/\${id}\`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Failed to delete item');
+      return true;
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      throw error;
+    }
+  }
+};
+
+// ==================================================
+// STATE MANAGEMENT (useReducer)
+// ==================================================
+const initialState = {
+  items: [],
+  isLoading: false,
+  error: null,
+  filter: 'all'
+};
+
+function appReducer(state, action) {
+  switch (action.type) {
+    case 'FETCH_START':
+      return { ...state, isLoading: true, error: null };
+    case 'FETCH_SUCCESS':
+      return { ...state, isLoading: false, items: action.payload };
+    case 'FETCH_ERROR':
+      return { ...state, isLoading: false, error: action.payload };
+    case 'ADD_ITEM':
+      return { ...state, items: [...state.items, action.payload] };
+    case 'DELETE_ITEM':
+      return { ...state, items: state.items.filter(i => i.id !== action.payload) };
+    case 'SET_FILTER':
+      return { ...state, filter: action.payload };
+    default:
+      return state;
+  }
 }
+
+// ==================================================
+// CUSTOM HOOKS
+// ==================================================
+function useItems() {
+  const [state, dispatch] = useReducer(appReducer, initialState);
+
+  const loadItems = useCallback(async () => {
+    dispatch({ type: 'FETCH_START' });
+    try {
+      const data = await apiService.fetchItems();
+      dispatch({ type: 'FETCH_SUCCESS', payload: data });
+    } catch (error) {
+      dispatch({ type: 'FETCH_ERROR', payload: error.message });
+    }
+  }, []);
+
+  const addItem = useCallback(async (itemData) => {
+    try {
+      const newItem = await apiService.createItem(itemData);
+      dispatch({ type: 'ADD_ITEM', payload: newItem });
+    } catch (error) {
+      dispatch({ type: 'FETCH_ERROR', payload: error.message });
+    }
+  }, []);
+
+  const deleteItem = useCallback(async (id) => {
+    try {
+      await apiService.deleteItem(id);
+      dispatch({ type: 'DELETE_ITEM', payload: id });
+    } catch (error) {
+      dispatch({ type: 'FETCH_ERROR', payload: error.message });
+    }
+  }, []);
+
+  useEffect(() => {
+    loadItems();
+  }, [loadItems]);
+
+  return { ...state, addItem, deleteItem, loadItems };
+}
+
+// ==================================================
+// COMPONENTS
+// ==================================================
+function ErrorBoundary({ children }) {
+  const [hasError, setHasError] = useState(false);
+  
+  if (hasError) {
+    return (
+      <div className="error-boundary">
+        <h2>Something went wrong.</h2>
+        <button onClick={() => window.location.reload()}>Reload Page</button>
+      </div>
+    );
+  }
+  return children;
+}
+
+function ItemCard({ item, onDelete }) {
+  return (
+    <div className="item-card">
+      <div className="item-header">
+        <h3>{item.title}</h3>
+        <span className={\`status \${item.status}\`}>{item.status}</span>
+      </div>
+      <p>{item.description}</p>
+      <button className="delete-btn" onClick={() => onDelete(item.id)}>Delete</button>
+    </div>
+  );
+}
+
+function AddItemForm({ onAdd }) {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+    onAdd({ title, description, status: 'pending' });
+    setTitle('');
+    setDescription('');
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="add-form">
+      <input 
+        type="text" 
+        placeholder="Item Title" 
+        value={title} 
+        onChange={(e) => setTitle(e.target.value)} 
+        required 
+      />
+      <textarea 
+        placeholder="Description" 
+        value={description} 
+        onChange={(e) => setDescription(e.target.value)} 
+      />
+      <button type="submit">Add Item</button>
+    </form>
+  );
+}
+
+// ==================================================
+// MAIN APP COMPONENT
+// ==================================================
+export default function App() {
+  const { items, isLoading, error, filter, addItem, deleteItem, loadItems } = useItems();
+
+  const filteredItems = useMemo(() => {
+    if (filter === 'all') return items;
+    return items.filter(item => item.status === filter);
+  }, [items, filter]);
+
+  return (
+    <ErrorBoundary>
+      <div className="app-container">
+        <header className="app-header">
+          <h1>${purpose}</h1>
+          <p>Powered by Cypher4X AI</p>
+        </header>
+
+        <main className="app-main">
+          <AddItemForm onAdd={addItem} />
+          
+          <div className="controls">
+            <button onClick={loadItems} disabled={isLoading}>
+              {isLoading ? 'Refreshing...' : 'Refresh'}
+            </button>
+            <select value={filter} onChange={(e) => dispatch({ type: 'SET_FILTER', payload: e.target.value })}>
+              <option value="all">All</option>
+              <option value="pending">Pending</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+
+          {error && <div className="error-message">{error}</div>}
+
+          {isLoading && items.length === 0 ? (
+            <div className="loading">Loading items...</div>
+          ) : (
+            <div className="items-grid">
+              {filteredItems.map(item => (
+                <ItemCard key={item.id} item={item} onDelete={deleteItem} />
+              ))}
+              {filteredItems.length === 0 && <p>No items found.</p>}
+            </div>
+          )}
+        </main>
+      </div>
+    </ErrorBoundary>
+  );
+}
+`
+  }
+
+  // Default fallback for JavaScript
+  return `// ${purpose} - Comprehensive JavaScript Implementation
+// Author: Cypher4X AI
+// Version: 1.0.0
+// Description: A fully featured JavaScript application designed for ${purpose}.
+// Features: Modular design, Event handling, DOM manipulation, LocalStorage persistence.
+
+'use strict';
+
+// ==================================================
+// UTILITY FUNCTIONS
+// ==================================================
+const Utils = {
+  generateId: () => \`id_\${Math.random().toString(36).substr(2, 9)}_\${Date.now()}\`,
+  
+  formatDate: (date) => {
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric', month: 'long', day: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    }).format(new Date(date));
+  },
+  
+  debounce: (func, wait) => {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => { clearTimeout(timeout); func(...args); };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+};
+
+// ==================================================
+// STATE MANAGEMENT
+// ==================================================
+class StateManager {
+  constructor(initialState = {}) {
+    this.state = initialState;
+    this.listeners = [];
+  }
+
+  getState() { return this.state; }
+
+  setState(newState) {
+    this.state = { ...this.state, ...newState };
+    this.notify();
+  }
+
+  subscribe(listener) {
+    this.listeners.push(listener);
+    return () => { this.listeners = this.listeners.filter(l => l !== listener); };
+  }
+
+  notify() { this.listeners.forEach(listener => listener(this.state)); }
+}
+
+// ==================================================
+// STORAGE LAYER
+// ==================================================
+class StorageService {
+  static save(key, data) {
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+      return true;
+    } catch (e) {
+      console.error('Storage save failed:', e);
+      return false;
+    }
+  }
+
+  static load(key, defaultValue = null) {
+    try {
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : defaultValue;
+    } catch (e) {
+      console.error('Storage load failed:', e);
+      return defaultValue;
+    }
+  }
+}
+
+// ==================================================
+// CORE APPLICATION LOGIC
+// ==================================================
+class AppController {
+  constructor() {
+    this.storageKey = 'cypher4x_app_data';
+    this.stateManager = new StateManager({
+      items: StorageService.load(this.storageKey, []),
+      isProcessing: false,
+      error: null
+    });
+
+    this.init();
+  }
+
+  init() {
+    console.log('Initializing ${purpose}...');
+    this.render();
+    this.attachEventListeners();
+  }
+
+  addItem(itemData) {
+    const newItem = {
+      id: Utils.generateId(),
+      ...itemData,
+      createdAt: new Date().toISOString()
+    };
+    
+    const currentItems = this.stateManager.getState().items;
+    const updatedItems = [...currentItems, newItem];
+    
+    this.stateManager.setState({ items: updatedItems });
+    StorageService.save(this.storageKey, updatedItems);
+    
+    console.log('Added item:', newItem);
+    this.render();
+  }
+
+  removeItem(id) {
+    const currentItems = this.stateManager.getState().items;
+    const updatedItems = currentItems.filter(item => item.id !== id);
+    
+    this.stateManager.setState({ items: updatedItems });
+    StorageService.save(this.storageKey, updatedItems);
+    
+    console.log('Removed item:', id);
+    this.render();
+  }
+
+  render() {
+    const container = document.getElementById('app-root') || document.body;
+    const { items } = this.stateManager.getState();
+
+    container.innerHTML = \`
+      <div class="app-wrapper">
+        <header>
+          <h1>${purpose}</h1>
+        </header>
+        <main>
+          <button id="add-btn">Add New Item</button>
+          <div id="items-list">
+            \${items.length === 0 ? '<p>No items yet.</p>' : items.map(item => \`
+              <div class="item">
+                <span>\${item.title}</span>
+                <small>\${Utils.formatDate(item.createdAt)}</small>
+                <button class="delete-btn" data-id="\${item.id}">X</button>
+              </div>
+            \`).join('')}
+          </div>
+        </main>
+      </div>
+    \`;
+  }
+
+  attachEventListeners() {
+    document.addEventListener('click', (e) => {
+      if (e.target.id === 'add-btn') {
+        const title = prompt('Enter item title:');
+        if (title) this.addItem({ title });
+      }
+      
+      if (e.target.classList.contains('delete-btn')) {
+        const id = e.target.getAttribute('data-id');
+        if (confirm('Delete this item?')) this.removeItem(id);
+      }
+    });
+  }
+}
+
+// ==================================================
+// BOOTSTRAP
+// ==================================================
+document.addEventListener('DOMContentLoaded', () => {
+  window.app = new AppController();
+});
+`
+}
+
 const isCodeRequest = (q) => {
   const x = q.toLowerCase()
   return ['generate code','write code','create code','make code','build code','code for','code to','function in','write me a'].some(k => x.includes(k))
@@ -403,7 +999,7 @@ export default function App() {
   const [introStep, setIntroStep] = useState(0)
   
   // --- BOOT SEQUENCE (Removed typing effect) ---
-  const [isBooting, setIsBooting] = useState(false) // Set to false by default to skip boot screen
+  const [isBooting, setIsBooting] = useState(false) 
 
   const [viewMode, setViewMode] = useState('android'); const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
@@ -414,8 +1010,8 @@ export default function App() {
   // --- WORKSPACE MODE ---
   const [showWorkspace, setShowWorkspace] = useState(false)
   const [workspaceTasks, setWorkspaceTasks] = useState([])
-  const [workspaceActiveTab, setWorkspaceActiveTab] = useState('canvas') // canvas, code, web, logs
-  const [workspaceContent, setWorkspaceContent] = useState(null) // { type: 'code'|'3d'|'web', data: ... }
+  const [workspaceActiveTab, setWorkspaceActiveTab] = useState('canvas') 
+  const [workspaceContent, setWorkspaceContent] = useState(null) 
   const [workspaceCommand, setWorkspaceCommand] = useState('')
   const [workspaceProcessing, setWorkspaceProcessing] = useState(false)
   const [workspaceLogs, setWorkspaceLogs] = useState([{ type: 'system', text: 'Workspace initialized. Awaiting command...' }])
@@ -524,7 +1120,7 @@ export default function App() {
     if (!showIntro) return
     const t1 = setTimeout(() => setIntroStep(1), 1000)
     const t2 = setTimeout(() => setIntroStep(2), 3500)
-    const t3 = setTimeout(() => { setShowIntro(false); setIsBooting(false) }, 6000) // Skips boot typing
+    const t3 = setTimeout(() => { setShowIntro(false); setIsBooting(false) }, 6000)
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
   }, [showIntro])
 
@@ -718,6 +1314,38 @@ export default function App() {
 
     const l = cmdText.toLowerCase()
 
+    // 0. Direct App / Link Opening
+    if (l.includes('open ') || l.includes('visit ') || l.includes('search web ') || l.includes('google ')) {
+      const t1 = addWorkspaceTask('Executing external command...')
+      await new Promise(r => setTimeout(r, 500))
+      
+      let responseMsg = ""
+      if (l.includes('whatsapp')) {
+        responseMsg = openApp('whatsapp')
+      } else if (l.includes('instagram')) {
+        responseMsg = openApp('instagram')
+      } else if (l.includes('youtube')) {
+        responseMsg = openApp('youtube')
+      } else if (l.includes('github')) {
+        responseMsg = openApp('github')
+      } else if (l.includes('web ') || l.includes('search web ') || l.includes('google ')) {
+        const q = cmdText.replace(/^(open|visit|search web|google)\s+/i, '')
+        openAnonymous(q)
+        responseMsg = `Searching the web for: "${q}"...`
+      } else {
+        responseMsg = `I cannot directly open "${cmdText}" as an app. I will search for it instead.`
+        openAnonymous(cmdText)
+      }
+      
+      updateWorkspaceTask(t1, { status: 'done', progress: 100 })
+      removeWorkspaceTask(t1)
+      
+      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: responseMsg }])
+      speakText(responseMsg)
+      setWorkspaceProcessing(false)
+      return
+    }
+
     // 1. 3D Modeling / Graphic Task
     if (l.includes('3d') || l.includes('rocket') || l.includes('draw') || l.includes('model') || l.includes('image') || l.includes('picture')) {
       const t1 = addWorkspaceTask('Analyzing visual request...')
@@ -743,7 +1371,6 @@ export default function App() {
       updateWorkspaceTask(t3, { status: 'done', progress: 100 })
       removeWorkspaceTask(t3)
       
-      // Direct output to chat
       setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `I've generated the 3D render for "${cmdText}". Here is the direct link to the visual output:\n\n🔗 [View Render](${imageUrl})\n\nI have also placed it on your Canvas tab.` }])
       speakText("Task completed. The 3D render is ready on your workspace canvas and the link has been posted in the chat.")
     } 
@@ -753,7 +1380,8 @@ export default function App() {
       await new Promise(r => setTimeout(r, 800))
       updateWorkspaceTask(t1, { status: 'done', progress: 100 })
       
-      const t2 = addWorkspaceTask('Writing game logic...')
+      const t2 = addWorkspaceTask('Writing comprehensive code...')
+      // Uses the new DeepSeek-like code generator
       const code = generateLongCode('javascript', cmdText, 'Fully autonomous generation')
       setWorkspaceContent({ type: 'code', data: { lang: 'javascript', code } })
       setWorkspaceActiveTab('code')
@@ -765,9 +1393,9 @@ export default function App() {
       updateWorkspaceTask(t3, { status: 'done', progress: 100 })
       removeWorkspaceTask(t3)
 
-      // Direct output to chat
-      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `I've written the code for your game. Here is the complete script directly:\n\n\`\`\`javascript\n${code}\n\`\`\`\n\nI've also placed it in the Code tab for easier viewing.` }])
-      speakText("I have written and compiled the code for your project. The code has been posted directly in the chat.")
+      // Direct output to chat with the massive code block
+      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `I've written the code for your game. Here is the complete, comprehensive script directly:\n\n\`\`\`javascript\n${code}\n\`\`\`\n\nI've also placed it in the Code tab for easier viewing.` }])
+      speakText("I have written and compiled the comprehensive code for your project. The code has been posted directly in the chat.")
     }
     // 3. Web Search / Data gathering
     else if (l.includes('search') || l.includes('find') || l.includes('fetch') || l.includes('website')) {
@@ -783,7 +1411,6 @@ export default function App() {
       updateWorkspaceTask(t2, { status: 'done', progress: 100 })
       removeWorkspaceTask(t2)
       
-      // Direct output to chat
       const answerText = result.error ? `Search error: ${result.error}` : result.answer
       setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `Search complete. Here are the direct results for "${cmdText}":\n\n${answerText}\n\n${result.safestUrl ? `🔗 Source: ${result.safestUrl}` : ''}` }])
       speakText("Search complete. Displaying results directly in the chat.")
@@ -795,7 +1422,6 @@ export default function App() {
       updateWorkspaceTask(t1, { status: 'done', progress: 100 })
       removeWorkspaceTask(t1)
       
-      // Direct output
       const reply = `I received your command: "${cmdText}". I am ready to execute it in the workspace. How can I assist further?`
       setWorkspaceLogs(prev => [...prev, { type: 'ai', text: reply }])
       speakText("Command received. How can I assist further?")
@@ -1399,11 +2025,13 @@ export default function App() {
           <div style={styles.workspacePanelHeader}>
             <Icon name="sparkles" size={16} color={theme.primary} /> AGENT COMMAND
           </div>
-          <div style={styles.workspaceChatArea}>
+          {/* ADDED OVERFLOW-X AUTO FOR HORIZONTAL SCROLLING */}
+          <div style={{...styles.workspaceChatArea, overflowX: 'auto', whiteSpace: 'nowrap'}}>
              {workspaceLogs.filter(l => l.type === 'ai' || l.type === 'user').slice(-5).map((log, i) => (
-               <div key={i} style={{padding: 8, marginBottom: 8, borderRadius: 6, backgroundColor: log.type === 'user' ? hexA(theme.primary, 0.2) : 'rgba(255,255,255,0.05)', borderLeft: log.type === 'user' ? `3px solid ${theme.primary}` : '3px solid #4f8'}}>
+               <div key={i} style={{padding: 8, marginBottom: 8, borderRadius: 6, backgroundColor: log.type === 'user' ? hexA(theme.primary, 0.2) : 'rgba(255,255,255,0.05)', borderLeft: log.type === 'user' ? `3px solid ${theme.primary}` : '3px solid #4f8', minWidth: '100%', boxSizing: 'border-box'}}>
                   <div style={{color: '#888', fontSize: 9, marginBottom: 2}}>{log.type === 'user' ? 'YOU' : 'CYPHER4X'}</div>
-                  <div style={{color: '#ddd', fontSize: 12}}>{renderMessageContent({ id: i, content: log.text })}</div>
+                  {/* Ensure code blocks inside workspace chat don't wrap and allow horizontal scroll */}
+                  <div style={{color: '#ddd', fontSize: 12, whiteSpace: 'pre-wrap'}}>{renderMessageContent({ id: i, content: log.text })}</div>
                </div>
              ))}
           </div>
@@ -1764,8 +2392,8 @@ export default function App() {
         <div style={styles.topBarAndroid}>
           <button onClick={() => setSidebarOpen(true)} style={{ ...styles.hamburgerBtn, position: 'static' }}><Icon name="menu" size={28} color={theme.primary} /></button>
           <div style={styles.topRightButtons}>
-            <button onClick={() => setShowWorkspace(true)} style={{...styles.callButtonTopRight, borderColor: theme.primary, color: theme.primary, padding: '8px 12px'}}><Icon name="layers" size={20} color={theme.primary} /><span style={styles.callLabelTop}>WORK</span></button>
-            <button onClick={toggleFullscreenCall} style={{...styles.callButtonTopRight, borderColor: theme.primary, color: theme.primary}}><Icon name="phone" size={24} color={isCallActive ? '#4f8' : theme.primary} /><span style={styles.callLabelTop}>{isFullscreenCall ? 'ACTIVE' : 'CALL'}</span></button>
+            {/* Work button removed from here, moved to sidebar */}
+            <button onClick={toggleFullscreenCall} style={{...styles.callButtonTopRight, borderColor: theme.primary, color: theme.primary, padding: '6px 10px'}}><Icon name="phone" size={18} color={isCallActive ? '#4f8' : theme.primary} /><span style={styles.callLabelTop}>{isFullscreenCall ? 'ACTIVE' : 'CALL'}</span></button>
             <button onClick={() => setShowSettings(true)} style={styles.settingsButtonTop}><Icon name="cog" size={20} color="#fff" /></button>
           </div>
         </div>
@@ -1800,8 +2428,8 @@ export default function App() {
           <span style={{...styles.versionBadgePC, color: theme.primary, backgroundColor: hexA(theme.primary, 0.13)}}>{VERSION}</span>
         </div>
         <div style={styles.headerRight}>
-          <button onClick={() => setShowWorkspace(true)} style={{...styles.callBtnPC, borderColor: theme.primary, color: theme.primary, backgroundColor: hexA(theme.primary, 0.2)}}><Icon name="layers" size={18} color={theme.primary} /><span>WORKSPACE</span></button>
-          <button onClick={toggleFullscreenCall} style={{...styles.callBtnPC, borderColor: theme.primary, color: theme.primary}}><Icon name="phone" size={18} color={theme.primary} /><span>CALL</span></button>
+          {/* Work button removed from here, moved to sidebar */}
+          <button onClick={toggleFullscreenCall} style={{...styles.callBtnPC, borderColor: theme.primary, color: theme.primary, padding: '4px 8px'}}><Icon name="phone" size={16} color={theme.primary} /><span>CALL</span></button>
           <button onClick={() => { if (requireLogin('Cyber Lab')) setShowCyberLab(true) }} style={styles.settingsBtnPC} title="Terminal (Login required)"><Icon name="shield" size={20} color="#fff" /></button>
           <button onClick={() => { if (requireLogin('Music Generator')) setShowMusicPanel(true) }} style={styles.settingsBtnPC} title="Music (Login required)"><Icon name="music" size={20} color="#fff" /></button>
           <button onClick={() => { if (requireLogin('Video Generator')) setShowVideoPanel(true) }} style={styles.settingsBtnPC} title="Video (Login required)"><Icon name="video" size={20} color="#fff" /></button>
@@ -1861,7 +2489,7 @@ const styles = {
   introText: { color: '#fff', fontSize: 'clamp(20px, 5vw, 48px)', fontWeight: 'bold', letterSpacing: 6, fontFamily: "'Courier New', monospace", textTransform: 'uppercase' },
 
   appAndroid: { minHeight: '100vh', height: '100vh', color: '#e0e0e0', fontFamily: "'Segoe UI','Courier New',monospace", overflow: 'hidden', margin: 0, padding: 0 },
-  bootContainer: { backgroundColor: '#000', minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }, // Kept for styling reference but not used
+  bootContainer: { backgroundColor: '#000', minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }, 
   bootBackground: { position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center,#1a0000 0%,#000 70%)' },
   bootContent: { position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: 500, padding: 20 },
   bootTitle: { fontSize: 'clamp(48px,12vw,72px)', fontWeight: 'bold', letterSpacing: 8, margin: '0 0 10px', minHeight: 80, fontFamily: "'Courier New',monospace" },
@@ -1891,7 +2519,7 @@ const styles = {
   
   // Workspace Right Panel
   workspaceRightPanel: { width: 'clamp(300px, 30%, 400px)', backgroundColor: '#0a0a0a', borderLeft: '1px solid #222', display: 'flex', flexDirection: 'column', padding: 15, overflow: 'hidden' },
-  workspaceChatArea: { flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 5, marginBottom: 10 },
+  workspaceChatArea: { flex: 1, overflowY: 'auto', overflowX: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 5, marginBottom: 10, whiteSpace: 'nowrap' },
   workspaceInputRow: { display: 'flex', gap: 8, alignItems: 'center', backgroundColor: '#111', padding: 8, borderRadius: 8, border: '1px solid #333' },
   workspaceInput: { flex: 1, padding: '10px 12px', backgroundColor: 'transparent', border: 'none', color: '#fff', fontSize: 13, outline: 'none' },
   workspaceMicBtn: { padding: 10, borderRadius: 6, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
@@ -2085,4 +2713,4 @@ const styles = {
   commandActionsPC: { display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   sidebarBtnPC: { padding: '5px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
   logoutBtnPC: { padding: '5px 10px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
-                                                                                                                                                             }
+    }
