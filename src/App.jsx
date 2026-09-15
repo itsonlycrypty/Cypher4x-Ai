@@ -68,7 +68,7 @@ const TAVILY_URL = "https://api.tavily.com/search"
 const VERSION = "v27"
 const VERSION_FULL = "CYPHER4X v27.0.0"
 const APP_START_TIME = Date.now()
-const TOOLS_ENABLED = true // ENABLED tools for workspace functionality
+const TOOLS_ENABLED = true 
 
 // ==================================================
 // STORAGE
@@ -398,11 +398,12 @@ export default function App() {
   const [profileForm, setProfileForm] = useState({ name: '', username: '', avatar: '', bio: '' })
   const [editingProfile, setEditingProfile] = useState(false)
 
-  // --- INTRO & BOOT SEQUENCE ---
+  // --- INTRO SEQUENCE ---
   const [showIntro, setShowIntro] = useState(true)
   const [introStep, setIntroStep] = useState(0)
-  const [isBooting, setIsBooting] = useState(true)
-  const [bootTypedText, setBootTypedText] = useState(''); const [bootTypedCredit, setBootTypedCredit] = useState('')
+  
+  // --- BOOT SEQUENCE (Removed typing effect) ---
+  const [isBooting, setIsBooting] = useState(false) // Set to false by default to skip boot screen
 
   const [viewMode, setViewMode] = useState('android'); const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
@@ -523,40 +524,9 @@ export default function App() {
     if (!showIntro) return
     const t1 = setTimeout(() => setIntroStep(1), 1000)
     const t2 = setTimeout(() => setIntroStep(2), 3500)
-    const t3 = setTimeout(() => { setShowIntro(false); setIsBooting(true) }, 6000)
+    const t3 = setTimeout(() => { setShowIntro(false); setIsBooting(false) }, 6000) // Skips boot typing
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
   }, [showIntro])
-
-  // BOOT SEQUENCE
-  /* eslint-disable react-hooks/exhaustive-deps */
-  useEffect(() => {
-    if (!isBooting || showIntro) return
-    const title = 'CYPHER4X', credit = 'Created by Hackers Hub led by Crypty'
-    let ti = 0, ci = 0, phase = 'title'
-    const iv = setInterval(() => {
-      if (phase === 'title') {
-        if (ti <= title.length) { setBootTypedText(title.slice(0, ti)); ti++ }
-        else { phase = 'pause'; setTimeout(() => { phase = 'credit' }, 500) }
-      } else if (phase === 'credit') {
-        if (ci <= credit.length) { setBootTypedCredit(credit.slice(0, ci)); ci++ }
-        else {
-          clearInterval(iv)
-          setTimeout(() => {
-            setIsBooting(false)
-            const a = getAuth()
-            if (a && userExists(a.email, a.pin)) { setEmail(a.email); setPin(a.pin); loginUser(a.email, a.pin) }
-            else {
-              setUserMode('guest'); setGuestMessageCount(0)
-              const sp = localStorage.getItem('cypher4x_personality')
-              if (!sp) setShowPersonalityModal(true); else setAiPersonality(sp)
-            }
-          }, 800)
-        }
-      }
-    }, 100)
-    return () => clearInterval(iv)
-  }, [isBooting, showIntro])
-  /* eslint-enable react-hooks/exhaustive-deps */
 
   // Clock — updates every 30s
   useEffect(() => {
@@ -854,7 +824,7 @@ export default function App() {
   }
 
   // ==================================================
-  // MAIN CHAT LOGIC (Unchanged)
+  // MAIN CHAT LOGIC
   // ==================================================
   const executeCommand = (q) => {
     const l = q.toLowerCase().trim()
@@ -1266,11 +1236,6 @@ export default function App() {
     </div>
   )
 
-  // 2. BOOT SEQUENCE
-  if (isBooting) return (
-    <div style={styles.bootContainer}><style>{`@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }`}</style><div style={styles.bootBackground} /><div style={styles.bootContent}><h1 style={{...styles.bootTitle, color: theme.primary, textShadow: `0 0 40px ${theme.primary}, 0 0 80px ${hexA(theme.primary, 0.27)}`}}>{bootTypedText}<span style={{...styles.bootCursor, color: theme.primary}}>|</span></h1><p style={{...styles.bootSubtitle, color: theme.primary}}>{VERSION_FULL} · Advanced AI System</p><div style={{...styles.bootCredit, color: theme.primary, borderTop: `1px solid ${hexA(theme.primary, 0.2)}`}}>{bootTypedCredit}{bootTypedCredit.length > 0 && bootTypedCredit.length < 38 && <span style={{...styles.bootCursor, color: theme.primary}}>|</span>}</div></div></div>
-  )
-
   if (showPersonalityModal) return (
     <div style={{ ...styles.personalityOverlay, background: theme.secondary }}>
       <div style={{ ...styles.personalityCard, borderColor: theme.primary }}>
@@ -1319,7 +1284,6 @@ export default function App() {
   // ==================== WORKSPACE MODE ====================
   if (showWorkspace) return (
     <div style={styles.workspaceContainer}>
-      {/* WORKSPACE HEADER */}
       <div style={styles.workspaceHeader}>
         <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
           <button onClick={() => setShowWorkspace(false)} style={{...styles.workspaceExitBtn, borderColor: theme.primary}}><Icon name="arrowLeft" size={20} color={theme.primary} /> EXIT</button>
@@ -1334,10 +1298,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* WORKSPACE BODY */}
       <div style={styles.workspaceBody}>
-        
-        {/* LEFT PANEL: TASKS & LOGS */}
         <div style={styles.workspaceLeftPanel}>
           <div style={styles.workspacePanelHeader}>
             <Icon name="layers" size={16} color={theme.primary} /> ACTIVE TASKS ({workspaceTasks.length})
@@ -1373,7 +1334,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* CENTER PANEL: CANVAS */}
         <div style={styles.workspaceCenterPanel}>
           <div style={styles.workspaceTabs}>
             <button onClick={() => setWorkspaceActiveTab('canvas')} style={{...styles.workspaceTabBtn, borderBottomColor: workspaceActiveTab === 'canvas' ? theme.primary : 'transparent', color: workspaceActiveTab === 'canvas' ? theme.primary : '#888'}}>CANVAS</button>
@@ -1435,7 +1395,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* RIGHT PANEL: AI COMMAND & CHAT */}
         <div style={styles.workspaceRightPanel}>
           <div style={styles.workspacePanelHeader}>
             <Icon name="sparkles" size={16} color={theme.primary} /> AGENT COMMAND
@@ -1703,7 +1662,6 @@ export default function App() {
             <button onClick={() => setSidebarOpen(false)} style={styles.closeBtn}><Icon name="x" size={20} color="#888" /></button>
           </div>
 
-          {/* AI DASHBOARD IN MINI CHAT SIDEBAR */}
           <div style={styles.sidebarSection}>
             <h3 style={{...styles.sectionTitle, color: theme.primary, borderBottomColor: '#333'}}><Icon name="calendar" size={16} color={theme.primary} /> AI DASHBOARD</h3>
             <div style={{...styles.statsCard, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6}}>
@@ -1763,7 +1721,6 @@ export default function App() {
               {isProcessing && <div style={{ padding: '6px 8px', color: theme.primary, fontSize: 11, fontStyle: 'italic' }}>● CYPHER4X is typing...</div>}
             </div>
 
-            {/* SIDEBAR INPUT WITH FILE ATTACHMENT */}
             <div style={styles.inputRow}>
               <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') sendTextMessage() }} placeholder="Send message..." style={styles.textInputSmall} />
               <label style={styles.sendBtnSmall} title="Attach file">
@@ -1813,7 +1770,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* AI DASHBOARD ON ANDROID HOME SCREEN */}
         <div style={{ position: 'absolute', top: 70, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 12, backgroundColor: 'rgba(0,0,0,0.6)', padding: '6px 16px', borderRadius: 20, border: `1px solid ${hexA(theme.primary, 0.3)}`, zIndex: 10, backdropFilter: 'blur(5px)' }}>
           <span style={{ color: theme.primary, fontSize: 11, fontWeight: 'bold' }}>{dash.date}</span>
           <span style={{ color: '#fff', fontSize: 11 }}>{dash.time}</span>
@@ -1895,7 +1851,7 @@ export default function App() {
 }
 
 // ==================================================
-// STYLES (Expanded with Workspace & Intro)
+// STYLES
 // ==================================================
 const styles = {
   // INTRO SEQUENCE
@@ -1905,7 +1861,7 @@ const styles = {
   introText: { color: '#fff', fontSize: 'clamp(20px, 5vw, 48px)', fontWeight: 'bold', letterSpacing: 6, fontFamily: "'Courier New', monospace", textTransform: 'uppercase' },
 
   appAndroid: { minHeight: '100vh', height: '100vh', color: '#e0e0e0', fontFamily: "'Segoe UI','Courier New',monospace", overflow: 'hidden', margin: 0, padding: 0 },
-  bootContainer: { backgroundColor: '#000', minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' },
+  bootContainer: { backgroundColor: '#000', minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }, // Kept for styling reference but not used
   bootBackground: { position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center,#1a0000 0%,#000 70%)' },
   bootContent: { position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: 500, padding: 20 },
   bootTitle: { fontSize: 'clamp(48px,12vw,72px)', fontWeight: 'bold', letterSpacing: 8, margin: '0 0 10px', minHeight: 80, fontFamily: "'Courier New',monospace" },
@@ -2129,4 +2085,4 @@ const styles = {
   commandActionsPC: { display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   sidebarBtnPC: { padding: '5px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
   logoutBtnPC: { padding: '5px 10px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
-    }
+                                                                                                                                                             }
