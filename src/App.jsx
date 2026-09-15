@@ -66,8 +66,6 @@ const TAVILY_URL = "https://api.tavily.com/search"
 const VERSION = "v26"
 const VERSION_FULL = "CYPHER4X v26.0.0"
 const APP_START_TIME = Date.now()
-
-// GLOBAL FLAG: Set to true to enable tools again
 const TOOLS_ENABLED = false 
 
 // ==================================================
@@ -401,7 +399,6 @@ export default function App() {
   const [enterProgress, setEnterProgress] = useState(0)
   const [enterMessage, setEnterMessage] = useState('Updating...')
   const [viewMode, setViewMode] = useState('android'); const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(false); const [welcomeMessage, setWelcomeMessage] = useState('')
   const [showSettings, setShowSettings] = useState(false)
   const [showPersonalityModal, setShowPersonalityModal] = useState(false)
   const [aiPersonality, setAiPersonality] = useState('polite'); const [customStyle, setCustomStyle] = useState(null)
@@ -526,10 +523,7 @@ export default function App() {
               setUserMode('guest'); setGuestMessageCount(0)
               const sp = localStorage.getItem('cypher4x_personality')
               if (!sp) setShowPersonalityModal(true); else setAiPersonality(sp)
-              if (settings.welcomeEnabled) {
-                const t = new Date().toDateString(), lw = localStorage.getItem('cypher4x_welcome_date')
-                if (lw !== t) { localStorage.setItem('cypher4x_welcome_date', t); setShowWelcomeOverlay(true); const m = `Hello! I'm ${VERSION_FULL}, your AI assistant.`; setWelcomeMessage(m); speakText(m) }
-              }
+              // Removed the welcome overlay trigger logic. The AI Greeting useEffect handles it.
             }
           }, 800)
         }
@@ -627,19 +621,17 @@ export default function App() {
   const handleLogout = () => {
     if (!confirm('Logout?')) return
     clearAuth(); setUserMode('guest'); setProfile(null); setChats([{ id: 'default-' + Date.now(), title: 'Chat 1', messages: [], createdAt: Date.now() }])
-    setCommandHistory([]); setSidebarOpen(false); setGuestMessageCount(0); setShowWelcomeOverlay(false); setShowAuthModal(false); msgCounter.current = 0
+    setCommandHistory([]); setSidebarOpen(false); setGuestMessageCount(0); setShowAuthModal(false); msgCounter.current = 0
     hasGreeted.current = false // Reset greeting for next session
   }
   const incrementGuestMessage = () => { if (userMode !== 'guest') return; const n = guestMessageCount + 1; setGuestMessageCount(n); if (n >= 5) setShowGuestLimit(true) }
 
   // RESTRICTION — block tools entirely as requested
   const requireLogin = (featureName) => {
-    // 1. Block all users from tools until the flag is turned on
     if (!TOOLS_ENABLED) {
       alert(`🔒 ${featureName} is not yet available.\n\nWe are working hard to bring this to you soon!`)
       return false
     }
-    // 2. Existing restriction for guests (will apply once tools are enabled)
     if (settings.restrictTools && userMode !== 'loggedin') {
       alert(`🔒 ${featureName} is restricted.\n\nPlease login or sign up to access this feature.`)
       return false
@@ -647,7 +639,7 @@ export default function App() {
     return true
   }
 
-  // AI GREETING LOGIC
+  // AI GREETING LOGIC (Replaces the Visual Overlay)
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (!isBooting && !isEnteringAI && !hasGreeted.current && activeChatId) {
@@ -657,7 +649,6 @@ export default function App() {
       
       // Add message to the active chat (shows in both Mini Chat and Overview)
       setConversation(prev => {
-        // Only add if the chat is empty to prevent duplicate greetings on reload if they cleared history
         if (prev.length === 0) {
           return [{ id: ++msgCounter.current, role: 'assistant', content: greeting, time: Date.now() }]
         }
@@ -731,7 +722,7 @@ export default function App() {
     }
   }
 
-  // COMMAND EXECUTION
+  // COMMAND EXECUTION — UNCHANGED, STILL WORKS
   const executeCommand = (q) => {
     const l = q.toLowerCase().trim()
     if (l.includes('whatsapp business')) { const g = q.match(/group(?:\s+named)?\s+(.+)/i); if (g) return { response: openWhatsAppGroup(g[1].trim()) }; return { response: openApp('whatsappbusiness') } }
@@ -742,7 +733,6 @@ export default function App() {
     if (l.startsWith('web ') || l.startsWith('search web ')) { const t = q.replace(/^(web|search web)\s+/i, ''); openAnonymous(t); return { response: `Searching "${t}"...` } }
     if (l.startsWith('play ')) { const s = l.replace('play ', '').trim(); window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(s)}`, '_blank'); return { response: `Playing "${s}"! 🎵` } }
 
-    // date/time/day
     const dash = getDashboardInfo()
     if (l === 'time' || l.includes('what time') || l.includes('current time')) return { response: `🕒 Current time: **${dash.time}**\n📅 ${dash.day}, ${dash.date}` }
     if (l === 'date' || l.includes('what date') || l === 'today') return { response: `📅 Today is **${dash.day}**, ${dash.date}\n🕒 Time: ${dash.time}` }
@@ -923,7 +913,7 @@ export default function App() {
   // SETTINGS / PROFILE
   const handlePersonalitySelect = (id) => {
     setAiPersonality(id); setSettings({ ...settings, personality: id }); localStorage.setItem('cypher4x_personality', id); setShowPersonalityModal(false)
-    if (settings.welcomeEnabled) { const t = new Date().toDateString(), lw = localStorage.getItem('cypher4x_welcome_date'); if (lw !== t) { localStorage.setItem('cypher4x_welcome_date', t); setShowWelcomeOverlay(true); const m = `Hello! I'm ${VERSION_FULL}.`; setWelcomeMessage(m); speakText(m) } }
+    // Overlay removed
   }
   const handleBackgroundChange = (e) => {
     const f = e.target.files[0]; if (!f) return
@@ -1183,15 +1173,6 @@ export default function App() {
     </div>
   )
 
-  if (showWelcomeOverlay) return (
-    <div style={{ ...styles.welcomeOverlay, background: theme.secondary }}>
-      <div style={{ ...styles.welcomeCard, borderColor: theme.primary }}>
-        <div style={styles.welcomeBall}><RedBall isSpeaking={isAISpeaking} theme={theme} /></div>
-        <div style={styles.welcomeMessageText}>{welcomeMessage}</div>
-      </div>
-    </div>
-  )
-
   if (showAuthModal) return (
     <div style={styles.authModalOverlay}>
       <div style={{ ...styles.authModalCard, borderColor: theme.primary }}>
@@ -1445,7 +1426,7 @@ export default function App() {
             <button onClick={() => setSidebarOpen(false)} style={styles.closeBtn}><Icon name="x" size={20} color="#888" /></button>
           </div>
 
-          {/* NEW: AI DASHBOARD IN MINI CHAT SIDEBAR */}
+          {/* AI DASHBOARD IN MINI CHAT SIDEBAR */}
           <div style={styles.sidebarSection}>
             <h3 style={{...styles.sectionTitle, color: theme.primary, borderBottomColor: '#333'}}><Icon name="calendar" size={16} color={theme.primary} /> AI DASHBOARD</h3>
             <div style={{...styles.statsCard, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6}}>
@@ -1553,7 +1534,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* NEW: AI DASHBOARD ON ANDROID HOME SCREEN */}
+        {/* AI DASHBOARD ON ANDROID HOME SCREEN */}
         <div style={{ position: 'absolute', top: 70, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 12, backgroundColor: 'rgba(0,0,0,0.6)', padding: '6px 16px', borderRadius: 20, border: `1px solid ${hexA(theme.primary, 0.3)}`, zIndex: 10, backdropFilter: 'blur(5px)' }}>
           <span style={{ color: theme.primary, fontSize: 11, fontWeight: 'bold' }}>{dash.date}</span>
           <span style={{ color: '#fff', fontSize: 11 }}>{dash.time}</span>
@@ -1602,7 +1583,6 @@ export default function App() {
             <div style={styles.pcSidebarRow}><span>Uptime</span><span>{fmtU(stats.uptime)}</span></div>
           </div>
           
-          {/* NEW: AI DASHBOARD ON PC HOME SIDEBAR */}
           <div style={styles.pcSidebarSection}>
             <h3 style={{...styles.pcSidebarTitle, color: theme.primary}}><Icon name="calendar" size={16} color={theme.primary} /> DASHBOARD</h3>
             <div style={styles.pcSidebarRow}><span>Date</span><span>{dash.date}</span></div>
@@ -1687,11 +1667,6 @@ const styles = {
   guestLimitButtons: { display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' },
   guestLimitLoginBtn: { padding: '12px 30px', color: '#fff', border: 'none', borderRadius: 30, fontSize: 16, fontWeight: 'bold', cursor: 'pointer', flex: 1, minWidth: 100 },
   guestLimitSignupBtn: { padding: '12px 30px', backgroundColor: '#1a3a3a', color: '#fff', border: '1px solid #2a5a5a', borderRadius: 30, fontSize: 16, fontWeight: 'bold', cursor: 'pointer', flex: 1, minWidth: 100 },
-
-  welcomeOverlay: { position: 'fixed', inset: 0, zIndex: 99997, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
-  welcomeCard: { backgroundColor: '#111', border: '2px solid', borderRadius: 20, padding: '40px 30px', maxWidth: 500, width: '100%', textAlign: 'center' },
-  welcomeBall: { width: 120, height: 120, margin: '0 auto 20px', position: 'relative' },
-  welcomeMessageText: { color: '#fff', fontSize: 20, lineHeight: 1.6, marginBottom: 24, fontFamily: "'Courier New',monospace" },
 
   settingsFullscreen: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, height: '100dvh', backgroundColor: '#000', zIndex: 100000, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
   settingsHeaderFull: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #333', backgroundColor: '#0a0000', flexShrink: 0 },
@@ -1863,4 +1838,4 @@ const styles = {
   commandActionsPC: { display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   sidebarBtnPC: { padding: '5px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
   logoutBtnPC: { padding: '5px 10px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
-    }
+  }
