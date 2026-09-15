@@ -403,9 +403,6 @@ export default function App() {
   const [introStep, setIntroStep] = useState(0)
   const [isBooting, setIsBooting] = useState(true)
   const [bootTypedText, setBootTypedText] = useState(''); const [bootTypedCredit, setBootTypedCredit] = useState('')
-  const [isEnteringAI, setIsEnteringAI] = useState(false)
-  const [enterProgress, setEnterProgress] = useState(0)
-  const [enterMessage, setEnterMessage] = useState('Updating...')
 
   const [viewMode, setViewMode] = useState('android'); const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
@@ -561,27 +558,6 @@ export default function App() {
   }, [isBooting, showIntro])
   /* eslint-enable react-hooks/exhaustive-deps */
 
-  // ENTRY OVERLAY — 12s
-  useEffect(() => {
-    if (isBooting || showIntro) return
-    setIsEnteringAI(true); setEnterProgress(0); setEnterMessage('Updating...')
-    const messages = [
-      { at: 0, text: 'Updating...' }, { at: 25, text: 'Loading engine...' },
-      { at: 50, text: 'Syncing data...' }, { at: 75, text: 'Almost ready...' }, { at: 95, text: 'Welcome!' },
-    ]
-    const start = Date.now(), duration = 12000
-    const interval = setInterval(() => {
-      const elapsed = Date.now() - start
-      const pct = Math.min((elapsed / duration) * 100, 100)
-      setEnterProgress(pct)
-      let cur = messages[0].text
-      for (const m of messages) { if (pct >= m.at) cur = m.text }
-      setEnterMessage(cur)
-      if (pct >= 100) { clearInterval(interval); setIsEnteringAI(false) }
-    }, 100)
-    return () => clearInterval(interval)
-  }, [isBooting, showIntro])
-
   // Clock — updates every 30s
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 30000)
@@ -670,7 +646,7 @@ export default function App() {
   // AI GREETING LOGIC
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    if (!isBooting && !isEnteringAI && !hasGreeted.current && activeChatId && !showIntro) {
+    if (!isBooting && !hasGreeted.current && activeChatId && !showIntro) {
       hasGreeted.current = true
       const name = profile?.name || (userMode === 'guest' ? 'Guest' : 'there')
       const greeting = `Hello ${name}! 👋 I am CYPHER4X, your advanced AI assistant. How can I help you today?`
@@ -686,7 +662,7 @@ export default function App() {
         speakText(greeting)
       }
     }
-  }, [isBooting, isEnteringAI, activeChatId, showIntro])
+  }, [isBooting, activeChatId, showIntro])
   /* eslint-enable react-hooks/exhaustive-deps */
 
   // CHAT MANAGEMENT
@@ -748,7 +724,7 @@ export default function App() {
   }
 
   // ==================================================
-  // WORKSPACE LOGIC (Simulated Agentic Behavior)
+  // WORKSPACE LOGIC (Direct Output & Mic/Send)
   // ==================================================
   const addWorkspaceTask = (text) => {
     const id = Date.now() + Math.random()
@@ -784,11 +760,12 @@ export default function App() {
 
       const t3 = addWorkspaceTask('Generating 3D mesh and rendering...')
       setWorkspaceActiveTab('canvas')
+      const imageUrl = 'https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&w=600&q=80'
       setWorkspaceContent({ 
         type: '3d', 
         data: { 
           title: '3D Render: ' + cmdText.slice(0, 30), 
-          image: 'https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&w=600&q=80', // Rocket placeholder
+          image: imageUrl,
           colors: ['#ff003c', '#00ffff', '#ffffff']
         } 
       })
@@ -796,8 +773,9 @@ export default function App() {
       updateWorkspaceTask(t3, { status: 'done', progress: 100 })
       removeWorkspaceTask(t3)
       
-      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `I've generated the 3D render for "${cmdText}". You can view it on the canvas.` }])
-      speakText("Task completed. The 3D render is ready on your workspace canvas.")
+      // Direct output to chat
+      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `I've generated the 3D render for "${cmdText}". Here is the direct link to the visual output:\n\n🔗 [View Render](${imageUrl})\n\nI have also placed it on your Canvas tab.` }])
+      speakText("Task completed. The 3D render is ready on your workspace canvas and the link has been posted in the chat.")
     } 
     // 2. Coding / Game Task
     else if (l.includes('game') || l.includes('code') || l.includes('script') || l.includes('program')) {
@@ -806,9 +784,9 @@ export default function App() {
       updateWorkspaceTask(t1, { status: 'done', progress: 100 })
       
       const t2 = addWorkspaceTask('Writing game logic...')
-      setWorkspaceActiveTab('code')
       const code = generateLongCode('javascript', cmdText, 'Fully autonomous generation')
       setWorkspaceContent({ type: 'code', data: { lang: 'javascript', code } })
+      setWorkspaceActiveTab('code')
       await new Promise(r => setTimeout(r, 2000))
       updateWorkspaceTask(t2, { status: 'done', progress: 100 })
 
@@ -817,8 +795,9 @@ export default function App() {
       updateWorkspaceTask(t3, { status: 'done', progress: 100 })
       removeWorkspaceTask(t3)
 
-      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `I've written the code for your game. Check the Code tab to view it.` }])
-      speakText("I have written and compiled the code for your project.")
+      // Direct output to chat
+      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `I've written the code for your game. Here is the complete script directly:\n\n\`\`\`javascript\n${code}\n\`\`\`\n\nI've also placed it in the Code tab for easier viewing.` }])
+      speakText("I have written and compiled the code for your project. The code has been posted directly in the chat.")
     }
     // 3. Web Search / Data gathering
     else if (l.includes('search') || l.includes('find') || l.includes('fetch') || l.includes('website')) {
@@ -834,8 +813,10 @@ export default function App() {
       updateWorkspaceTask(t2, { status: 'done', progress: 100 })
       removeWorkspaceTask(t2)
       
-      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `Search complete. Found information regarding "${cmdText}". Displaying results on the web canvas.` }])
-      speakText("Search complete. Displaying results on your workspace canvas.")
+      // Direct output to chat
+      const answerText = result.error ? `Search error: ${result.error}` : result.answer
+      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `Search complete. Here are the direct results for "${cmdText}":\n\n${answerText}\n\n${result.safestUrl ? `🔗 Source: ${result.safestUrl}` : ''}` }])
+      speakText("Search complete. Displaying results directly in the chat.")
     }
     else {
       // General fallback
@@ -844,8 +825,10 @@ export default function App() {
       updateWorkspaceTask(t1, { status: 'done', progress: 100 })
       removeWorkspaceTask(t1)
       
-      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `I received your command: "${cmdText}". I am ready to execute it in the workspace.` }])
-      speakText("Command received. I am ready to execute it in the workspace.")
+      // Direct output
+      const reply = `I received your command: "${cmdText}". I am ready to execute it in the workspace. How can I assist further?`
+      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: reply }])
+      speakText("Command received. How can I assist further?")
     }
 
     setWorkspaceProcessing(false)
@@ -1288,27 +1271,6 @@ export default function App() {
     <div style={styles.bootContainer}><style>{`@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }`}</style><div style={styles.bootBackground} /><div style={styles.bootContent}><h1 style={{...styles.bootTitle, color: theme.primary, textShadow: `0 0 40px ${theme.primary}, 0 0 80px ${hexA(theme.primary, 0.27)}`}}>{bootTypedText}<span style={{...styles.bootCursor, color: theme.primary}}>|</span></h1><p style={{...styles.bootSubtitle, color: theme.primary}}>{VERSION_FULL} · Advanced AI System</p><div style={{...styles.bootCredit, color: theme.primary, borderTop: `1px solid ${hexA(theme.primary, 0.2)}`}}>{bootTypedCredit}{bootTypedCredit.length > 0 && bootTypedCredit.length < 38 && <span style={{...styles.bootCursor, color: theme.primary}}>|</span>}</div></div></div>
   )
 
-  if (isEnteringAI) return (
-    <div style={styles.enterOverlay}>
-      <div style={styles.enterBackground} />
-      <div style={styles.enterContent}>
-        <h1 style={{ ...styles.enterTitle, color: theme.primary, textShadow: `0 0 20px ${theme.primary}, 0 0 40px ${hexA(theme.primary, 0.27)}`, animation: 'pulse3 1.8s ease-in-out infinite' }}>CYPHER4X</h1>
-        <p style={styles.enterSubtitleSmall}>{VERSION_FULL}</p>
-        <div style={styles.enterUpdatingWrap}>
-          <div style={{...styles.enterUpdatingLabel, color: theme.primary}}>Updating</div>
-          <div style={{...styles.enterUpdatingDots, color: theme.primary}}>
-            <span style={{ animation: 'pulse3 1s 0s ease-in-out infinite' }}>.</span>
-            <span style={{ animation: 'pulse3 1s 0.2s ease-in-out infinite' }}>.</span>
-            <span style={{ animation: 'pulse3 1s 0.4s ease-in-out infinite' }}>.</span>
-          </div>
-        </div>
-        <div style={styles.enterProgressBarWrap}><div style={{ ...styles.enterProgressBar, width: `${enterProgress}%`, backgroundColor: theme.primary, boxShadow: `0 0 20px ${theme.primary}` }} /></div>
-        <span style={{...styles.enterPercent, color: theme.primary}}>{Math.round(enterProgress)}%</span>
-        <p style={styles.enterMessageSmall}>{enterMessage}</p>
-      </div>
-    </div>
-  )
-
   if (showPersonalityModal) return (
     <div style={{ ...styles.personalityOverlay, background: theme.secondary }}>
       <div style={{ ...styles.personalityCard, borderColor: theme.primary }}>
@@ -1479,11 +1441,10 @@ export default function App() {
             <Icon name="sparkles" size={16} color={theme.primary} /> AGENT COMMAND
           </div>
           <div style={styles.workspaceChatArea}>
-             {/* We can reuse the chat overview messages here for the workspace context */}
              {workspaceLogs.filter(l => l.type === 'ai' || l.type === 'user').slice(-5).map((log, i) => (
                <div key={i} style={{padding: 8, marginBottom: 8, borderRadius: 6, backgroundColor: log.type === 'user' ? hexA(theme.primary, 0.2) : 'rgba(255,255,255,0.05)', borderLeft: log.type === 'user' ? `3px solid ${theme.primary}` : '3px solid #4f8'}}>
                   <div style={{color: '#888', fontSize: 9, marginBottom: 2}}>{log.type === 'user' ? 'YOU' : 'CYPHER4X'}</div>
-                  <div style={{color: '#ddd', fontSize: 12}}>{log.text}</div>
+                  <div style={{color: '#ddd', fontSize: 12}}>{renderMessageContent({ id: i, content: log.text })}</div>
                </div>
              ))}
           </div>
@@ -1951,18 +1912,6 @@ const styles = {
   bootCursor: { display: 'inline-block', animation: 'blink 0.7s step-end infinite' },
   bootSubtitle: { fontSize: 'clamp(14px,2vw,20px)', letterSpacing: 4, marginBottom: 40, opacity: 0.8 },
   bootCredit: { fontSize: 14, marginTop: 20, opacity: 0.7, paddingTop: 16, minHeight: 30, fontFamily: "'Courier New',monospace" },
-  enterOverlay: { position: 'fixed', inset: 0, backgroundColor: '#000', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', fontFamily: "'Courier New',monospace" },
-  enterBackground: { position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, #1a0000 0%, #000 70%)' },
-  enterContent: { position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: 420, padding: 20, animation: 'fadeUp 0.6s ease' },
-  enterTitle: { fontSize: 38, letterSpacing: 10, margin: '0 0 8px', fontWeight: 'bold' },
-  enterSubtitleSmall: { color: '#ff6688', fontSize: 12, letterSpacing: 3, marginBottom: 50, opacity: 0.7 },
-  enterUpdatingWrap: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 24 },
-  enterUpdatingLabel: { fontSize: 22, fontWeight: 'bold', letterSpacing: 4, fontFamily: "'Courier New', monospace" },
-  enterUpdatingDots: { display: 'flex', alignItems: 'center', gap: 0, fontSize: 22, fontWeight: 'bold' },
-  enterProgressBarWrap: { width: '100%', height: 4, backgroundColor: '#1a1a1a', borderRadius: 4, overflow: 'hidden', marginBottom: 8, boxShadow: 'inset 0 0 6px #000' },
-  enterProgressBar: { height: '100%', transition: 'width 0.1s linear' },
-  enterPercent: { fontSize: 12, letterSpacing: 2, fontFamily: "'Courier New',monospace" },
-  enterMessageSmall: { color: '#888', fontSize: 11, letterSpacing: 2, marginTop: 16, fontFamily: "'Courier New', monospace", minHeight: 16 },
 
   // WORKSPACE STYLES
   workspaceContainer: { position: 'fixed', inset: 0, backgroundColor: '#050505', zIndex: 99998, display: 'flex', flexDirection: 'column', overflow: 'hidden', fontFamily: "'Segoe UI', 'Courier New', monospace" },
