@@ -53,6 +53,8 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     palette: 'M12 22a10 10 0 1 1 0-20c5.5 0 10 4.5 10 10 0 1.7-1.3 3-3 3h-1.5a1.5 1.5 0 0 0-1.5 1.5c0 .4.1.7.4 1 .3.3.6.6.6 1.2A1.8 1.8 0 0 1 12 22zM7.5 11a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm5-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm5 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-5 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2z',
     paperclip: 'M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48',
     lock: 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4',
+    playCircle: 'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM10 8l6 4-6 4V8z',
+    layers: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
   }
   if (!p[name]) return null
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display:'inline-block', verticalAlign:'middle', flexShrink:0 }}><path d={p[name]} /></svg>
@@ -63,10 +65,10 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
 // ==================================================
 const TAVILY_API_KEY = "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"
 const TAVILY_URL = "https://api.tavily.com/search"
-const VERSION = "v26"
-const VERSION_FULL = "CYPHER4X v26.0.0"
+const VERSION = "v27"
+const VERSION_FULL = "CYPHER4X v27.0.0"
 const APP_START_TIME = Date.now()
-const TOOLS_ENABLED = false 
+const TOOLS_ENABLED = true // ENABLED tools for workspace functionality
 
 // ==================================================
 // STORAGE
@@ -333,18 +335,20 @@ function startCanvasVideo(canvas, style, userDesc, wm, onProgress) {
 // ==================================================
 // RED BALL — colors from theme
 // ==================================================
-const RedBall = ({ isSpeaking = false, theme = {} }) => {
+const RedBall = ({ isSpeaking = false, theme = {}, size = 180 }) => {
   const c = theme.ballColor || '#ff003c'
   const c2 = theme.ballColorLight || lightenColor(c)
   const c3 = theme.ballColorDark || darkenColor(c)
+  const scale = size / 180
   return (
-    <div style={styles.ballContainer}>
-      <div style={{ ...styles.ring1, borderColor: hexA(c, 0.25) }} />
-      <div style={{ ...styles.ring2, borderColor: hexA(c, 0.12) }} />
-      <div style={{ ...styles.ring3, borderColor: hexA(c, 0.15) }} />
+    <div style={{...styles.ballContainer, width: 300 * scale, height: 300 * scale}}>
+      <div style={{ ...styles.ring1, width: 240*scale, height: 240*scale, marginLeft: -120*scale, marginTop: -120*scale, borderColor: hexA(c, 0.25) }} />
+      <div style={{ ...styles.ring2, width: 280*scale, height: 280*scale, marginLeft: -140*scale, marginTop: -140*scale, borderColor: hexA(c, 0.12) }} />
+      <div style={{ ...styles.ring3, width: 200*scale, height: 200*scale, marginLeft: -100*scale, marginTop: -100*scale, borderColor: hexA(c, 0.15) }} />
       <div style={styles.ball3DContainer}>
         <div style={{
           ...styles.ball3D,
+          width: size, height: size,
           background: `radial-gradient(circle at 30% 25%, ${hexA(c2, 0.9)} 0%, transparent 45%), radial-gradient(circle at 40% 35%, ${c2} 0%, ${c} 25%, ${c} 50%, ${c3} 75%, ${darkenColor(c3)} 100%)`,
           boxShadow: `inset -20px -20px 40px ${hexA(c3, 0.8)}, inset 15px 15px 30px ${hexA(c2, 0.4)}, 0 0 50px ${hexA(c, 0.5)}, 0 0 100px ${hexA(c, 0.3)}, 0 0 150px ${hexA(c, 0.15)}`,
           ...(isSpeaking ? {
@@ -393,16 +397,30 @@ export default function App() {
   const [profile, setProfile] = useState(null)
   const [profileForm, setProfileForm] = useState({ name: '', username: '', avatar: '', bio: '' })
   const [editingProfile, setEditingProfile] = useState(false)
+
+  // --- INTRO & BOOT SEQUENCE ---
+  const [showIntro, setShowIntro] = useState(true)
+  const [introStep, setIntroStep] = useState(0)
   const [isBooting, setIsBooting] = useState(true)
   const [bootTypedText, setBootTypedText] = useState(''); const [bootTypedCredit, setBootTypedCredit] = useState('')
   const [isEnteringAI, setIsEnteringAI] = useState(false)
   const [enterProgress, setEnterProgress] = useState(0)
   const [enterMessage, setEnterMessage] = useState('Updating...')
+
   const [viewMode, setViewMode] = useState('android'); const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showPersonalityModal, setShowPersonalityModal] = useState(false)
   const [aiPersonality, setAiPersonality] = useState('polite'); const [customStyle, setCustomStyle] = useState(null)
   const [backgroundImage, setBackgroundImage] = useState(null)
+
+  // --- WORKSPACE MODE ---
+  const [showWorkspace, setShowWorkspace] = useState(false)
+  const [workspaceTasks, setWorkspaceTasks] = useState([])
+  const [workspaceActiveTab, setWorkspaceActiveTab] = useState('canvas') // canvas, code, web, logs
+  const [workspaceContent, setWorkspaceContent] = useState(null) // { type: 'code'|'3d'|'web', data: ... }
+  const [workspaceCommand, setWorkspaceCommand] = useState('')
+  const [workspaceProcessing, setWorkspaceProcessing] = useState(false)
+  const [workspaceLogs, setWorkspaceLogs] = useState([{ type: 'system', text: 'Workspace initialized. Awaiting command...' }])
 
   // ----- THEME -----
   const [theme, setTheme] = useState({
@@ -491,8 +509,8 @@ export default function App() {
   const synthRef = useRef(typeof window !== 'undefined' ? window.speechSynthesis : null)
   const recognitionRef = useRef(null); const msgCounter = useRef(0)
   const fileInputRef = useRef(null); const bgInputRef = useRef(null); const chatEndRef = useRef(null)
-  
-  // Ref to track if we've greeted the user this session
+  const workspaceEndRef = useRef(null)
+
   const hasGreeted = useRef(false)
 
   const playBeep = useCallback((f = 800, d = 0.08) => {
@@ -501,10 +519,21 @@ export default function App() {
   }, [settings.soundFx])
   const vibrate = useCallback((p = 10) => { if (!settings.haptic) return; try { navigator.vibrate && navigator.vibrate(p) } catch {} }, [settings.haptic])
 
-  // BOOT
+  // ==================================================
+  // INTRO SEQUENCE
+  // ==================================================
+  useEffect(() => {
+    if (!showIntro) return
+    const t1 = setTimeout(() => setIntroStep(1), 1000)
+    const t2 = setTimeout(() => setIntroStep(2), 3500)
+    const t3 = setTimeout(() => { setShowIntro(false); setIsBooting(true) }, 6000)
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
+  }, [showIntro])
+
+  // BOOT SEQUENCE
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    if (!isBooting) return
+    if (!isBooting || showIntro) return
     const title = 'CYPHER4X', credit = 'Created by Hackers Hub led by Crypty'
     let ti = 0, ci = 0, phase = 'title'
     const iv = setInterval(() => {
@@ -523,19 +552,18 @@ export default function App() {
               setUserMode('guest'); setGuestMessageCount(0)
               const sp = localStorage.getItem('cypher4x_personality')
               if (!sp) setShowPersonalityModal(true); else setAiPersonality(sp)
-              // Removed the welcome overlay trigger logic. The AI Greeting useEffect handles it.
             }
           }, 800)
         }
       }
     }, 100)
     return () => clearInterval(iv)
-  }, [isBooting])
+  }, [isBooting, showIntro])
   /* eslint-enable react-hooks/exhaustive-deps */
 
   // ENTRY OVERLAY — 12s
   useEffect(() => {
-    if (isBooting) return
+    if (isBooting || showIntro) return
     setIsEnteringAI(true); setEnterProgress(0); setEnterMessage('Updating...')
     const messages = [
       { at: 0, text: 'Updating...' }, { at: 25, text: 'Loading engine...' },
@@ -552,7 +580,7 @@ export default function App() {
       if (pct >= 100) { clearInterval(interval); setIsEnteringAI(false) }
     }, 100)
     return () => clearInterval(interval)
-  }, [isBooting])
+  }, [isBooting, showIntro])
 
   // Clock — updates every 30s
   useEffect(() => {
@@ -587,6 +615,7 @@ export default function App() {
   useEffect(() => { if (!activeChatId && chats.length > 0) setActiveChatId(chats[0].id) }, [chats, activeChatId])
   useEffect(() => { if (settings.autoScroll && showChatOverview) chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [conversation, showChatOverview, settings.autoScroll])
   useEffect(() => { cyberEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [cyberLines])
+  useEffect(() => { workspaceEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [workspaceLogs, workspaceTasks])
 
   // AUTH
   const handleAuthSubmit = () => {
@@ -622,14 +651,13 @@ export default function App() {
     if (!confirm('Logout?')) return
     clearAuth(); setUserMode('guest'); setProfile(null); setChats([{ id: 'default-' + Date.now(), title: 'Chat 1', messages: [], createdAt: Date.now() }])
     setCommandHistory([]); setSidebarOpen(false); setGuestMessageCount(0); setShowAuthModal(false); msgCounter.current = 0
-    hasGreeted.current = false // Reset greeting for next session
+    hasGreeted.current = false
   }
   const incrementGuestMessage = () => { if (userMode !== 'guest') return; const n = guestMessageCount + 1; setGuestMessageCount(n); if (n >= 5) setShowGuestLimit(true) }
 
-  // RESTRICTION — block tools entirely as requested
   const requireLogin = (featureName) => {
     if (!TOOLS_ENABLED) {
-      alert(`🔒 ${featureName} is not yet available.\n\nWe are working hard to bring this to you soon!`)
+      alert(`🔒 ${featureName} is not yet available.`)
       return false
     }
     if (settings.restrictTools && userMode !== 'loggedin') {
@@ -639,15 +667,14 @@ export default function App() {
     return true
   }
 
-  // AI GREETING LOGIC (Replaces the Visual Overlay)
+  // AI GREETING LOGIC
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    if (!isBooting && !isEnteringAI && !hasGreeted.current && activeChatId) {
+    if (!isBooting && !isEnteringAI && !hasGreeted.current && activeChatId && !showIntro) {
       hasGreeted.current = true
       const name = profile?.name || (userMode === 'guest' ? 'Guest' : 'there')
       const greeting = `Hello ${name}! 👋 I am CYPHER4X, your advanced AI assistant. How can I help you today?`
       
-      // Add message to the active chat (shows in both Mini Chat and Overview)
       setConversation(prev => {
         if (prev.length === 0) {
           return [{ id: ++msgCounter.current, role: 'assistant', content: greeting, time: Date.now() }]
@@ -655,12 +682,11 @@ export default function App() {
         return prev
       })
 
-      // Speak the greeting if enabled
       if (settings.readAloud || settings.autoStartVoice) {
         speakText(greeting)
       }
     }
-  }, [isBooting, isEnteringAI, activeChatId])
+  }, [isBooting, isEnteringAI, activeChatId, showIntro])
   /* eslint-enable react-hooks/exhaustive-deps */
 
   // CHAT MANAGEMENT
@@ -710,7 +736,6 @@ export default function App() {
     return r
   }, [isFullscreenCall])
 
-  // DASHBOARD INFO HELPER
   const getDashboardInfo = () => {
     const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
     const months = ['January','February','March','April','May','June','July','August','September','October','November','December']
@@ -722,7 +747,132 @@ export default function App() {
     }
   }
 
-  // COMMAND EXECUTION — UNCHANGED, STILL WORKS
+  // ==================================================
+  // WORKSPACE LOGIC (Simulated Agentic Behavior)
+  // ==================================================
+  const addWorkspaceTask = (text) => {
+    const id = Date.now() + Math.random()
+    setWorkspaceTasks(prev => [...prev, { id, text, status: 'pending', progress: 0 }])
+    return id
+  }
+
+  const updateWorkspaceTask = (id, updates) => {
+    setWorkspaceTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t))
+  }
+
+  const removeWorkspaceTask = (id) => {
+    setTimeout(() => setWorkspaceTasks(prev => prev.filter(t => t.id !== id)), 2000)
+  }
+
+  const processWorkspaceCommand = async (cmdText) => {
+    if (!cmdText.trim() || workspaceProcessing) return
+    setWorkspaceProcessing(true)
+    setWorkspaceLogs(prev => [...prev, { type: 'user', text: cmdText }])
+    setWorkspaceCommand('')
+
+    const l = cmdText.toLowerCase()
+
+    // 1. 3D Modeling / Graphic Task
+    if (l.includes('3d') || l.includes('rocket') || l.includes('draw') || l.includes('model') || l.includes('image') || l.includes('picture')) {
+      const t1 = addWorkspaceTask('Analyzing visual request...')
+      await new Promise(r => setTimeout(r, 800))
+      updateWorkspaceTask(t1, { status: 'done', progress: 100 })
+      
+      const t2 = addWorkspaceTask('Fetching reference assets from web...')
+      await new Promise(r => setTimeout(r, 1500))
+      updateWorkspaceTask(t2, { status: 'done', progress: 100 })
+
+      const t3 = addWorkspaceTask('Generating 3D mesh and rendering...')
+      setWorkspaceActiveTab('canvas')
+      setWorkspaceContent({ 
+        type: '3d', 
+        data: { 
+          title: '3D Render: ' + cmdText.slice(0, 30), 
+          image: 'https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&w=600&q=80', // Rocket placeholder
+          colors: ['#ff003c', '#00ffff', '#ffffff']
+        } 
+      })
+      await new Promise(r => setTimeout(r, 2000))
+      updateWorkspaceTask(t3, { status: 'done', progress: 100 })
+      removeWorkspaceTask(t3)
+      
+      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `I've generated the 3D render for "${cmdText}". You can view it on the canvas.` }])
+      speakText("Task completed. The 3D render is ready on your workspace canvas.")
+    } 
+    // 2. Coding / Game Task
+    else if (l.includes('game') || l.includes('code') || l.includes('script') || l.includes('program')) {
+      const t1 = addWorkspaceTask('Initializing development environment...')
+      await new Promise(r => setTimeout(r, 800))
+      updateWorkspaceTask(t1, { status: 'done', progress: 100 })
+      
+      const t2 = addWorkspaceTask('Writing game logic...')
+      setWorkspaceActiveTab('code')
+      const code = generateLongCode('javascript', cmdText, 'Fully autonomous generation')
+      setWorkspaceContent({ type: 'code', data: { lang: 'javascript', code } })
+      await new Promise(r => setTimeout(r, 2000))
+      updateWorkspaceTask(t2, { status: 'done', progress: 100 })
+
+      const t3 = addWorkspaceTask('Compiling and optimizing...')
+      await new Promise(r => setTimeout(r, 1500))
+      updateWorkspaceTask(t3, { status: 'done', progress: 100 })
+      removeWorkspaceTask(t3)
+
+      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `I've written the code for your game. Check the Code tab to view it.` }])
+      speakText("I have written and compiled the code for your project.")
+    }
+    // 3. Web Search / Data gathering
+    else if (l.includes('search') || l.includes('find') || l.includes('fetch') || l.includes('website')) {
+      const t1 = addWorkspaceTask('Connecting to global network...')
+      await new Promise(r => setTimeout(r, 500))
+      updateWorkspaceTask(t1, { status: 'done', progress: 100 })
+      
+      const t2 = addWorkspaceTask('Querying Tavily API...')
+      const result = await searchWeb(cmdText)
+      setWorkspaceActiveTab('web')
+      setWorkspaceContent({ type: 'web', data: { query: cmdText, results: result } })
+      await new Promise(r => setTimeout(r, 1500))
+      updateWorkspaceTask(t2, { status: 'done', progress: 100 })
+      removeWorkspaceTask(t2)
+      
+      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `Search complete. Found information regarding "${cmdText}". Displaying results on the web canvas.` }])
+      speakText("Search complete. Displaying results on your workspace canvas.")
+    }
+    else {
+      // General fallback
+      const t1 = addWorkspaceTask('Processing command...')
+      await new Promise(r => setTimeout(r, 1000))
+      updateWorkspaceTask(t1, { status: 'done', progress: 100 })
+      removeWorkspaceTask(t1)
+      
+      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `I received your command: "${cmdText}". I am ready to execute it in the workspace.` }])
+      speakText("Command received. I am ready to execute it in the workspace.")
+    }
+
+    setWorkspaceProcessing(false)
+  }
+
+  const handleWorkspaceSubmit = (e) => {
+    if (e) e.preventDefault()
+    processWorkspaceCommand(workspaceCommand)
+  }
+
+  const handleWorkspaceVoice = () => {
+    if (isRecording) return
+    const r = new (window.SpeechRecognition || window.webkitSpeechRecognition)()
+    r.continuous = false; r.interimResults = false; r.lang = 'en-US'
+    r.onstart = () => { setIsRecording(true); setWorkspaceLogs(prev => [...prev, { type: 'system', text: 'Listening for voice command...' }]) }
+    r.onend = () => setIsRecording(false)
+    r.onerror = (e) => { setIsRecording(false); setWorkspaceLogs(prev => [...prev, { type: 'system', text: 'Voice error: ' + e.error }]) }
+    r.onresult = (e) => {
+      const t = e.results[0][0].transcript
+      processWorkspaceCommand(t)
+    }
+    r.start()
+  }
+
+  // ==================================================
+  // MAIN CHAT LOGIC (Unchanged)
+  // ==================================================
   const executeCommand = (q) => {
     const l = q.toLowerCase().trim()
     if (l.includes('whatsapp business')) { const g = q.match(/group(?:\s+named)?\s+(.+)/i); if (g) return { response: openWhatsAppGroup(g[1].trim()) }; return { response: openApp('whatsappbusiness') } }
@@ -747,7 +897,6 @@ export default function App() {
     return null
   }
 
-  // MAIN QUERY PROCESSOR
   const processUserQuery = useCallback(async (query) => {
     if (!query || isProcessing) return
     if (userMode === 'guest') incrementGuestMessage()
@@ -913,7 +1062,6 @@ export default function App() {
   // SETTINGS / PROFILE
   const handlePersonalitySelect = (id) => {
     setAiPersonality(id); setSettings({ ...settings, personality: id }); localStorage.setItem('cypher4x_personality', id); setShowPersonalityModal(false)
-    // Overlay removed
   }
   const handleBackgroundChange = (e) => {
     const f = e.target.files[0]; if (!f) return
@@ -1122,6 +1270,20 @@ export default function App() {
   const dash = getDashboardInfo()
 
   // ============ RENDER ============
+  
+  // 1. INTRO SEQUENCE
+  if (showIntro) return (
+    <div style={styles.introContainer}>
+      <div style={styles.introBackground} />
+      <div style={styles.introContent}>
+        {introStep === 0 && <h1 style={{...styles.introText, animation: 'fadeUp 1s ease'}}>INITIALIZING SYSTEM</h1>}
+        {introStep === 1 && <h1 style={{...styles.introText, animation: 'fadeUp 1s ease'}}>HACKERS HUB <span style={{color: theme.primary}}>PRESENTS</span></h1>}
+        {introStep === 2 && <h1 style={{...styles.introText, color: theme.primary, animation: 'pulse3 1s ease'}}>CYPHER4X</h1>}
+      </div>
+    </div>
+  )
+
+  // 2. BOOT SEQUENCE
   if (isBooting) return (
     <div style={styles.bootContainer}><style>{`@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }`}</style><div style={styles.bootBackground} /><div style={styles.bootContent}><h1 style={{...styles.bootTitle, color: theme.primary, textShadow: `0 0 40px ${theme.primary}, 0 0 80px ${hexA(theme.primary, 0.27)}`}}>{bootTypedText}<span style={{...styles.bootCursor, color: theme.primary}}>|</span></h1><p style={{...styles.bootSubtitle, color: theme.primary}}>{VERSION_FULL} · Advanced AI System</p><div style={{...styles.bootCredit, color: theme.primary, borderTop: `1px solid ${hexA(theme.primary, 0.2)}`}}>{bootTypedCredit}{bootTypedCredit.length > 0 && bootTypedCredit.length < 38 && <span style={{...styles.bootCursor, color: theme.primary}}>|</span>}</div></div></div>
   )
@@ -1187,6 +1349,160 @@ export default function App() {
         <div style={styles.authSwitch}>
           <span>{showLogin ? 'No account?' : 'Have account?'}</span>
           <button onClick={() => { setShowLogin(!showLogin); setAuthError('') }} style={{ ...styles.authSwitchBtn, color: theme.primary }}>{showLogin ? 'Sign Up' : 'Login'}</button>
+        </div>
+      </div>
+    </div>
+  )
+
+  // ==================== WORKSPACE MODE ====================
+  if (showWorkspace) return (
+    <div style={styles.workspaceContainer}>
+      {/* WORKSPACE HEADER */}
+      <div style={styles.workspaceHeader}>
+        <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
+          <button onClick={() => setShowWorkspace(false)} style={{...styles.workspaceExitBtn, borderColor: theme.primary}}><Icon name="arrowLeft" size={20} color={theme.primary} /> EXIT</button>
+          <h1 style={{...styles.workspaceTitle, color: theme.primary}}>CYPHER4X WORKSPACE</h1>
+        </div>
+        <div style={{display: 'flex', alignItems: 'center', gap: 15}}>
+          <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
+            <span style={{width: 8, height: 8, borderRadius: '50%', backgroundColor: workspaceProcessing ? '#ffcc00' : '#00ff41', boxShadow: `0 0 10px ${workspaceProcessing ? '#ffcc00' : '#00ff41'}`}} />
+            <span style={{color: '#888', fontSize: 12}}>{workspaceProcessing ? 'AGENT ACTIVE' : 'AGENT IDLE'}</span>
+          </div>
+          <RedBall isSpeaking={isAISpeaking} theme={theme} size={40} />
+        </div>
+      </div>
+
+      {/* WORKSPACE BODY */}
+      <div style={styles.workspaceBody}>
+        
+        {/* LEFT PANEL: TASKS & LOGS */}
+        <div style={styles.workspaceLeftPanel}>
+          <div style={styles.workspacePanelHeader}>
+            <Icon name="layers" size={16} color={theme.primary} /> ACTIVE TASKS ({workspaceTasks.length})
+          </div>
+          <div style={styles.workspaceTaskList}>
+            {workspaceTasks.length === 0 && <span style={{color: '#555', fontSize: 12, fontStyle: 'italic'}}>No active tasks. Give a command...</span>}
+            {workspaceTasks.map(t => (
+              <div key={t.id} style={styles.workspaceTaskItem}>
+                <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: 4}}>
+                  <span style={{color: '#ddd', fontSize: 12}}>{t.text}</span>
+                  <span style={{color: t.status === 'done' ? '#00ff41' : '#ffcc00', fontSize: 10}}>{t.status.toUpperCase()}</span>
+                </div>
+                <div style={{width: '100%', height: 4, backgroundColor: '#111', borderRadius: 2, overflow: 'hidden'}}>
+                  <div style={{width: `${t.progress}%`, height: '100%', backgroundColor: t.status === 'done' ? '#00ff41' : theme.primary, transition: 'width 0.3s ease'}} />
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div style={{...styles.workspacePanelHeader, marginTop: 15}}>
+            <Icon name="terminal" size={16} color={theme.primary} /> AGENT LOGS
+          </div>
+          <div style={styles.workspaceLogList}>
+            {workspaceLogs.map((log, i) => (
+              <div key={i} style={{marginBottom: 6, fontSize: 11, fontFamily: 'monospace'}}>
+                <span style={{color: log.type === 'user' ? theme.primary : log.type === 'ai' ? '#4f8' : '#888'}}>
+                  [{log.type.toUpperCase()}] 
+                </span>
+                <span style={{color: '#ccc'}}> {log.text}</span>
+              </div>
+            ))}
+            <div ref={workspaceEndRef} />
+          </div>
+        </div>
+
+        {/* CENTER PANEL: CANVAS */}
+        <div style={styles.workspaceCenterPanel}>
+          <div style={styles.workspaceTabs}>
+            <button onClick={() => setWorkspaceActiveTab('canvas')} style={{...styles.workspaceTabBtn, borderBottomColor: workspaceActiveTab === 'canvas' ? theme.primary : 'transparent', color: workspaceActiveTab === 'canvas' ? theme.primary : '#888'}}>CANVAS</button>
+            <button onClick={() => setWorkspaceActiveTab('code')} style={{...styles.workspaceTabBtn, borderBottomColor: workspaceActiveTab === 'code' ? theme.primary : 'transparent', color: workspaceActiveTab === 'code' ? theme.primary : '#888'}}>CODE</button>
+            <button onClick={() => setWorkspaceActiveTab('web')} style={{...styles.workspaceTabBtn, borderBottomColor: workspaceActiveTab === 'web' ? theme.primary : 'transparent', color: workspaceActiveTab === 'web' ? theme.primary : '#888'}}>WEB</button>
+          </div>
+          
+          <div style={styles.workspaceCanvasArea}>
+            {workspaceActiveTab === 'canvas' && (
+              workspaceContent?.type === '3d' ? (
+                <div style={{textAlign: 'center'}}>
+                  <h3 style={{color: theme.primary, marginBottom: 20}}>{workspaceContent.data.title}</h3>
+                  <img src={workspaceContent.data.image} alt="Generated 3D" style={{maxWidth: '100%', maxHeight: '60vh', borderRadius: 12, border: `1px solid ${hexA(theme.primary, 0.3)}`}} />
+                  <p style={{color: '#888', marginTop: 15}}>Rendered by Cypher4x Engine</p>
+                </div>
+              ) : (
+                <div style={{textAlign: 'center', color: '#555'}}>
+                  <Icon name="image" size={64} color="#333" />
+                  <p style={{marginTop: 15}}>No visual output yet. Ask AI to create something.</p>
+                </div>
+              )
+            )}
+            
+            {workspaceActiveTab === 'code' && (
+              workspaceContent?.type === 'code' ? (
+                <div style={{width: '100%', height: '100%', overflow: 'auto', backgroundColor: '#0a0a0a', padding: 20, borderRadius: 8, border: '1px solid #333'}}>
+                  <pre style={{margin: 0, color: '#e0e0e0', fontFamily: 'monospace', fontSize: 13, whiteSpace: 'pre-wrap'}}>{workspaceContent.data.code}</pre>
+                </div>
+              ) : (
+                <div style={{textAlign: 'center', color: '#555'}}>
+                  <Icon name="file" size={64} color="#333" />
+                  <p style={{marginTop: 15}}>No code generated yet. Ask AI to build a script.</p>
+                </div>
+              )
+            )}
+            
+            {workspaceActiveTab === 'web' && (
+              workspaceContent?.type === 'web' ? (
+                <div style={{width: '100%', height: '100%', overflow: 'auto', padding: 20}}>
+                  <h3 style={{color: theme.primary, marginBottom: 15}}>Search Results: {workspaceContent.data.query}</h3>
+                  {workspaceContent.data.results.error ? (
+                    <p style={{color: '#ff6688'}}>Error: {workspaceContent.data.results.error}</p>
+                  ) : (
+                    <div style={{backgroundColor: '#1a1a1a', padding: 15, borderRadius: 8, border: '1px solid #333'}}>
+                      <p style={{color: '#ccc', lineHeight: 1.6}}>{workspaceContent.data.results.answer}</p>
+                      {workspaceContent.data.results.safestUrl && (
+                        <a href={workspaceContent.data.results.safestUrl} target="_blank" rel="noopener noreferrer" style={{color: theme.primary, display: 'block', marginTop: 15}}>🔗 Source Link</a>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div style={{textAlign: 'center', color: '#555'}}>
+                  <Icon name="globe" size={64} color="#333" />
+                  <p style={{marginTop: 15}}>No web data fetched yet. Ask AI to search.</p>
+                </div>
+              )
+            )}
+          </div>
+        </div>
+
+        {/* RIGHT PANEL: AI COMMAND & CHAT */}
+        <div style={styles.workspaceRightPanel}>
+          <div style={styles.workspacePanelHeader}>
+            <Icon name="sparkles" size={16} color={theme.primary} /> AGENT COMMAND
+          </div>
+          <div style={styles.workspaceChatArea}>
+             {/* We can reuse the chat overview messages here for the workspace context */}
+             {workspaceLogs.filter(l => l.type === 'ai' || l.type === 'user').slice(-5).map((log, i) => (
+               <div key={i} style={{padding: 8, marginBottom: 8, borderRadius: 6, backgroundColor: log.type === 'user' ? hexA(theme.primary, 0.2) : 'rgba(255,255,255,0.05)', borderLeft: log.type === 'user' ? `3px solid ${theme.primary}` : '3px solid #4f8'}}>
+                  <div style={{color: '#888', fontSize: 9, marginBottom: 2}}>{log.type === 'user' ? 'YOU' : 'CYPHER4X'}</div>
+                  <div style={{color: '#ddd', fontSize: 12}}>{log.text}</div>
+               </div>
+             ))}
+          </div>
+          <form onSubmit={handleWorkspaceSubmit} style={styles.workspaceInputRow}>
+            <input 
+              type="text" 
+              value={workspaceCommand} 
+              onChange={(e) => setWorkspaceCommand(e.target.value)} 
+              placeholder="Command AI agent..." 
+              style={styles.workspaceInput}
+              disabled={workspaceProcessing}
+            />
+            <button type="button" onClick={handleWorkspaceVoice} style={{...styles.workspaceMicBtn, backgroundColor: isRecording ? theme.primary : '#1a1a1a'}}>
+              <Icon name="mic" size={18} color="#fff" />
+            </button>
+            <button type="submit" style={{...styles.workspaceSendBtn, backgroundColor: theme.primary}} disabled={workspaceProcessing}>
+              <Icon name="send" size={18} color="#fff" />
+            </button>
+          </form>
         </div>
       </div>
     </div>
@@ -1444,6 +1760,7 @@ export default function App() {
 
           <div style={styles.sidebarSection}>
             <h3 style={{...styles.sectionTitle, color: theme.primary, borderBottomColor: '#333'}}><Icon name="sparkles" size={16} color={theme.primary} /> QUICK TOOLS {settings.restrictTools && userMode !== 'loggedin' && <Icon name="lock" size={12} color="#888" />}</h3>
+            <button onClick={() => { setSidebarOpen(false); setShowWorkspace(true) }} style={{...styles.toolBtn, backgroundColor: hexA(theme.primary, 0.2), border: `1px solid ${theme.primary}`}}><Icon name="layers" size={16} color={theme.primary} /> AI WORKSPACE</button>
             <button onClick={() => { if (requireLogin('Cyber Lab')) { setSidebarOpen(false); setShowCyberLab(true) } }} style={styles.toolBtn}><Icon name="shield" size={16} color="#fff" /> Cyber Lab / Terminal</button>
             <button onClick={() => { if (requireLogin('Music Generator')) { setSidebarOpen(false); setShowMusicPanel(true) } }} style={styles.toolBtn}><Icon name="music" size={16} color="#fff" /> Music Generator</button>
             <button onClick={() => { if (requireLogin('Video Generator')) { setSidebarOpen(false); setShowVideoPanel(true) } }} style={styles.toolBtn}><Icon name="video" size={16} color="#fff" /> Video Generator</button>
@@ -1529,6 +1846,7 @@ export default function App() {
         <div style={styles.topBarAndroid}>
           <button onClick={() => setSidebarOpen(true)} style={{ ...styles.hamburgerBtn, position: 'static' }}><Icon name="menu" size={28} color={theme.primary} /></button>
           <div style={styles.topRightButtons}>
+            <button onClick={() => setShowWorkspace(true)} style={{...styles.callButtonTopRight, borderColor: theme.primary, color: theme.primary, padding: '8px 12px'}}><Icon name="layers" size={20} color={theme.primary} /><span style={styles.callLabelTop}>WORK</span></button>
             <button onClick={toggleFullscreenCall} style={{...styles.callButtonTopRight, borderColor: theme.primary, color: theme.primary}}><Icon name="phone" size={24} color={isCallActive ? '#4f8' : theme.primary} /><span style={styles.callLabelTop}>{isFullscreenCall ? 'ACTIVE' : 'CALL'}</span></button>
             <button onClick={() => setShowSettings(true)} style={styles.settingsButtonTop}><Icon name="cog" size={20} color="#fff" /></button>
           </div>
@@ -1565,6 +1883,7 @@ export default function App() {
           <span style={{...styles.versionBadgePC, color: theme.primary, backgroundColor: hexA(theme.primary, 0.13)}}>{VERSION}</span>
         </div>
         <div style={styles.headerRight}>
+          <button onClick={() => setShowWorkspace(true)} style={{...styles.callBtnPC, borderColor: theme.primary, color: theme.primary, backgroundColor: hexA(theme.primary, 0.2)}}><Icon name="layers" size={18} color={theme.primary} /><span>WORKSPACE</span></button>
           <button onClick={toggleFullscreenCall} style={{...styles.callBtnPC, borderColor: theme.primary, color: theme.primary}}><Icon name="phone" size={18} color={theme.primary} /><span>CALL</span></button>
           <button onClick={() => { if (requireLogin('Cyber Lab')) setShowCyberLab(true) }} style={styles.settingsBtnPC} title="Terminal (Login required)"><Icon name="shield" size={20} color="#fff" /></button>
           <button onClick={() => { if (requireLogin('Music Generator')) setShowMusicPanel(true) }} style={styles.settingsBtnPC} title="Music (Login required)"><Icon name="music" size={20} color="#fff" /></button>
@@ -1615,9 +1934,15 @@ export default function App() {
 }
 
 // ==================================================
-// STYLES (unchanged, shared)
+// STYLES (Expanded with Workspace & Intro)
 // ==================================================
 const styles = {
+  // INTRO SEQUENCE
+  introContainer: { position: 'fixed', inset: 0, backgroundColor: '#000', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' },
+  introBackground: { position: 'absolute', inset: 0, background: 'radial-gradient(circle at center, #111 0%, #000 100%)' },
+  introContent: { position: 'relative', zIndex: 1, textAlign: 'center' },
+  introText: { color: '#fff', fontSize: 'clamp(20px, 5vw, 48px)', fontWeight: 'bold', letterSpacing: 6, fontFamily: "'Courier New', monospace", textTransform: 'uppercase' },
+
   appAndroid: { minHeight: '100vh', height: '100vh', color: '#e0e0e0', fontFamily: "'Segoe UI','Courier New',monospace", overflow: 'hidden', margin: 0, padding: 0 },
   bootContainer: { backgroundColor: '#000', minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' },
   bootBackground: { position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center,#1a0000 0%,#000 70%)' },
@@ -1639,6 +1964,35 @@ const styles = {
   enterPercent: { fontSize: 12, letterSpacing: 2, fontFamily: "'Courier New',monospace" },
   enterMessageSmall: { color: '#888', fontSize: 11, letterSpacing: 2, marginTop: 16, fontFamily: "'Courier New', monospace", minHeight: 16 },
 
+  // WORKSPACE STYLES
+  workspaceContainer: { position: 'fixed', inset: 0, backgroundColor: '#050505', zIndex: 99998, display: 'flex', flexDirection: 'column', overflow: 'hidden', fontFamily: "'Segoe UI', 'Courier New', monospace" },
+  workspaceHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', backgroundColor: '#0a0a0a', borderBottom: '1px solid #222', flexShrink: 0 },
+  workspaceExitBtn: { display: 'flex', alignItems: 'center', gap: 6, backgroundColor: 'transparent', border: '1px solid', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', fontSize: 12, fontWeight: 'bold' },
+  workspaceTitle: { margin: 0, fontSize: 16, letterSpacing: 2, fontWeight: 'bold' },
+  workspaceBody: { flex: 1, display: 'flex', flexDirection: 'row', overflow: 'hidden' },
+  
+  // Workspace Left Panel
+  workspaceLeftPanel: { width: 'clamp(250px, 25%, 350px)', backgroundColor: '#0a0a0a', borderRight: '1px solid #222', display: 'flex', flexDirection: 'column', padding: 15, overflow: 'hidden' },
+  workspacePanelHeader: { color: '#fff', fontSize: 11, fontWeight: 'bold', letterSpacing: 1, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 },
+  workspaceTaskList: { flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, paddingRight: 5 },
+  workspaceTaskItem: { backgroundColor: '#111', padding: 10, borderRadius: 6, border: '1px solid #222' },
+  workspaceLogList: { flex: 1, overflowY: 'auto', backgroundColor: '#000', borderRadius: 6, padding: 10, border: '1px solid #222' },
+  
+  // Workspace Center Panel
+  workspaceCenterPanel: { flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#111', overflow: 'hidden' },
+  workspaceTabs: { display: 'flex', borderBottom: '1px solid #222', backgroundColor: '#0a0a0a', flexShrink: 0 },
+  workspaceTabBtn: { flex: 1, padding: '12px 0', backgroundColor: 'transparent', border: 'none', borderBottom: '2px solid transparent', cursor: 'pointer', fontSize: 12, fontWeight: 'bold', letterSpacing: 1, transition: 'all 0.2s' },
+  workspaceCanvasArea: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20, overflow: 'auto', position: 'relative' },
+  
+  // Workspace Right Panel
+  workspaceRightPanel: { width: 'clamp(300px, 30%, 400px)', backgroundColor: '#0a0a0a', borderLeft: '1px solid #222', display: 'flex', flexDirection: 'column', padding: 15, overflow: 'hidden' },
+  workspaceChatArea: { flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 5, marginBottom: 10 },
+  workspaceInputRow: { display: 'flex', gap: 8, alignItems: 'center', backgroundColor: '#111', padding: 8, borderRadius: 8, border: '1px solid #333' },
+  workspaceInput: { flex: 1, padding: '10px 12px', backgroundColor: 'transparent', border: 'none', color: '#fff', fontSize: 13, outline: 'none' },
+  workspaceMicBtn: { padding: 10, borderRadius: 6, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  workspaceSendBtn: { padding: 10, borderRadius: 6, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+
+  // BASE APP STYLES (Unchanged)
   personalityOverlay: { position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, overflowY: 'auto' },
   personalityCard: { width: '100%', maxWidth: 700, backgroundColor: '#111', border: '2px solid', borderRadius: 16, padding: 30, textAlign: 'center' },
   personalityTitle: { fontSize: 36, letterSpacing: 6, margin: '0 0 8px' },
@@ -1648,7 +2002,6 @@ const styles = {
   personalityIcon: { fontSize: 28 },
   personalityLabel: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
   personalityDesc: { color: '#888', fontSize: 11, textAlign: 'center' },
-
   authModalOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.9)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
   authModalCard: { width: '100%', maxWidth: 400, backgroundColor: '#111', border: '2px solid', borderRadius: 12, padding: 30, textAlign: 'center', position: 'relative' },
   authModalClose: { position: 'absolute', top: 10, right: 15, background: 'none', border: 'none', color: '#888', fontSize: 24, cursor: 'pointer' },
@@ -1659,7 +2012,6 @@ const styles = {
   authBtn: { width: '100%', padding: 14, color: '#fff', border: 'none', borderRadius: 6, fontSize: 18, fontWeight: 'bold', cursor: 'pointer', marginTop: 8 },
   authSwitch: { marginTop: 16, display: 'flex', justifyContent: 'center', gap: 8, color: '#888', fontSize: 14 },
   authSwitchBtn: { background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 'bold', textDecoration: 'underline' },
-
   guestLimitOverlay: { position: 'fixed', inset: 0, zIndex: 99998, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
   guestLimitCard: { backgroundColor: '#111', border: '2px solid', borderRadius: 20, padding: '40px 30px', maxWidth: 420, width: '100%', textAlign: 'center' },
   guestLimitTitle: { fontSize: 24, marginBottom: 16 },
@@ -1667,7 +2019,6 @@ const styles = {
   guestLimitButtons: { display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' },
   guestLimitLoginBtn: { padding: '12px 30px', color: '#fff', border: 'none', borderRadius: 30, fontSize: 16, fontWeight: 'bold', cursor: 'pointer', flex: 1, minWidth: 100 },
   guestLimitSignupBtn: { padding: '12px 30px', backgroundColor: '#1a3a3a', color: '#fff', border: '1px solid #2a5a5a', borderRadius: 30, fontSize: 16, fontWeight: 'bold', cursor: 'pointer', flex: 1, minWidth: 100 },
-
   settingsFullscreen: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, height: '100dvh', backgroundColor: '#000', zIndex: 100000, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
   settingsHeaderFull: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #333', backgroundColor: '#0a0000', flexShrink: 0 },
   settingsTitleFull: { fontSize: 20, margin: 0, letterSpacing: 2 },
@@ -1691,17 +2042,14 @@ const styles = {
   colorPicker: { width: 60, height: 32, border: '1px solid #333', borderRadius: 6, background: '#000', cursor: 'pointer' },
   presetRow: { display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 },
   presetBtn: { padding: '6px 14px', border: '1px solid #333', borderRadius: 20, color: '#fff', fontSize: 12, fontWeight: 'bold', cursor: 'pointer', textShadow: '0 1px 2px rgba(0,0,0,0.6)' },
-
   dashGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10, marginBottom: 16 },
   dashTile: { padding: 14, backgroundColor: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 10, textAlign: 'center' },
   dashTileLabel: { color: '#888', fontSize: 10, letterSpacing: 1, marginTop: 6, textTransform: 'uppercase' },
   dashTileValue: { color: '#fff', fontSize: 13, fontWeight: 'bold', marginTop: 2 },
-
   rotateOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.9)', zIndex: 99996, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
   rotateCard: { backgroundColor: '#111', border: '2px solid', borderRadius: 20, padding: '40px 30px', maxWidth: 400, width: '100%', textAlign: 'center' },
   rotateText: { color: '#fff', fontSize: 18, margin: '20px 0', lineHeight: 1.6 },
   rotateOkBtn: { padding: '12px 40px', color: '#fff', border: 'none', borderRadius: 30, fontSize: 16, fontWeight: 'bold', cursor: 'pointer' },
-
   fullscreenCallOverlay: { position: 'fixed', inset: 0, backgroundColor: '#000', zIndex: 99995, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 },
   returnBtn: { position: 'absolute', top: 20, left: 20, backgroundColor: 'rgba(255,0,60,0.3)', border: '1px solid #ff003c', borderRadius: 30, padding: '10px 20px', color: '#fff', fontSize: 16, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' },
   fullscreenCallContentNoBall: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 30, width: '100%', maxWidth: 500, flex: 1 },
@@ -1711,7 +2059,6 @@ const styles = {
   fullscreenStatusText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
   fullscreenTranscript: { color: '#ff6688', fontSize: 16, fontStyle: 'italic', padding: '8px 20px', backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 12, maxWidth: '90%', textAlign: 'center', border: '1px solid rgba(255,0,60,0.2)', minHeight: 40 },
   fullscreenMicBtn: { width: 'clamp(70px,14vw,100px)', height: 'clamp(70px,14vw,100px)', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-
   chatOverviewContainer: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, height: '100dvh', backgroundColor: '#000', zIndex: 99994, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
   chatOverviewHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', backgroundColor: '#111', borderBottom: '1px solid #333', flexShrink: 0, gap: 8, flexWrap: 'wrap' },
   chatOverviewBackBtn: { background: 'none', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, cursor: 'pointer' },
@@ -1740,7 +2087,6 @@ const styles = {
   codeLang: { fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1 },
   codeCopyBtn: { display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, fontWeight: 'bold', cursor: 'pointer' },
   codeBlock: { margin: 0, padding: 12, color: '#e0e0e0', fontSize: 12, fontFamily: "'Courier New',monospace", whiteSpace: 'pre', overflowX: 'auto', lineHeight: 1.5 },
-
   profileContainer: { backgroundColor: '#000', minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
   profileCard: { width: '100%', maxWidth: 420, backgroundColor: '#111', border: '2px solid', borderRadius: 12, padding: 28 },
   profileTitle: { textAlign: 'center', marginBottom: 24, fontSize: 22 },
@@ -1754,7 +2100,6 @@ const styles = {
   profileBtnRow: { display: 'flex', gap: 12, marginTop: 12 },
   createBtn: { flex: 1, padding: 14, color: '#fff', border: 'none', borderRadius: 8, fontSize: 16, fontWeight: 'bold', cursor: 'pointer' },
   cancelBtn: { padding: '14px 20px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer' },
-
   sidebarOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 998 },
   sidebar: { position: 'fixed', top: 0, left: 0, bottom: 0, width: 380, maxWidth: '90vw', backgroundColor: '#0a0000', borderRight: '2px solid #ff003c', zIndex: 999, overflowY: 'auto', padding: 16 },
   sidebarHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, paddingBottom: 10, borderBottom: '1px solid #333' },
@@ -1781,12 +2126,10 @@ const styles = {
   sidebarBtn: { padding: '6px 12px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 13 },
   dangerBtn: { padding: '6px 12px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 13 },
   logoutBtn: { padding: '6px 12px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 13 },
-
   topRightButtons: { display: 'flex', gap: 8, alignItems: 'center' },
   settingsButtonTop: { backgroundColor: 'rgba(0,0,0,0.6)', border: '2px solid #333', borderRadius: 30, padding: '6px 12px', display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#fff' },
   settingsBtnPC: { backgroundColor: 'rgba(0,0,0,0.6)', border: '1px solid #333', borderRadius: 16, padding: '4px 10px', display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#fff', marginLeft: 6 },
   floatingBtn: { position: 'absolute', bottom: 150, right: 25, width: 56, height: 56, borderRadius: '50%', border: '2px solid', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.5)', transition: 'all 0.3s ease' },
-
   mainContentAndroid: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', height: '100vh', margin: 0, padding: 0 },
   backgroundAndroid: { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 0 },
   ballContainer: { position: 'relative', width: 300, height: 300, pointerEvents: 'none', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' },
@@ -1812,7 +2155,6 @@ const styles = {
   voiceButtonActive: {},
   voiceLabel: { color: '#fff', fontSize: 12, fontWeight: 'bold', letterSpacing: 1, marginTop: 4 },
   hamburgerBtn: { backgroundColor: 'transparent', border: 'none', cursor: 'pointer', zIndex: 15, padding: 8, borderRadius: 4 },
-
   appPC: { minHeight: '100vh', height: '100vh', color: '#e0e0e0', fontFamily: "'Segoe UI','Courier New',monospace", overflow: 'hidden', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '100vw' },
   headerPC: { padding: '6px 12px', borderBottom: '1px solid', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, backgroundColor: '#0a0000', flexWrap: 'wrap', gap: 4, minHeight: 44 },
   headerLeft: { display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
@@ -1838,4 +2180,4 @@ const styles = {
   commandActionsPC: { display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   sidebarBtnPC: { padding: '5px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
   logoutBtnPC: { padding: '5px 10px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
-  }
+    }
