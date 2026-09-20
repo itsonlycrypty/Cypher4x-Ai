@@ -1081,6 +1081,7 @@ export default function App() {
   const [practicalInput, setPracticalInput] = useState('')
   const [practicalProcessing, setPracticalProcessing] = useState(false)
   const [practicalActionText, setPracticalActionText] = useState('')
+  const [practicalBuildState, setPracticalBuildState] = useState(null) // 'awaiting_type', 'building', etc.
 
   // ----- THEME -----
   const [theme, setTheme] = useState({
@@ -1414,16 +1415,16 @@ export default function App() {
 
     if (l.includes('3d') || l.includes('rocket') || l.includes('draw') || l.includes('model') || l.includes('image') || l.includes('picture')) {
       const t1 = addWorkspaceTask('Analyzing visual request...')
-      await new Promise(r => setTimeout(r, 800))
+      await new Promise(r => setTimeout(r, 500))
       updateWorkspaceTask(t1, { status: 'done', progress: 100 })
       const t2 = addWorkspaceTask('Fetching reference assets...')
-      await new Promise(r => setTimeout(r, 1500))
+      await new Promise(r => setTimeout(r, 1000))
       updateWorkspaceTask(t2, { status: 'done', progress: 100 })
       const t3 = addWorkspaceTask('Generating 3D mesh...')
       setWorkspaceActiveTab('canvas')
       const imageUrl = 'https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&w=600&q=80'
       setWorkspaceContent({ type: '3d', data: { title: '3D Render: ' + cmdText.slice(0, 30), image: imageUrl, colors: ['#ff003c', '#00ffff', '#ffffff'] } })
-      await new Promise(r => setTimeout(r, 2000))
+      await new Promise(r => setTimeout(r, 1500))
       updateWorkspaceTask(t3, { status: 'done', progress: 100 })
       removeWorkspaceTask(t3)
       setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `I've generated the 3D render. View it on the Canvas tab.` }])
@@ -1431,20 +1432,21 @@ export default function App() {
     } 
     else if (l.includes('game') || l.includes('code') || l.includes('script') || l.includes('program')) {
       const t1 = addWorkspaceTask('Initializing development environment...')
-      await new Promise(r => setTimeout(r, 800))
+      await new Promise(r => setTimeout(r, 500))
       updateWorkspaceTask(t1, { status: 'done', progress: 100 })
       const t2 = addWorkspaceTask('Writing code...')
       const code = generateLongCode('javascript', cmdText, 'Simulation generation')
       setWorkspaceContent({ type: 'code', data: { lang: 'javascript', code } })
       setWorkspaceActiveTab('code')
-      await new Promise(r => setTimeout(r, 2000))
+      await new Promise(r => setTimeout(r, 1000))
       updateWorkspaceTask(t2, { status: 'done', progress: 100 })
-      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `I've written the code. Check the Code tab to view it.` }])
+      // FIX: Output code directly to chat instead of asking to check tab
+      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `Here is the code:\n\n\`\`\`javascript\n${code}\n\`\`\`` }])
       speakText("I have written the code for your project.")
     }
     else {
       const t1 = addWorkspaceTask('Processing command...')
-      await new Promise(r => setTimeout(r, 1000))
+      await new Promise(r => setTimeout(r, 500))
       updateWorkspaceTask(t1, { status: 'done', progress: 100 })
       removeWorkspaceTask(t1)
       const reply = `I received your command: "${cmdText}". I am ready to execute it in the workspace.`
@@ -2055,7 +2057,7 @@ export default function App() {
         <div ref={practicalEndRef} />
       </div>
 
-      {/* INPUT AREA */}
+      {/* INPUT AREA - FIXED TO PREVENT CUT OFF */}
       <form onSubmit={handlePracticalSubmit} style={{...styles.practicalInputRow, backgroundColor: practicalBg === '#ffffff' ? '#fff' : '#0a0a0a', borderTopColor: practicalBg === '#ffffff' ? '#ddd' : '#333'}}>
         <label style={{...styles.practicalAttachBtn, color: practicalBg === '#ffffff' ? '#000' : '#fff'}}>
           <Icon name="image" size={24} color={practicalBg === '#ffffff' ? '#000' : '#fff'} />
@@ -2074,11 +2076,11 @@ export default function App() {
           style={{...styles.practicalInput, color: practicalBg === '#ffffff' ? '#000' : '#fff', borderColor: practicalBg === '#ffffff' ? '#ccc' : '#444'}}
           disabled={practicalProcessing}
         />
-        <button type="button" onClick={handlePracticalVoice} style={{...styles.practicalMicBtn, backgroundColor: isRecording ? '#00ff41' : 'transparent'}}>
+        <button type="button" onClick={handlePracticalVoice} style={{...styles.practicalMicBtn, backgroundColor: isRecording ? '#00ff41' : 'transparent', padding: 8}}>
           <Icon name="mic" size={24} color={practicalBg === '#ffffff' ? '#000' : '#fff'} />
         </button>
-        <button type="submit" style={{...styles.practicalSendBtn, backgroundColor: '#00ff41', width: 48, height: 48, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer'}} disabled={practicalProcessing}>
-          <Icon name="send" size={20} color="#000" />
+        <button type="submit" style={{...styles.practicalSendBtn, backgroundColor: '#00ff41', width: 44, height: 44, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', flexShrink: 0}} disabled={practicalProcessing}>
+          <Icon name="send" size={18} color="#000" />
         </button>
       </form>
     </div>
@@ -2329,7 +2331,7 @@ export default function App() {
   // CHAT OVERVIEW
   if (showChatOverview) return (
     <div style={{...styles.chatOverviewContainer, backgroundColor: theme.secondary, backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center'}}>
-      <div style={{...styles.chatOverviewHeader, justifyContent: 'space-between'}}>
+      <div style={{...styles.chatOverviewHeader, justifyContent: 'space-between', borderBottomColor: theme.primary}}>
         <button onClick={() => setShowChatOverview(false)} style={styles.chatOverviewBackBtn}><Icon name="arrowLeft" size={24} color="#fff" /> Back</button>
         <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
           <button onClick={() => setChatOverviewVoiceEnabled(!chatOverviewVoiceEnabled)} style={styles.chatOverviewVoiceToggle}><Icon name={chatOverviewVoiceEnabled ? 'volume2' : 'volumeX'} size={22} color="#fff" /></button>
@@ -2836,4 +2838,4 @@ const styles = {
   commandActionsPC: { display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   sidebarBtnPC: { padding: '5px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
   logoutBtnPC: { padding: '5px 10px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
-                      }
+    }
