@@ -683,186 +683,157 @@ export default function App() {
 
     document.addEventListener('DOMContentLoaded', App.init);
   </script>
+</body>
 </html>
 `
   }
 
-  // Default fallback for JavaScript
-  return `// ${purpose} - Comprehensive JavaScript Implementation
+  if (L.includes('java') && !L.includes('javascript')) {
+    return `// ${purpose} - Comprehensive Java Application
 // Author: Cypher4X AI
 // Version: 1.0.0
-// Description: A fully featured JavaScript application designed for ${purpose}.
-// Features: Modular design, Event handling, DOM manipulation, LocalStorage persistence.
+// Description: A fully featured Java application designed for ${purpose}.
+// Features: OOP design, Exception handling, Collections framework, File I/O.
 
-'use strict';
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
-// ==================================================
-// UTILITY FUNCTIONS
-// ==================================================
-const Utils = {
-  generateId: () => \`id_\${Math.random().toString(36).substr(2, 9)}_\${Date.now()}\`,
-  
-  formatDate: (date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric', month: 'long', day: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    }).format(new Date(date));
-  },
-  
-  debounce: (func, wait) => {
-    let timeout;
-    return function executedFunction(...args) {
-      const later = () => { clearTimeout(timeout); func(...args); };
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-    };
-  }
-};
+public class Cypher4XApp {
+    private static final Logger LOGGER = Logger.getLogger(Cypher4XApp.class.getName());
+    private List<String> items;
 
-// ==================================================
-// STATE MANAGEMENT
-// ==================================================
-class StateManager {
-  constructor(initialState = {}) {
-    this.state = initialState;
-    this.listeners = [];
-  }
-
-  getState() { return this.state; }
-
-  setState(newState) {
-    this.state = { ...this.state, ...newState };
-    this.notify();
-  }
-
-  subscribe(listener) {
-    this.listeners.push(listener);
-    return () => { this.listeners = this.listeners.filter(l => l !== listener); };
-  }
-
-  notify() { this.listeners.forEach(listener => listener(this.state)); }
-}
-
-// ==================================================
-// STORAGE LAYER
-// ==================================================
-class StorageService {
-  static save(key, data) {
-    try {
-      localStorage.setItem(key, JSON.stringify(data));
-      return true;
-    } catch (e) {
-      console.error('Storage save failed:', e);
-      return false;
+    public Cypher4XApp() {
+        this.items = new ArrayList<>();
+        LOGGER.info("Application initialized for: ${purpose}");
     }
-  }
 
-  static load(key, defaultValue = null) {
-    try {
-      const item = localStorage.getItem(key);
-      return item ? JSON.parse(item) : defaultValue;
-    } catch (e) {
-      console.error('Storage load failed:', e);
-      return defaultValue;
+    public void addItem(String item) {
+        if (item == null || item.trim().isEmpty()) {
+            throw new IllegalArgumentException("Item cannot be empty");
+        }
+        items.add(item);
+        LOGGER.info("Added item: " + item);
     }
+
+    public void removeItem(int index) {
+        if (index < 0 || index >= items.size()) {
+            throw new IndexOutOfBoundsException("Invalid index");
+        }
+        String removed = items.remove(index);
+        LOGGER.info("Removed item: " + removed);
+    }
+
+    public void displayItems() {
+        if (items.isEmpty()) {
+            System.out.println("No items to display.");
+            return;
+        }
+        System.out.println("--- Current Items ---");
+        for (int i = 0; i < items.size(); i++) {
+            System.out.println((i + 1) + ". " + items.get(i));
+        }
+        System.out.println("---------------------");
+    }
+
+    public static void main(String[] args) {
+        Cypher4XApp app = new Cypher4XApp();
+        Scanner scanner = new Scanner(System.in);
+        
+        System.out.println("Welcome to ${purpose}!");
+        
+        while (true) {
+            System.out.println("\\nOptions: [1] Add Item [2] Remove Item [3] Display [4] Exit");
+            System.out.print("Choose an option: ");
+            String choice = scanner.nextLine();
+            
+            try {
+                switch (choice) {
+                    case "1":
+                        System.out.print("Enter item name: ");
+                        app.addItem(scanner.nextLine());
+                        break;
+                    case "2":
+                        app.displayItems();
+                        System.out.print("Enter index to remove: ");
+                        int idx = Integer.parseInt(scanner.nextLine()) - 1;
+                        app.removeItem(idx);
+                        break;
+                    case "3":
+                        app.displayItems();
+                        break;
+                    case "4":
+                        System.out.println("Exiting...");
+                        scanner.close();
+                        return;
+                    default:
+                        System.out.println("Invalid option. Try again.");
+                }
+            } catch (Exception e) {
+                System.err.println("Error: " + e.getMessage());
+            }
+        }
+    }
+}
+`
   }
+
+  // Default fallback for other languages (C++, C#, SQL, etc.)
+  return `// ${purpose} - Comprehensive Source Code
+// Author: Cypher4X AI
+// Version: 1.0.0
+// Language: ${lang}
+// Description: A fully featured implementation designed for ${purpose}.
+// Features: Modular design, Error handling, Comments, and best practices.
+
+/*
+ * ==================================================
+ * SECTION 1: IMPORTS & CONFIGURATION
+ * ==================================================
+ */
+
+// Add your necessary imports and configuration here based on the language.
+
+/*
+ * ==================================================
+ * SECTION 2: CORE LOGIC
+ * ==================================================
+ */
+
+/**
+ * Main class or function to handle the core logic of ${purpose}.
+ */
+class Cypher4XApp {
+    constructor() {
+        this.data = [];
+        this.init();
+    }
+
+    init() {
+        console.log("Initializing ${purpose}...");
+        // Add setup logic here
+    }
+
+    process(input) {
+        // Add processing logic here
+        console.log("Processing: " + input);
+    }
+
+    render() {
+        // Add rendering or output logic here
+    }
 }
 
-// ==================================================
-// CORE APPLICATION LOGIC
-// ==================================================
-class AppController {
-  constructor() {
-    this.storageKey = 'cypher4x_app_data';
-    this.stateManager = new StateManager({
-      items: StorageService.load(this.storageKey, []),
-      isProcessing: false,
-      error: null
-    });
+/*
+ * ==================================================
+ * SECTION 3: ENTRY POINT
+ * ==================================================
+ */
 
-    this.init();
-  }
-
-  init() {
-    console.log('Initializing ${purpose}...');
-    this.render();
-    this.attachEventListeners();
-  }
-
-  addItem(itemData) {
-    const newItem = {
-      id: Utils.generateId(),
-      ...itemData,
-      createdAt: new Date().toISOString()
-    };
-    
-    const currentItems = this.stateManager.getState().items;
-    const updatedItems = [...currentItems, newItem];
-    
-    this.stateManager.setState({ items: updatedItems });
-    StorageService.save(this.storageKey, updatedItems);
-    
-    console.log('Added item:', newItem);
-    this.render();
-  }
-
-  removeItem(id) {
-    const currentItems = this.stateManager.getState().items;
-    const updatedItems = currentItems.filter(item => item.id !== id);
-    
-    this.stateManager.setState({ items: updatedItems });
-    StorageService.save(this.storageKey, updatedItems);
-    
-    console.log('Removed item:', id);
-    this.render();
-  }
-
-  render() {
-    const container = document.getElementById('app-root') || document.body;
-    const { items } = this.stateManager.getState();
-
-    container.innerHTML = \`
-      <div class="app-wrapper">
-        <header>
-          <h1>${purpose}</h1>
-        </header>
-        <main>
-          <button id="add-btn">Add New Item</button>
-          <div id="items-list">
-            \${items.length === 0 ? '<p>No items yet.</p>' : items.map(item => \`
-              <div class="item">
-                <span>\${item.title}</span>
-                <small>\${Utils.formatDate(item.createdAt)}</small>
-                <button class="delete-btn" data-id="\${item.id}">X</button>
-              </div>
-            \`).join('')}
-          </div>
-        </main>
-      </div>
-    \`;
-  }
-
-  attachEventListeners() {
-    document.addEventListener('click', (e) => {
-      if (e.target.id === 'add-btn') {
-        const title = prompt('Enter item title:');
-        if (title) this.addItem({ title });
-      }
-      
-      if (e.target.classList.contains('delete-btn')) {
-        const id = e.target.getAttribute('data-id');
-        if (confirm('Delete this item?')) this.removeItem(id);
-      }
-    });
-  }
-}
-
-// ==================================================
-// BOOTSTRAP
-// ==================================================
-document.addEventListener('DOMContentLoaded', () => {
-  window.app = new AppController();
-});
+// Entry point for the application
+const app = new Cypher4XApp();
 `
 }
 
@@ -1109,6 +1080,7 @@ export default function App() {
   ])
   const [practicalInput, setPracticalInput] = useState('')
   const [practicalProcessing, setPracticalProcessing] = useState(false)
+  const [practicalActionText, setPracticalActionText] = useState('')
 
   // ----- THEME -----
   const [theme, setTheme] = useState({
@@ -1508,26 +1480,37 @@ export default function App() {
     let responseType = 'text'
     let responseContent = ''
 
-    // 1. Image Generation / Request
-    if (l.includes('image') || l.includes('picture') || l.includes('draw') || l.includes('show me')) {
+    // 1. Friendly Conversation & General Q&A
+    if (isPureGreeting(cmdText)) {
+      responseContent = `Hello! 👋 I'm doing great. How can I help you today?`
+      await new Promise(r => setTimeout(r, 300)) // Fast response for chat
+    } else if (l.includes('how are you')) {
+      responseContent = `I'm functioning perfectly! Ready to build whatever you need.`
+      await new Promise(r => setTimeout(r, 300))
+    } else if (l.includes('what is your name') || l.includes('who are you')) {
+      responseContent = `I am CYPHER4X, your advanced AI assistant. I'm here to help you build, create, and explore.`
+      await new Promise(r => setTimeout(r, 300))
+    }
+    // 2. Image Generation
+    else if (l.includes('image') || l.includes('picture') || l.includes('draw') || l.includes('show me')) {
+      setPracticalActionText('AI is building your image...')
       responseType = 'image'
-      // Simulate fetching an image from Google/Online
       const keywords = cmdText.replace(/show me|image|picture of|draw/gi, '').trim() || 'abstract'
       responseContent = `https://source.unsplash.com/800x600/?${encodeURIComponent(keywords)}`
-      await new Promise(r => setTimeout(r, 2000))
+      await new Promise(r => setTimeout(r, 800)) // Fast build
     }
-    // 2. Code / App / Tool Creation
+    // 3. Code / App / Tool Creation
     else if (l.includes('code') || l.includes('app') || l.includes('tool') || l.includes('website') || l.includes('game')) {
+      setPracticalActionText('AI is building your code...')
       responseType = 'code'
       const lang = detectLanguage(cmdText)
       responseContent = generateLongCode(lang, cmdText, 'Practical Workspace generation')
-      await new Promise(r => setTimeout(r, 2500))
+      await new Promise(r => setTimeout(r, 1000)) // Fast build
     }
-    // 3. Default Text Response
+    // 4. Default General Chat / Fallback
     else {
-      responseType = 'text'
-      responseContent = `I have analyzed your request: "${cmdText}". I can create this for you. Here is the simulated output.`
-      await new Promise(r => setTimeout(r, 1000))
+      responseContent = `I understand. I can create that for you. What specific details would you like me to include?`
+      await new Promise(r => setTimeout(r, 300))
     }
 
     // Add AI response
@@ -1538,8 +1521,9 @@ export default function App() {
       content: responseContent 
     }])
     
-    speakText(responseType === 'image' ? 'I have generated an image for you.' : 'I have created the requested content.')
+    speakText(responseType === 'image' ? 'I have generated an image for you.' : responseType === 'code' ? 'I have built the code for you.' : responseContent)
     setPracticalProcessing(false)
+    setPracticalActionText('')
   }
 
   const handlePracticalSubmit = (e) => {
@@ -1558,22 +1542,17 @@ export default function App() {
     r.start()
   }
 
-  const handlePracticalExport = () => {
-    const lastAiMsg = [...practicalLogs].reverse().find(l => l.role === 'ai')
-    if (!lastAiMsg) return
-
-    if (lastAiMsg.type === 'code') {
-      const blob = new Blob([lastAiMsg.content], { type: 'text/plain' })
+  const handlePracticalDownload = (log) => {
+    if (log.type === 'code') {
+      const blob = new Blob([log.content], { type: 'text/plain' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `cypher4x_practical_export_${Date.now()}.txt`
+      a.download = `cypher4x_practical_code_${Date.now()}.txt`
       a.click()
       URL.revokeObjectURL(url)
-    } else if (lastAiMsg.type === 'image') {
-      window.open(lastAiMsg.content, '_blank')
-    } else {
-      alert(`Exporting text: "${lastAiMsg.content.slice(0, 50)}..."`)
+    } else if (log.type === 'image') {
+      window.open(log.content, '_blank')
     }
   }
 
@@ -2050,9 +2029,6 @@ export default function App() {
           <button onClick={() => setPracticalBg(practicalBg === '#ffffff' ? '#000000' : '#ffffff')} style={{...styles.practicalExportBtn, borderColor: practicalBg === '#ffffff' ? '#000' : '#fff', color: practicalBg === '#ffffff' ? '#000' : '#fff'}}>
             <Icon name="refresh" size={16} color={practicalBg === '#ffffff' ? '#000' : '#fff'} /> TOGGLE BG
           </button>
-          <button onClick={handlePracticalExport} style={{...styles.practicalExportBtn, borderColor: '#00ff41', color: '#00ff41'}}>
-            <Icon name="download" size={16} color="#00ff41" /> EXPORT
-          </button>
         </div>
       </div>
 
@@ -2061,15 +2037,21 @@ export default function App() {
         {practicalLogs.map(log => (
           <div key={log.id} style={{...styles.practicalMsg, alignSelf: log.role === 'user' ? 'flex-end' : 'flex-start', backgroundColor: log.role === 'user' ? '#00ff41' : (practicalBg === '#ffffff' ? '#f0f0f0' : '#1a1a1a'), color: log.role === 'user' ? '#000' : (practicalBg === '#ffffff' ? '#000' : '#fff')}}>
             {log.type === 'text' && <p style={{margin: 0, whiteSpace: 'pre-wrap'}}>{log.content}</p>}
-            {log.type === 'image' && <img src={log.content} alt="Generated" style={{maxWidth: '100%', maxHeight: '60vh', borderRadius: 8}} />}
+            {log.type === 'image' && (
+              <div>
+                <img src={log.content} alt="Generated" style={{maxWidth: '100%', maxHeight: '60vh', borderRadius: 8}} />
+                <button onClick={() => handlePracticalDownload(log)} style={{marginTop: 10, padding: '8px 16px', backgroundColor: '#00ff41', border: 'none', borderRadius: 4, fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6}}><Icon name="download" size={16} color="#000" /> DOWNLOAD IMAGE</button>
+              </div>
+            )}
             {log.type === 'code' && (
               <div style={{width: '100%', overflowX: 'auto'}}>
                 <pre style={{margin: 0, fontFamily: 'monospace', fontSize: 13, whiteSpace: 'pre', color: practicalBg === '#ffffff' ? '#000' : '#fff'}}>{log.content}</pre>
+                <button onClick={() => handlePracticalDownload(log)} style={{marginTop: 10, padding: '8px 16px', backgroundColor: '#00ff41', border: 'none', borderRadius: 4, fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6}}><Icon name="download" size={16} color="#000" /> DOWNLOAD CODE</button>
               </div>
             )}
           </div>
         ))}
-        {practicalProcessing && <div style={{color: '#00ff41', fontStyle: 'italic'}}>AI is thinking...</div>}
+        {practicalProcessing && <div style={{color: '#00ff41', fontStyle: 'italic'}}>{practicalActionText || 'AI is building...'}</div>}
         <div ref={practicalEndRef} />
       </div>
 
@@ -2095,8 +2077,8 @@ export default function App() {
         <button type="button" onClick={handlePracticalVoice} style={{...styles.practicalMicBtn, backgroundColor: isRecording ? '#00ff41' : 'transparent'}}>
           <Icon name="mic" size={24} color={practicalBg === '#ffffff' ? '#000' : '#fff'} />
         </button>
-        <button type="submit" style={{...styles.practicalSendBtn, backgroundColor: '#00ff41'}} disabled={practicalProcessing}>
-          <Icon name="send" size={24} color="#000" />
+        <button type="submit" style={{...styles.practicalSendBtn, backgroundColor: '#00ff41', width: 48, height: 48, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer'}} disabled={practicalProcessing}>
+          <Icon name="send" size={20} color="#000" />
         </button>
       </form>
     </div>
@@ -2171,7 +2153,7 @@ export default function App() {
           <form onSubmit={handleWorkspaceSubmit} style={styles.workspaceInputRow}>
             <input type="text" value={workspaceCommand} onChange={(e) => setWorkspaceCommand(e.target.value)} placeholder="Command AI agent..." style={styles.workspaceInput} disabled={workspaceProcessing} />
             <button type="button" onClick={handleWorkspaceVoice} style={{...styles.workspaceMicBtn, backgroundColor: isRecording ? theme.primary : '#1a1a1a'}}><Icon name="mic" size={18} color="#fff" /></button>
-            <button type="submit" style={{...styles.workspaceSendBtn, backgroundColor: theme.primary}} disabled={workspaceProcessing}><Icon name="send" size={18} color="#fff" /></button>
+            <button type="submit" style={{...styles.workspaceSendBtn, backgroundColor: theme.primary, width: 40, height: 40, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center'}} disabled={workspaceProcessing}><Icon name="send" size={18} color="#fff" /></button>
           </form>
         </div>
       </div>
@@ -2651,7 +2633,7 @@ const styles = {
   practicalInputRow: { display: 'flex', gap: 8, alignItems: 'center', padding: '12px 20px', borderTop: '1px solid', flexShrink: 0 },
   practicalInput: { flex: 1, padding: '12px 16px', backgroundColor: 'transparent', border: '1px solid', borderRadius: 24, fontSize: 15, outline: 'none' },
   practicalMicBtn: { padding: 10, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  practicalSendBtn: { padding: 10, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  practicalSendBtn: { border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   practicalAttachBtn: { padding: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 
   // ORIGINAL WORKSPACE STYLES
@@ -2854,4 +2836,4 @@ const styles = {
   commandActionsPC: { display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   sidebarBtnPC: { padding: '5px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
   logoutBtnPC: { padding: '5px 10px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
-                                                                 }
+                      }
