@@ -139,7 +139,7 @@ const openWhatsAppGroup = (n) => {
 }
 
 // ==================================================
-// DEEPSEEK-LEVEL CODE GENERATION
+// DEEPSEEK-LEVEL CODE GENERATION (Universal)
 // ==================================================
 const generateLongCode = (lang, purpose, detail) => {
   const L = lang.toLowerCase()
@@ -1090,8 +1090,9 @@ export default function App() {
   const [viewMode, setViewMode] = useState('android'); const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [backgroundImage, setBackgroundImage] = useState(null)
+  const [showChatMenu, setShowChatMenu] = useState(false)
 
-  // --- WORKSPACE MODE (Original) ---
+  // --- ORIGINAL WORKSPACE MODE ---
   const [showWorkspace, setShowWorkspace] = useState(false)
   const [workspaceTasks, setWorkspaceTasks] = useState([])
   const [workspaceActiveTab, setWorkspaceActiveTab] = useState('canvas') 
@@ -1100,14 +1101,14 @@ export default function App() {
   const [workspaceProcessing, setWorkspaceProcessing] = useState(false)
   const [workspaceLogs, setWorkspaceLogs] = useState([{ type: 'system', text: 'Workspace initialized. Awaiting command...' }])
 
-  // --- MAGIC WORKSPACE MODE (New JARVIS-like) ---
-  const [showMagicWorkspace, setShowMagicWorkspace] = useState(false)
-  const [magicTasks, setMagicTasks] = useState([])
-  const [magicActiveTab, setMagicActiveTab] = useState('canvas') 
-  const [magicContent, setMagicContent] = useState(null) 
-  const [magicCommand, setMagicCommand] = useState('')
-  const [magicProcessing, setMagicProcessing] = useState(false)
-  const [magicLogs, setMagicLogs] = useState([{ type: 'system', text: 'Magic Workspace initialized. I am ready to build anything...' }])
+  // --- PRACTICAL WORKSPACE MODE (New Magic Workspace) ---
+  const [showPracticalWorkspace, setShowPracticalWorkspace] = useState(false)
+  const [practicalBg, setPracticalBg] = useState('#ffffff') // White background default
+  const [practicalLogs, setPracticalLogs] = useState([
+    { id: 1, role: 'ai', type: 'text', content: 'Hello! I am your Practical Workspace AI. I can create tools, apps, images, or write code for you. What would you like to build today?' }
+  ])
+  const [practicalInput, setPracticalInput] = useState('')
+  const [practicalProcessing, setPracticalProcessing] = useState(false)
 
   // ----- THEME -----
   const [theme, setTheme] = useState({
@@ -1197,7 +1198,7 @@ export default function App() {
   const recognitionRef = useRef(null); const msgCounter = useRef(0)
   const fileInputRef = useRef(null); const bgInputRef = useRef(null); const chatEndRef = useRef(null)
   const workspaceEndRef = useRef(null)
-  const magicEndRef = useRef(null)
+  const practicalEndRef = useRef(null)
 
   const hasGreeted = useRef(false)
 
@@ -1273,7 +1274,7 @@ export default function App() {
   useEffect(() => { if (settings.autoScroll && showChatOverview) chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [conversation, showChatOverview, settings.autoScroll])
   useEffect(() => { cyberEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [cyberLines])
   useEffect(() => { workspaceEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [workspaceLogs, workspaceTasks])
-  useEffect(() => { magicEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [magicLogs, magicTasks])
+  useEffect(() => { practicalEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [practicalLogs])
 
   // AUTH
   const handleAuthSubmit = () => {
@@ -1349,15 +1350,25 @@ export default function App() {
   const createNewChat = () => {
     const newChat = { id: 'chat-' + Date.now(), title: 'Chat ' + (chats.length + 1), messages: [], createdAt: Date.now() }
     setChats(prev => [newChat, ...prev]); setActiveChatId(newChat.id)
-    setChatOverviewInput(''); setReplyingTo(null)
+    setChatOverviewInput(''); setReplyingTo(null); setShowChatMenu(false)
   }
-  const switchChat = (chatId) => { setActiveChatId(chatId); setChatOverviewInput(''); setReplyingTo(null) }
+  const switchChat = (chatId) => { setActiveChatId(chatId); setChatOverviewInput(''); setReplyingTo(null); setShowChatMenu(false) }
+  const renameChat = (chatId) => {
+    const chat = chats.find(c => c.id === chatId)
+    if (!chat) return
+    const newTitle = prompt('Rename chat:', chat.title)
+    if (newTitle && newTitle.trim()) {
+      setChats(prev => prev.map(c => c.id === chatId ? { ...c, title: newTitle.trim() } : c))
+    }
+    setShowChatMenu(false)
+  }
   const deleteChat = (chatId) => {
     if (chats.length <= 1) { alert('You need at least one chat.'); return }
     if (!confirm('Delete this chat?')) return
     const remaining = chats.filter(c => c.id !== chatId)
     setChats(remaining)
     if (activeChatId === chatId) setActiveChatId(remaining[0].id)
+    setShowChatMenu(false)
   }
   const clearConversation = useCallback(() => setConversation([]), [activeChatId])
   const clearCommands = useCallback(() => setCommandHistory([]), [])
@@ -1429,7 +1440,6 @@ export default function App() {
     setWorkspaceCommand('')
     const l = cmdText.toLowerCase()
 
-    // 3D Modeling
     if (l.includes('3d') || l.includes('rocket') || l.includes('draw') || l.includes('model') || l.includes('image') || l.includes('picture')) {
       const t1 = addWorkspaceTask('Analyzing visual request...')
       await new Promise(r => setTimeout(r, 800))
@@ -1447,7 +1457,6 @@ export default function App() {
       setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `I've generated the 3D render. View it on the Canvas tab.` }])
       speakText("Task completed. The 3D render is ready on your workspace canvas.")
     } 
-    // Coding
     else if (l.includes('game') || l.includes('code') || l.includes('script') || l.includes('program')) {
       const t1 = addWorkspaceTask('Initializing development environment...')
       await new Promise(r => setTimeout(r, 800))
@@ -1461,7 +1470,6 @@ export default function App() {
       setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `I've written the code. Check the Code tab to view it.` }])
       speakText("I have written the code for your project.")
     }
-    // General
     else {
       const t1 = addWorkspaceTask('Processing command...')
       await new Promise(r => setTimeout(r, 1000))
@@ -1486,146 +1494,86 @@ export default function App() {
   }
 
   // ==================================================
-  // MAGIC WORKSPACE LOGIC (Advanced JARVIS)
+  // PRACTICAL WORKSPACE LOGIC (JARVIS-like)
   // ==================================================
-  const addMagicTask = (text) => {
-    const id = Date.now() + Math.random()
-    setMagicTasks(prev => [...prev, { id, text, status: 'pending', progress: 0 }])
-    return id
-  }
-  const updateMagicTask = (id, updates) => {
-    setMagicTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t))
-  }
-  const removeMagicTask = (id) => {
-    setTimeout(() => setMagicTasks(prev => prev.filter(t => t.id !== id)), 2000)
-  }
-  const processMagicCommand = async (cmdText) => {
-    if (!cmdText.trim() || magicProcessing) return
-    setMagicProcessing(true)
-    setMagicLogs(prev => [...prev, { type: 'user', text: cmdText }])
-    setMagicCommand('')
+  const processPracticalCommand = async (cmdText) => {
+    if (!cmdText.trim() || practicalProcessing) return
+    setPracticalProcessing(true)
+    
+    // Add user message
+    setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'user', type: 'text', content: cmdText }])
+    setPracticalInput('')
+    
     const l = cmdText.toLowerCase()
+    let responseType = 'text'
+    let responseContent = ''
 
-    // 1. Direct App / Link Opening
-    if (l.includes('open ') || l.includes('visit ') || l.includes('search web ') || l.includes('google ')) {
-      const t1 = addMagicTask('Executing external command...')
-      await new Promise(r => setTimeout(r, 500))
-      let responseMsg = ""
-      if (l.includes('whatsapp')) responseMsg = openApp('whatsapp')
-      else if (l.includes('instagram')) responseMsg = openApp('instagram')
-      else if (l.includes('youtube')) responseMsg = openApp('youtube')
-      else if (l.includes('github')) responseMsg = openApp('github')
-      else if (l.includes('web ') || l.includes('search web ') || l.includes('google ')) {
-        const q = cmdText.replace(/^(open|visit|search web|google)\s+/i, '')
-        openAnonymous(q)
-        responseMsg = `Searching the web for: "${q}"...`
-      } else {
-        responseMsg = `I cannot directly open "${cmdText}" as an app. Searching instead.`
-        openAnonymous(cmdText)
-      }
-      updateMagicTask(t1, { status: 'done', progress: 100 })
-      removeMagicTask(t1)
-      setMagicLogs(prev => [...prev, { type: 'ai', text: responseMsg }])
-      speakText(responseMsg)
-      setMagicProcessing(false)
-      return
-    }
-
-    // 2. Advanced Code Generation (Any Language)
-    if (l.includes('code') || l.includes('script') || l.includes('program') || l.includes('game') || l.includes('website') || l.includes('app') || l.includes('function')) {
-      const t1 = addMagicTask('Analyzing requirements...')
-      await new Promise(r => setTimeout(r, 800))
-      updateMagicTask(t1, { status: 'done', progress: 100 })
-      
-      const detectedLang = detectLanguage(cmdText)
-      const t2 = addMagicTask(`Generating comprehensive ${detectedLang} code...`)
-      const code = generateLongCode(detectedLang, cmdText, 'DeepSeek-level comprehensive generation')
-      setMagicContent({ type: 'code', data: { lang: detectedLang, code } })
-      setMagicActiveTab('code')
+    // 1. Image Generation / Request
+    if (l.includes('image') || l.includes('picture') || l.includes('draw') || l.includes('show me')) {
+      responseType = 'image'
+      // Simulate fetching an image from Google/Online
+      const keywords = cmdText.replace(/show me|image|picture of|draw/gi, '').trim() || 'abstract'
+      responseContent = `https://source.unsplash.com/800x600/?${encodeURIComponent(keywords)}`
       await new Promise(r => setTimeout(r, 2000))
-      updateMagicTask(t2, { status: 'done', progress: 100 })
-
-      const t3 = addMagicTask('Compiling and optimizing...')
-      await new Promise(r => setTimeout(r, 1500))
-      updateMagicTask(t3, { status: 'done', progress: 100 })
-      removeMagicTask(t3)
-
-      setMagicLogs(prev => [...prev, { type: 'ai', text: `I've written the comprehensive ${detectedLang} code for your project. Here is the complete script directly:\n\n\`\`\`${detectedLang}\n${code}\n\`\`\`\n\nI've also placed it in the Code tab. Use the EXPORT button to download it.` }])
-      speakText(`I have written and compiled the comprehensive ${detectedLang} code for your project.`)
     }
-    // 3. 3D Modeling
-    else if (l.includes('3d') || l.includes('rocket') || l.includes('draw') || l.includes('model') || l.includes('image') || l.includes('picture') || l.includes('shape')) {
-      const t1 = addMagicTask('Analyzing visual request...')
-      await new Promise(r => setTimeout(r, 800))
-      updateMagicTask(t1, { status: 'done', progress: 100 })
-      const t2 = addMagicTask('Fetching reference assets...')
-      await new Promise(r => setTimeout(r, 1500))
-      updateMagicTask(t2, { status: 'done', progress: 100 })
-      const t3 = addMagicTask('Generating 3D render...')
-      setMagicActiveTab('canvas')
-      const imageUrl = 'https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&w=600&q=80'
-      setMagicContent({ type: '3d', data: { title: '3D Render: ' + cmdText.slice(0, 30), image: imageUrl, colors: ['#ff003c', '#00ffff', '#ffffff'] } })
-      await new Promise(r => setTimeout(r, 2000))
-      updateMagicTask(t3, { status: 'done', progress: 100 })
-      removeMagicTask(t3)
-      setMagicLogs(prev => [...prev, { type: 'ai', text: `I've generated the 3D render. View it on the Canvas tab or click EXPORT to open it.` }])
-      speakText("Task completed. The 3D render is ready on your workspace canvas.")
+    // 2. Code / App / Tool Creation
+    else if (l.includes('code') || l.includes('app') || l.includes('tool') || l.includes('website') || l.includes('game')) {
+      responseType = 'code'
+      const lang = detectLanguage(cmdText)
+      responseContent = generateLongCode(lang, cmdText, 'Practical Workspace generation')
+      await new Promise(r => setTimeout(r, 2500))
     }
-    // 4. Web Search
-    else if (l.includes('search') || l.includes('find') || l.includes('fetch')) {
-      const t1 = addMagicTask('Connecting to global network...')
-      await new Promise(r => setTimeout(r, 500))
-      updateMagicTask(t1, { status: 'done', progress: 100 })
-      const t2 = addMagicTask('Querying Tavily API...')
-      const result = await searchWeb(cmdText)
-      setMagicActiveTab('web')
-      setMagicContent({ type: 'web', data: { query: cmdText, results: result } })
-      await new Promise(r => setTimeout(r, 1500))
-      updateMagicTask(t2, { status: 'done', progress: 100 })
-      removeMagicTask(t2)
-      const answerText = result.error ? `Search error: ${result.error}` : result.answer
-      setMagicLogs(prev => [...prev, { type: 'ai', text: `Search complete. Results for "${cmdText}":\n\n${answerText}\n\n${result.safestUrl ? `🔗 Source: ${result.safestUrl}` : ''}` }])
-      speakText("Search complete. Displaying results in the chat.")
-    }
+    // 3. Default Text Response
     else {
-      const t1 = addMagicTask('Processing command...')
+      responseType = 'text'
+      responseContent = `I have analyzed your request: "${cmdText}". I can create this for you. Here is the simulated output.`
       await new Promise(r => setTimeout(r, 1000))
-      updateMagicTask(t1, { status: 'done', progress: 100 })
-      removeMagicTask(t1)
-      const reply = `I received your command: "${cmdText}". I am ready to execute it in the Magic Workspace.`
-      setMagicLogs(prev => [...prev, { type: 'ai', text: reply }])
-      speakText("Command received.")
     }
-    setMagicProcessing(false)
+
+    // Add AI response
+    setPracticalLogs(prev => [...prev, { 
+      id: Date.now() + 1, 
+      role: 'ai', 
+      type: responseType, 
+      content: responseContent 
+    }])
+    
+    speakText(responseType === 'image' ? 'I have generated an image for you.' : 'I have created the requested content.')
+    setPracticalProcessing(false)
   }
-  const handleMagicSubmit = (e) => { if (e) e.preventDefault(); processMagicCommand(magicCommand) }
-  const handleMagicVoice = () => {
+
+  const handlePracticalSubmit = (e) => {
+    if (e) e.preventDefault()
+    processPracticalCommand(practicalInput)
+  }
+
+  const handlePracticalVoice = () => {
     if (isRecording) return
     const r = new (window.SpeechRecognition || window.webkitSpeechRecognition)()
     r.continuous = false; r.interimResults = false; r.lang = 'en-US'
-    r.onstart = () => { setIsRecording(true); setMagicLogs(prev => [...prev, { type: 'system', text: 'Listening...' }]) }
+    r.onstart = () => setIsRecording(true)
     r.onend = () => setIsRecording(false)
-    r.onerror = (e) => { setIsRecording(false); setMagicLogs(prev => [...prev, { type: 'system', text: 'Voice error: ' + e.error }]) }
-    r.onresult = (e) => processMagicCommand(e.results[0][0].transcript)
+    r.onerror = (e) => { setIsRecording(false); alert('Voice error: ' + e.error) }
+    r.onresult = (e) => processPracticalCommand(e.results[0][0].transcript)
     r.start()
   }
-  const handleMagicExport = () => {
-    if (!magicContent) return
-    if (magicContent.type === 'code') {
-      const ext = magicContent.data.lang === 'python' ? 'py' : magicContent.data.lang === 'react' ? 'jsx' : magicContent.data.lang === 'html' ? 'html' : 'js'
-      const blob = new Blob([magicContent.data.code], { type: 'text/plain' })
+
+  const handlePracticalExport = () => {
+    const lastAiMsg = [...practicalLogs].reverse().find(l => l.role === 'ai')
+    if (!lastAiMsg) return
+
+    if (lastAiMsg.type === 'code') {
+      const blob = new Blob([lastAiMsg.content], { type: 'text/plain' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `cypher4x_export_${Date.now()}.${ext}`
+      a.download = `cypher4x_practical_export_${Date.now()}.txt`
       a.click()
       URL.revokeObjectURL(url)
-      setMagicLogs(prev => [...prev, { type: 'system', text: 'Code exported successfully.' }])
-    } else if (magicContent.type === '3d') {
-      window.open(magicContent.data.image, '_blank')
-    } else if (magicContent.type === 'web') {
-      if (magicContent.data.results?.safestUrl) window.open(magicContent.data.results.safestUrl, '_blank')
-      else openAnonymous(magicContent.data.query)
+    } else if (lastAiMsg.type === 'image') {
+      window.open(lastAiMsg.content, '_blank')
+    } else {
+      alert(`Exporting text: "${lastAiMsg.content.slice(0, 50)}..."`)
     }
   }
 
@@ -1764,7 +1712,7 @@ export default function App() {
   const handleReply = (msg) => { setReplyingTo({ id: msg.id, content: msg.content }); setShowChatOverview(true) }
 
   const renderMessageContent = (msg) => {
-    const c = msg.content
+    const c = msg.content || ''
     const rx = /```(\w+)?\n([\s\S]*?)```/g
     const parts = []; let last = 0, m, idx = 0
     while ((m = rx.exec(c)) !== null) {
@@ -2089,6 +2037,71 @@ export default function App() {
     </div>
   )
 
+  // ==================== PRACTICAL WORKSPACE MODE ====================
+  if (showPracticalWorkspace) return (
+    <div style={{...styles.practicalContainer, backgroundColor: practicalBg, color: practicalBg === '#ffffff' ? '#000000' : '#ffffff'}}>
+      {/* HEADER */}
+      <div style={{...styles.practicalHeader, borderBottomColor: practicalBg === '#ffffff' ? '#ddd' : '#333'}}>
+        <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
+          <button onClick={() => setShowPracticalWorkspace(false)} style={{...styles.practicalExitBtn, borderColor: '#00ff41', color: '#00ff41'}}><Icon name="arrowLeft" size={20} color="#00ff41" /> EXIT</button>
+          <h1 style={{...styles.practicalTitle, color: '#00ff41'}}>PRACTICAL WORKSPACE</h1>
+        </div>
+        <div style={{display: 'flex', alignItems: 'center', gap: 15}}>
+          <button onClick={() => setPracticalBg(practicalBg === '#ffffff' ? '#000000' : '#ffffff')} style={{...styles.practicalExportBtn, borderColor: practicalBg === '#ffffff' ? '#000' : '#fff', color: practicalBg === '#ffffff' ? '#000' : '#fff'}}>
+            <Icon name="refresh" size={16} color={practicalBg === '#ffffff' ? '#000' : '#fff'} /> TOGGLE BG
+          </button>
+          <button onClick={handlePracticalExport} style={{...styles.practicalExportBtn, borderColor: '#00ff41', color: '#00ff41'}}>
+            <Icon name="download" size={16} color="#00ff41" /> EXPORT
+          </button>
+        </div>
+      </div>
+
+      {/* CANVAS AREA */}
+      <div style={styles.practicalCanvas}>
+        {practicalLogs.map(log => (
+          <div key={log.id} style={{...styles.practicalMsg, alignSelf: log.role === 'user' ? 'flex-end' : 'flex-start', backgroundColor: log.role === 'user' ? '#00ff41' : (practicalBg === '#ffffff' ? '#f0f0f0' : '#1a1a1a'), color: log.role === 'user' ? '#000' : (practicalBg === '#ffffff' ? '#000' : '#fff')}}>
+            {log.type === 'text' && <p style={{margin: 0, whiteSpace: 'pre-wrap'}}>{log.content}</p>}
+            {log.type === 'image' && <img src={log.content} alt="Generated" style={{maxWidth: '100%', maxHeight: '60vh', borderRadius: 8}} />}
+            {log.type === 'code' && (
+              <div style={{width: '100%', overflowX: 'auto'}}>
+                <pre style={{margin: 0, fontFamily: 'monospace', fontSize: 13, whiteSpace: 'pre', color: practicalBg === '#ffffff' ? '#000' : '#fff'}}>{log.content}</pre>
+              </div>
+            )}
+          </div>
+        ))}
+        {practicalProcessing && <div style={{color: '#00ff41', fontStyle: 'italic'}}>AI is thinking...</div>}
+        <div ref={practicalEndRef} />
+      </div>
+
+      {/* INPUT AREA */}
+      <form onSubmit={handlePracticalSubmit} style={{...styles.practicalInputRow, backgroundColor: practicalBg === '#ffffff' ? '#fff' : '#0a0a0a', borderTopColor: practicalBg === '#ffffff' ? '#ddd' : '#333'}}>
+        <label style={{...styles.practicalAttachBtn, color: practicalBg === '#ffffff' ? '#000' : '#fff'}}>
+          <Icon name="image" size={24} color={practicalBg === '#ffffff' ? '#000' : '#fff'} />
+          <input type="file" accept="image/*" style={{display: 'none'}} onChange={(e) => {
+            const f = e.target.files[0]; if (!f) return;
+            const rd = new FileReader(); rd.onloadend = () => {
+              setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'user', type: 'image', content: rd.result }])
+            }; rd.readAsDataURL(f); e.target.value = '';
+          }} />
+        </label>
+        <input 
+          type="text" 
+          value={practicalInput} 
+          onChange={(e) => setPracticalInput(e.target.value)} 
+          placeholder="Ask AI to create anything..." 
+          style={{...styles.practicalInput, color: practicalBg === '#ffffff' ? '#000' : '#fff', borderColor: practicalBg === '#ffffff' ? '#ccc' : '#444'}}
+          disabled={practicalProcessing}
+        />
+        <button type="button" onClick={handlePracticalVoice} style={{...styles.practicalMicBtn, backgroundColor: isRecording ? '#00ff41' : 'transparent'}}>
+          <Icon name="mic" size={24} color={practicalBg === '#ffffff' ? '#000' : '#fff'} />
+        </button>
+        <button type="submit" style={{...styles.practicalSendBtn, backgroundColor: '#00ff41'}} disabled={practicalProcessing}>
+          <Icon name="send" size={24} color="#000" />
+        </button>
+      </form>
+    </div>
+  )
+
   // ==================== ORIGINAL WORKSPACE MODE ====================
   if (showWorkspace) return (
     <div style={styles.workspaceContainer}>
@@ -2159,83 +2172,6 @@ export default function App() {
             <input type="text" value={workspaceCommand} onChange={(e) => setWorkspaceCommand(e.target.value)} placeholder="Command AI agent..." style={styles.workspaceInput} disabled={workspaceProcessing} />
             <button type="button" onClick={handleWorkspaceVoice} style={{...styles.workspaceMicBtn, backgroundColor: isRecording ? theme.primary : '#1a1a1a'}}><Icon name="mic" size={18} color="#fff" /></button>
             <button type="submit" style={{...styles.workspaceSendBtn, backgroundColor: theme.primary}} disabled={workspaceProcessing}><Icon name="send" size={18} color="#fff" /></button>
-          </form>
-        </div>
-      </div>
-    </div>
-  )
-
-  // ==================== MAGIC WORKSPACE MODE (New) ====================
-  if (showMagicWorkspace) return (
-    <div style={styles.workspaceContainer}>
-      <div style={{...styles.workspaceHeader, borderBottomColor: '#00ff41'}}>
-        <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
-          <button onClick={() => setShowMagicWorkspace(false)} style={{...styles.workspaceExitBtn, borderColor: '#00ff41', color: '#00ff41'}}><Icon name="arrowLeft" size={20} color="#00ff41" /> EXIT</button>
-          <h1 style={{...styles.workspaceTitle, color: '#00ff41'}}>AI MAGIC WORKSPACE</h1>
-        </div>
-        <div style={{display: 'flex', alignItems: 'center', gap: 15}}>
-          <button onClick={handleMagicExport} style={{...styles.workspaceExportBtn, borderColor: '#00ff41', color: '#00ff41'}}><Icon name="download" size={16} color="#00ff41" /> EXPORT</button>
-          <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
-            <span style={{width: 8, height: 8, borderRadius: '50%', backgroundColor: magicProcessing ? '#ffcc00' : '#00ff41', boxShadow: `0 0 10px ${magicProcessing ? '#ffcc00' : '#00ff41'}`}} />
-            <span style={{color: '#888', fontSize: 12}}>{magicProcessing ? 'AGENT ACTIVE' : 'AGENT IDLE'}</span>
-          </div>
-          <RedBall isSpeaking={isAISpeaking} theme={theme} size={40} />
-        </div>
-      </div>
-      <div style={styles.workspaceBody}>
-        <div style={styles.workspaceLeftPanel}>
-          <div style={styles.workspacePanelHeader}><Icon name="layers" size={16} color={'#00ff41'} /> ACTIVE TASKS ({magicTasks.length})</div>
-          <div style={styles.workspaceTaskList}>
-            {magicTasks.length === 0 && <span style={{color: '#555', fontSize: 12, fontStyle: 'italic'}}>No active tasks. Command me...</span>}
-            {magicTasks.map(t => (
-              <div key={t.id} style={styles.workspaceTaskItem}>
-                <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: 4}}>
-                  <span style={{color: '#ddd', fontSize: 12}}>{t.text}</span>
-                  <span style={{color: t.status === 'done' ? '#00ff41' : '#ffcc00', fontSize: 10}}>{t.status.toUpperCase()}</span>
-                </div>
-                <div style={{width: '100%', height: 4, backgroundColor: '#111', borderRadius: 2, overflow: 'hidden'}}>
-                  <div style={{width: `${t.progress}%`, height: '100%', backgroundColor: t.status === 'done' ? '#00ff41' : '#00ff41', transition: 'width 0.3s ease'}} />
-                </div>
-              </div>
-            ))}
-          </div>
-          <div style={{...styles.workspacePanelHeader, marginTop: 15}}><Icon name="terminal" size={16} color={'#00ff41'} /> AGENT LOGS</div>
-          <div style={styles.workspaceLogList}>
-            {magicLogs.map((log, i) => (
-              <div key={i} style={{marginBottom: 6, fontSize: 11, fontFamily: 'monospace'}}>
-                <span style={{color: log.type === 'user' ? '#00ff41' : log.type === 'ai' ? '#4f8' : '#888'}}>[{log.type.toUpperCase()}]</span>
-                <span style={{color: '#ccc'}}> {log.text}</span>
-              </div>
-            ))}
-            <div ref={magicEndRef} />
-          </div>
-        </div>
-        <div style={styles.workspaceCenterPanel}>
-          <div style={styles.workspaceTabs}>
-            <button onClick={() => setMagicActiveTab('canvas')} style={{...styles.workspaceTabBtn, borderBottomColor: magicActiveTab === 'canvas' ? '#00ff41' : 'transparent', color: magicActiveTab === 'canvas' ? '#00ff41' : '#888'}}>CANVAS</button>
-            <button onClick={() => setMagicActiveTab('code')} style={{...styles.workspaceTabBtn, borderBottomColor: magicActiveTab === 'code' ? '#00ff41' : 'transparent', color: magicActiveTab === 'code' ? '#00ff41' : '#888'}}>CODE</button>
-            <button onClick={() => setMagicActiveTab('web')} style={{...styles.workspaceTabBtn, borderBottomColor: magicActiveTab === 'web' ? '#00ff41' : 'transparent', color: magicActiveTab === 'web' ? '#00ff41' : '#888'}}>WEB</button>
-          </div>
-          <div style={styles.workspaceCanvasArea}>
-            {magicActiveTab === 'canvas' && (magicContent?.type === '3d' ? <div style={{textAlign: 'center'}}><h3 style={{color: '#00ff41', marginBottom: 20}}>{magicContent.data.title}</h3><img src={magicContent.data.image} alt="Generated 3D" style={{maxWidth: '100%', maxHeight: '60vh', borderRadius: 12, border: `1px solid #00ff41`}} /></div> : <div style={{textAlign: 'center', color: '#555'}}><Icon name="image" size={64} color="#333" /><p style={{marginTop: 15}}>No visual output yet.</p></div>)}
-            {magicActiveTab === 'code' && (magicContent?.type === 'code' ? <div style={{width: '100%', height: '100%', overflow: 'auto', backgroundColor: '#0a0a0a', padding: 20, borderRadius: 8, border: '1px solid #00ff41'}}><pre style={{margin: 0, color: '#e0e0e0', fontFamily: 'monospace', fontSize: 13, whiteSpace: 'pre-wrap'}}>{magicContent.data.code}</pre></div> : <div style={{textAlign: 'center', color: '#555'}}><Icon name="file" size={64} color="#333" /><p style={{marginTop: 15}}>No code generated yet.</p></div>)}
-            {magicActiveTab === 'web' && (magicContent?.type === 'web' ? <div style={{width: '100%', height: '100%', overflow: 'auto', padding: 20}}><h3 style={{color: '#00ff41', marginBottom: 15}}>Search Results: {magicContent.data.query}</h3><p style={{color: '#ccc', lineHeight: 1.6}}>{magicContent.data.results.answer}</p></div> : <div style={{textAlign: 'center', color: '#555'}}><Icon name="globe" size={64} color="#333" /><p style={{marginTop: 15}}>No web data fetched yet.</p></div>)}
-          </div>
-        </div>
-        <div style={styles.workspaceRightPanel}>
-          <div style={styles.workspacePanelHeader}><Icon name="sparkles" size={16} color={'#00ff41'} /> MAGIC AGENT COMMAND</div>
-          <div style={{...styles.workspaceChatArea, overflowX: 'auto', whiteSpace: 'nowrap'}}>
-             {magicLogs.filter(l => l.type === 'ai' || l.type === 'user').slice(-5).map((log, i) => (
-               <div key={i} style={{padding: 8, marginBottom: 8, borderRadius: 6, backgroundColor: log.type === 'user' ? 'rgba(0,255,65,0.2)' : 'rgba(255,255,255,0.05)', borderLeft: log.type === 'user' ? `3px solid #00ff41` : '3px solid #4f8', minWidth: '100%', boxSizing: 'border-box'}}>
-                  <div style={{color: '#888', fontSize: 9, marginBottom: 2}}>{log.type === 'user' ? 'YOU' : 'CYPHER4X'}</div>
-                  <div style={{color: '#ddd', fontSize: 12, whiteSpace: 'pre-wrap'}}>{renderMessageContent({ id: i, content: log.text })}</div>
-               </div>
-             ))}
-          </div>
-          <form onSubmit={handleMagicSubmit} style={styles.workspaceInputRow}>
-            <input type="text" value={magicCommand} onChange={(e) => setMagicCommand(e.target.value)} placeholder="Command AI to build anything..." style={styles.workspaceInput} disabled={magicProcessing} />
-            <button type="button" onClick={handleMagicVoice} style={{...styles.workspaceMicBtn, backgroundColor: isRecording ? '#00ff41' : '#1a1a1a'}}><Icon name="mic" size={18} color="#fff" /></button>
-            <button type="submit" style={{...styles.workspaceSendBtn, backgroundColor: '#00ff41'}} disabled={magicProcessing}><Icon name="send" size={18} color="#fff" /></button>
           </form>
         </div>
       </div>
@@ -2411,10 +2347,12 @@ export default function App() {
   // CHAT OVERVIEW
   if (showChatOverview) return (
     <div style={{...styles.chatOverviewContainer, backgroundColor: theme.secondary, backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center'}}>
-      <div style={styles.chatOverviewHeader}>
-        <div style={{flex: 1}}></div>
-        <button onClick={() => setChatOverviewVoiceEnabled(!chatOverviewVoiceEnabled)} style={styles.chatOverviewVoiceToggle}><Icon name={chatOverviewVoiceEnabled ? 'volume2' : 'volumeX'} size={22} color="#fff" /></button>
-        <button onClick={() => setShowChatMenu(!showChatMenu)} style={styles.chatOverviewVoiceToggle}><Icon name="menu" size={22} color="#fff" /></button>
+      <div style={{...styles.chatOverviewHeader, justifyContent: 'space-between'}}>
+        <button onClick={() => setShowChatOverview(false)} style={styles.chatOverviewBackBtn}><Icon name="arrowLeft" size={24} color="#fff" /> Back</button>
+        <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
+          <button onClick={() => setChatOverviewVoiceEnabled(!chatOverviewVoiceEnabled)} style={styles.chatOverviewVoiceToggle}><Icon name={chatOverviewVoiceEnabled ? 'volume2' : 'volumeX'} size={22} color="#fff" /></button>
+          <button onClick={() => setShowChatMenu(!showChatMenu)} style={styles.chatOverviewVoiceToggle}><Icon name="menu" size={22} color="#fff" /></button>
+        </div>
       </div>
       {showChatMenu && (
         <div style={styles.chatMenuDropdown}>
@@ -2500,7 +2438,7 @@ export default function App() {
           <div style={styles.sidebarSection}>
             <h3 style={{...styles.sectionTitle, color: theme.primary, borderBottomColor: '#333'}}><Icon name="sparkles" size={16} color={theme.primary} /> QUICK TOOLS {settings.restrictTools && userMode !== 'loggedin' && <Icon name="lock" size={12} color="#888" />}</h3>
             <button onClick={() => { setSidebarOpen(false); setShowWorkspace(true) }} style={{...styles.toolBtn, backgroundColor: hexA(theme.primary, 0.2), border: `1px solid ${theme.primary}`}}><Icon name="layers" size={16} color={theme.primary} /> AI WORKSPACE</button>
-            <button onClick={() => { setSidebarOpen(false); setShowMagicWorkspace(true) }} style={{...styles.toolBtn, backgroundColor: 'rgba(0,255,65,0.2)', border: `1px solid #00ff41`}}><Icon name="zap" size={16} color="#00ff41" /> AI MAGIC WORKSPACE</button>
+            <button onClick={() => { setSidebarOpen(false); setShowPracticalWorkspace(true) }} style={{...styles.toolBtn, backgroundColor: 'rgba(0,255,65,0.2)', border: `1px solid #00ff41`}}><Icon name="zap" size={16} color="#00ff41" /> PRACTICAL WORKSPACE</button>
             <button onClick={() => { if (requireLogin('Cyber Lab')) { setSidebarOpen(false); setShowCyberLab(true) } }} style={styles.toolBtn}><Icon name="shield" size={16} color="#fff" /> Cyber Lab / Terminal</button>
             <button onClick={() => { if (requireLogin('Music Generator')) { setSidebarOpen(false); setShowMusicPanel(true) } }} style={styles.toolBtn}><Icon name="music" size={16} color="#fff" /> Music Generator</button>
             <button onClick={() => { if (requireLogin('Video Generator')) { setSidebarOpen(false); setShowVideoPanel(true) } }} style={styles.toolBtn}><Icon name="video" size={16} color="#fff" /> Video Generator</button>
@@ -2702,28 +2640,35 @@ const styles = {
   bootSubtitle: { fontSize: 'clamp(14px,2vw,20px)', letterSpacing: 4, marginBottom: 40, opacity: 0.8 },
   bootCredit: { fontSize: 14, marginTop: 20, opacity: 0.7, paddingTop: 16, minHeight: 30, fontFamily: "'Courier New',monospace" },
 
-  // WORKSPACE STYLES
+  // PRACTICAL WORKSPACE STYLES
+  practicalContainer: { position: 'fixed', inset: 0, zIndex: 99998, display: 'flex', flexDirection: 'column', overflow: 'hidden', fontFamily: "'Segoe UI', 'Courier New', monospace" },
+  practicalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', borderBottom: '1px solid', flexShrink: 0 },
+  practicalExitBtn: { display: 'flex', alignItems: 'center', gap: 6, backgroundColor: 'transparent', border: '1px solid', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', fontSize: 12, fontWeight: 'bold' },
+  practicalExportBtn: { display: 'flex', alignItems: 'center', gap: 6, backgroundColor: 'transparent', border: '1px solid', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', fontSize: 12, fontWeight: 'bold' },
+  practicalTitle: { margin: 0, fontSize: 16, letterSpacing: 2, fontWeight: 'bold' },
+  practicalCanvas: { flex: 1, overflowY: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 16 },
+  practicalMsg: { padding: 12, borderRadius: 8, maxWidth: '80%', lineHeight: 1.6, fontSize: 15 },
+  practicalInputRow: { display: 'flex', gap: 8, alignItems: 'center', padding: '12px 20px', borderTop: '1px solid', flexShrink: 0 },
+  practicalInput: { flex: 1, padding: '12px 16px', backgroundColor: 'transparent', border: '1px solid', borderRadius: 24, fontSize: 15, outline: 'none' },
+  practicalMicBtn: { padding: 10, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  practicalSendBtn: { padding: 10, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  practicalAttachBtn: { padding: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+
+  // ORIGINAL WORKSPACE STYLES
   workspaceContainer: { position: 'fixed', inset: 0, backgroundColor: '#050505', zIndex: 99998, display: 'flex', flexDirection: 'column', overflow: 'hidden', fontFamily: "'Segoe UI', 'Courier New', monospace" },
   workspaceHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', backgroundColor: '#0a0a0a', borderBottom: '1px solid #222', flexShrink: 0 },
   workspaceExitBtn: { display: 'flex', alignItems: 'center', gap: 6, backgroundColor: 'transparent', border: '1px solid', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', fontSize: 12, fontWeight: 'bold' },
-  workspaceExportBtn: { display: 'flex', alignItems: 'center', gap: 6, backgroundColor: 'transparent', border: '1px solid', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', fontSize: 12, fontWeight: 'bold' },
   workspaceTitle: { margin: 0, fontSize: 16, letterSpacing: 2, fontWeight: 'bold' },
   workspaceBody: { flex: 1, display: 'flex', flexDirection: 'row', overflow: 'hidden' },
-  
-  // Workspace Left Panel
   workspaceLeftPanel: { width: 'clamp(250px, 25%, 350px)', backgroundColor: '#0a0a0a', borderRight: '1px solid #222', display: 'flex', flexDirection: 'column', padding: 15, overflow: 'hidden' },
   workspacePanelHeader: { color: '#fff', fontSize: 11, fontWeight: 'bold', letterSpacing: 1, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 },
   workspaceTaskList: { flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, paddingRight: 5 },
   workspaceTaskItem: { backgroundColor: '#111', padding: 10, borderRadius: 6, border: '1px solid #222' },
   workspaceLogList: { flex: 1, overflowY: 'auto', backgroundColor: '#000', borderRadius: 6, padding: 10, border: '1px solid #222' },
-  
-  // Workspace Center Panel
   workspaceCenterPanel: { flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#111', overflow: 'hidden' },
   workspaceTabs: { display: 'flex', borderBottom: '1px solid #222', backgroundColor: '#0a0a0a', flexShrink: 0 },
   workspaceTabBtn: { flex: 1, padding: '12px 0', backgroundColor: 'transparent', border: 'none', borderBottom: '2px solid transparent', cursor: 'pointer', fontSize: 12, fontWeight: 'bold', letterSpacing: 1, transition: 'all 0.2s' },
   workspaceCanvasArea: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20, overflow: 'auto', position: 'relative' },
-  
-  // Workspace Right Panel
   workspaceRightPanel: { width: 'clamp(300px, 30%, 400px)', backgroundColor: '#0a0a0a', borderLeft: '1px solid #222', display: 'flex', flexDirection: 'column', padding: 15, overflow: 'hidden' },
   workspaceChatArea: { flex: 1, overflowY: 'auto', overflowX: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 5, marginBottom: 10, whiteSpace: 'nowrap' },
   workspaceInputRow: { display: 'flex', gap: 8, alignItems: 'center', backgroundColor: '#111', padding: 8, borderRadius: 8, border: '1px solid #333' },
@@ -2790,7 +2735,8 @@ const styles = {
   
   // CHAT OVERVIEW STYLES
   chatOverviewContainer: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, height: '100dvh', backgroundColor: '#000', zIndex: 99994, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
-  chatOverviewHeader: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '12px 16px', backgroundColor: '#111', borderBottom: '1px solid #333', flexShrink: 0, gap: 12 },
+  chatOverviewHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', backgroundColor: '#111', borderBottom: '1px solid #333', flexShrink: 0, gap: 12 },
+  chatOverviewBackBtn: { background: 'none', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, cursor: 'pointer' },
   chatOverviewVoiceToggle: { background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: 6, borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.05)' },
   chatMenuDropdown: { position: 'absolute', top: 60, right: 20, width: 'clamp(250px, 80vw, 350px)', backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: 8, zIndex: 99999, boxShadow: '0 4px 20px rgba(0,0,0,0.8)', overflow: 'hidden' },
   chatOverviewMessages: { flex: 1, minHeight: 0, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8, WebkitOverflowScrolling: 'touch' },
@@ -2908,4 +2854,4 @@ const styles = {
   commandActionsPC: { display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   sidebarBtnPC: { padding: '5px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
   logoutBtnPC: { padding: '5px 10px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
-  }
+                                                                 }
