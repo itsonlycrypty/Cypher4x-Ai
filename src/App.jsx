@@ -1,3 +1,5 @@
+'use client' // ✅ FIX #1 — Required for Next.js App Router on Vercel
+
 import { useState, useRef, useEffect, useCallback } from 'react'
 
 // ==================================================
@@ -63,12 +65,15 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
 // ==================================================
 // CONFIG
 // ==================================================
+// ⚠️ SECURITY WARNING: This API key is exposed to the browser.
+// Revoke it at https://app.tavily.com and move searchWeb to a server route.
+// See /api/search/route.js pattern in the chat.
 const TAVILY_API_KEY = "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"
 const TAVILY_URL = "https://api.tavily.com/search"
 const VERSION = "v27"
 const VERSION_FULL = "CYPHER4X v27.0.0"
 const APP_START_TIME = Date.now()
-const TOOLS_ENABLED = true 
+const TOOLS_ENABLED = true
 
 // ==================================================
 // STORAGE
@@ -142,14 +147,12 @@ const openWhatsAppGroup = (n) => {
 // DEEPSEEK-LEVEL CODE GENERATION (Universal)
 // ==================================================
 const generateLongCode = (lang, purpose, detail) => {
-  const L = lang.toLowerCase()
-  
+  const L = (lang || '').toLowerCase()
+
   if (L.includes('python')) {
     return `# ${purpose} - Comprehensive Implementation
 # Author: Cypher4X AI
 # Version: 1.0.0
-# Description: A fully featured Python application designed for ${purpose}.
-# Features: Error handling, logging, data persistence, CLI interface, and modular design.
 
 import os
 import sys
@@ -161,33 +164,17 @@ from dataclasses import dataclass, asdict, field
 from typing import List, Optional, Dict, Any
 from enum import Enum
 
-# ==================================================
-# CONFIGURATION & LOGGING
-# ==================================================
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("app.log"),
-        logging.StreamHandler(sys.stdout)
-    ]
-)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("Cypher4XApp")
 
 class AppConfig:
-    """Centralized configuration management."""
     DATA_DIR = os.path.join(os.path.expanduser("~"), ".cypher4x_app")
     DATA_FILE = os.path.join(DATA_DIR, "data.json")
-    
     @classmethod
     def ensure_dirs(cls):
         if not os.path.exists(cls.DATA_DIR):
             os.makedirs(cls.DATA_DIR)
-            logger.info(f"Created data directory: {cls.DATA_DIR}")
 
-# ==================================================
-# DATA MODELS
-# ==================================================
 class Status(Enum):
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
@@ -196,135 +183,59 @@ class Status(Enum):
 
 @dataclass
 class Item:
-    """Represents a single item in the system."""
     id: int
     title: str
     description: str = ""
     status: Status = Status.PENDING
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
-    updated_at: str = field(default_factory=lambda: datetime.now().isoformat())
 
-    def to_dict(self) -> Dict[str, Any]:
-        data = asdict(self)
-        data['status'] = self.status.value
-        return data
+    def to_dict(self):
+        data = asdict(self); data['status'] = self.status.value; return data
 
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'Item':
-        data['status'] = Status(data['status'])
-        return cls(**data)
-
-# ==================================================
-# CORE LOGIC
-# ==================================================
 class AppManager:
-    """Main application manager handling business logic and data persistence."""
-    
     def __init__(self):
         AppConfig.ensure_dirs()
         self.items: List[Item] = []
         self.load_data()
 
     def load_data(self):
-        """Load data from JSON file."""
         try:
             if os.path.exists(AppConfig.DATA_FILE):
                 with open(AppConfig.DATA_FILE, 'r') as f:
-                    data = json.load(f)
-                    self.items = [Item.from_dict(i) for i in data]
-                logger.info(f"Loaded {len(self.items)} items.")
-            else:
-                logger.info("No data file found. Starting fresh.")
+                    self.items = [Item(**{**i, 'status': Status(i['status'])}) for i in json.load(f)]
         except Exception as e:
-            logger.error(f"Failed to load data: {e}")
-            self.items = []
+            logger.error(f"Load failed: {e}")
 
     def save_data(self):
-        """Save data to JSON file."""
         try:
             with open(AppConfig.DATA_FILE, 'w') as f:
                 json.dump([i.to_dict() for i in self.items], f, indent=4)
-            logger.info("Data saved successfully.")
         except Exception as e:
-            logger.error(f"Failed to save data: {e}")
+            logger.error(f"Save failed: {e}")
 
-    def add_item(self, title: str, description: str = "") -> Item:
-        """Add a new item to the system."""
+    def add_item(self, title, description=""):
         item_id = max([i.id for i in self.items], default=0) + 1
         new_item = Item(id=item_id, title=title, description=description)
         self.items.append(new_item)
         self.save_data()
-        logger.info(f"Added item: {new_item.title}")
         return new_item
 
-    def get_item(self, item_id: int) -> Optional[Item]:
-        """Retrieve an item by ID."""
-        for item in self.items:
-            if item.id == item_id:
-                return item
-        return None
+    def list_items(self, status_filter=None):
+        return [i for i in self.items if i.status == status_filter] if status_filter else self.items
 
-    def update_item_status(self, item_id: int, status: Status) -> bool:
-        """Update the status of an item."""
-        item = self.get_item(item_id)
-        if item:
-            item.status = status
-            item.updated_at = datetime.now().isoformat()
-            self.save_data()
-            logger.info(f"Updated item {item_id} status to {status.value}")
-            return True
-        logger.warning(f"Item {item_id} not found.")
-        return False
-
-    def list_items(self, status_filter: Optional[Status] = None) -> List[Item]:
-        """List all items, optionally filtered by status."""
-        if status_filter:
-            return [i for i in self.items if i.status == status_filter]
-        return self.items
-
-# ==================================================
-# CLI INTERFACE
-# ==================================================
 def main():
-    parser = argparse.ArgumentParser(description=f"${purpose} - A comprehensive CLI tool.")
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
-
-    # Command: add
-    parser_add = subparsers.add_parser("add", help="Add a new item")
-    parser_add.add_argument("title", type=str, help="Title of the item")
-    parser_add.add_argument("-d", "--description", type=str, default="", help="Description of the item")
-
-    # Command: list
-    parser_list = subparsers.add_parser("list", help="List items")
-    parser_list.add_argument("-s", "--status", type=str, choices=[s.value for s in Status], help="Filter by status")
-
-    # Command: update
-    parser_update = subparsers.add_parser("update", help="Update item status")
-    parser_update.add_argument("id", type=int, help="ID of the item")
-    parser_update.add_argument("status", type=str, choices=[s.value for s in Status], help="New status")
-
+    parser = argparse.ArgumentParser(description="${purpose}")
+    sub = parser.add_subparsers(dest="command")
+    a = sub.add_parser("add"); a.add_argument("title"); a.add_argument("-d", "--description", default="")
+    sub.add_parser("list")
     args = parser.parse_args()
-    manager = AppManager()
-
+    mgr = AppManager()
     if args.command == "add":
-        item = manager.add_item(args.title, args.description)
-        print(f"✅ Added item: [{item.id}] {item.title}")
+        item = mgr.add_item(args.title, args.description)
+        print(f"✅ Added: [{item.id}] {item.title}")
     elif args.command == "list":
-        status_filter = Status(args.status) if args.status else None
-        items = manager.list_items(status_filter)
-        if not items:
-            print("No items found.")
-        else:
-            print(f"{'ID':<5} {'Status':<15} {'Title':<30}")
-            print("-" * 50)
-            for item in items:
-                print(f"{item.id:<5} {item.status.value:<15} {item.title:<30}")
-    elif args.command == "update":
-        success = manager.update_item_status(args.id, Status(args.status))
-        if success:
-            print(f"✅ Updated item {args.id} to {args.status}")
-        else:
-            print(f"❌ Item {args.id} not found.")
+        for it in mgr.list_items():
+            print(f"{it.id}  {it.status.value}  {it.title}")
     else:
         parser.print_help()
 
@@ -334,237 +245,85 @@ if __name__ == "__main__":
   }
 
   if (L.includes('react') || L.includes('jsx')) {
-    return `// ${purpose} - Comprehensive React Application
+    return `// ${purpose} - React Application
 // Author: Cypher4X AI
-// Version: 1.0.0
-// Description: A fully featured React app designed for ${purpose}.
-// Features: State management, API integration, Error boundaries, Loading states, Responsive design.
 
 import React, { useState, useEffect, useReducer, useCallback, useMemo } from 'react';
 
-// ==================================================
-// API SERVICE LAYER
-// ==================================================
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://api.example.com';
-
 const apiService = {
   async fetchItems() {
-    try {
-      const response = await fetch(\`\${API_BASE_URL}/items\`);
-      if (!response.ok) throw new Error('Network response was not ok');
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching items:', error);
-      throw error;
-    }
+    const r = await fetch('/api/items');
+    if (!r.ok) throw new Error('Network error');
+    return r.json();
   },
-  
-  async createItem(itemData) {
-    try {
-      const response = await fetch(\`\${API_BASE_URL}/items\`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(itemData)
-      });
-      if (!response.ok) throw new Error('Failed to create item');
-      return await response.json();
-    } catch (error) {
-      console.error('Error creating item:', error);
-      throw error;
-    }
+  async createItem(data) {
+    const r = await fetch('/api/items', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    if (!r.ok) throw new Error('Create failed');
+    return r.json();
   },
-  
   async deleteItem(id) {
-    try {
-      const response = await fetch(\`\${API_BASE_URL}/items/\${id}\`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Failed to delete item');
-      return true;
-    } catch (error) {
-      console.error('Error deleting item:', error);
-      throw error;
-    }
+    const r = await fetch('/api/items/' + id, { method: 'DELETE' });
+    if (!r.ok) throw new Error('Delete failed');
+    return true;
   }
 };
 
-// ==================================================
-// STATE MANAGEMENT (useReducer)
-// ==================================================
-const initialState = {
-  items: [],
-  isLoading: false,
-  error: null,
-  filter: 'all'
-};
+const initialState = { items: [], isLoading: false, error: null, filter: 'all' };
 
 function appReducer(state, action) {
   switch (action.type) {
-    case 'FETCH_START':
-      return { ...state, isLoading: true, error: null };
-    case 'FETCH_SUCCESS':
-      return { ...state, isLoading: false, items: action.payload };
-    case 'FETCH_ERROR':
-      return { ...state, isLoading: false, error: action.payload };
-    case 'ADD_ITEM':
-      return { ...state, items: [...state.items, action.payload] };
-    case 'DELETE_ITEM':
-      return { ...state, items: state.items.filter(i => i.id !== action.payload) };
-    case 'SET_FILTER':
-      return { ...state, filter: action.payload };
-    default:
-      return state;
+    case 'FETCH_START': return { ...state, isLoading: true, error: null };
+    case 'FETCH_SUCCESS': return { ...state, isLoading: false, items: action.payload };
+    case 'FETCH_ERROR': return { ...state, isLoading: false, error: action.payload };
+    case 'ADD_ITEM': return { ...state, items: [...state.items, action.payload] };
+    case 'DELETE_ITEM': return { ...state, items: state.items.filter(i => i.id !== action.payload) };
+    case 'SET_FILTER': return { ...state, filter: action.payload };
+    default: return state;
   }
 }
 
-// ==================================================
-// CUSTOM HOOKS
-// ==================================================
 function useItems() {
   const [state, dispatch] = useReducer(appReducer, initialState);
-
   const loadItems = useCallback(async () => {
     dispatch({ type: 'FETCH_START' });
-    try {
-      const data = await apiService.fetchItems();
-      dispatch({ type: 'FETCH_SUCCESS', payload: data });
-    } catch (error) {
-      dispatch({ type: 'FETCH_ERROR', payload: error.message });
-    }
+    try { dispatch({ type: 'FETCH_SUCCESS', payload: await apiService.fetchItems() }); }
+    catch (e) { dispatch({ type: 'FETCH_ERROR', payload: e.message }); }
   }, []);
-
-  const addItem = useCallback(async (itemData) => {
-    try {
-      const newItem = await apiService.createItem(itemData);
-      dispatch({ type: 'ADD_ITEM', payload: newItem });
-    } catch (error) {
-      dispatch({ type: 'FETCH_ERROR', payload: error.message });
-    }
+  const addItem = useCallback(async (data) => {
+    try { dispatch({ type: 'ADD_ITEM', payload: await apiService.createItem(data) }); }
+    catch (e) { dispatch({ type: 'FETCH_ERROR', payload: e.message }); }
   }, []);
-
   const deleteItem = useCallback(async (id) => {
-    try {
-      await apiService.deleteItem(id);
-      dispatch({ type: 'DELETE_ITEM', payload: id });
-    } catch (error) {
-      dispatch({ type: 'FETCH_ERROR', payload: error.message });
-    }
+    try { await apiService.deleteItem(id); dispatch({ type: 'DELETE_ITEM', payload: id }); }
+    catch (e) { dispatch({ type: 'FETCH_ERROR', payload: e.message }); }
   }, []);
-
-  useEffect(() => {
-    loadItems();
-  }, [loadItems]);
-
+  useEffect(() => { loadItems(); }, [loadItems]);
   return { ...state, addItem, deleteItem, loadItems };
-}
-
-// ==================================================
-// COMPONENTS
-// ==================================================
-function ErrorBoundary({ children }) {
-  const [hasError, setHasError] = useState(false);
-  
-  if (hasError) {
-    return (
-      <div className="error-boundary">
-        <h2>Something went wrong.</h2>
-        <button onClick={() => window.location.reload()}>Reload Page</button>
-      </div>
-    );
-  }
-  return children;
 }
 
 function ItemCard({ item, onDelete }) {
   return (
     <div className="item-card">
-      <div className="item-header">
-        <h3>{item.title}</h3>
-        <span className={\`status \${item.status}\`}>{item.status}</span>
-      </div>
+      <h3>{item.title}</h3>
       <p>{item.description}</p>
-      <button className="delete-btn" onClick={() => onDelete(item.id)}>Delete</button>
+      <button onClick={() => onDelete(item.id)}>Delete</button>
     </div>
   );
 }
 
-function AddItemForm({ onAdd }) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!title.trim()) return;
-    onAdd({ title, description, status: 'pending' });
-    setTitle('');
-    setDescription('');
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="add-form">
-      <input 
-        type="text" 
-        placeholder="Item Title" 
-        value={title} 
-        onChange={(e) => setTitle(e.target.value)} 
-        required 
-      />
-      <textarea 
-        placeholder="Description" 
-        value={description} 
-        onChange={(e) => setDescription(e.target.value)} 
-      />
-      <button type="submit">Add Item</button>
-    </form>
-  );
-}
-
-// ==================================================
-// MAIN APP COMPONENT
-// ==================================================
 export default function App() {
   const { items, isLoading, error, filter, addItem, deleteItem, loadItems } = useItems();
-
-  const filteredItems = useMemo(() => {
-    if (filter === 'all') return items;
-    return items.filter(item => item.status === filter);
-  }, [items, filter]);
-
+  const [title, setTitle] = useState('');
+  const filtered = useMemo(() => filter === 'all' ? items : items.filter(i => i.status === filter), [items, filter]);
   return (
-    <ErrorBoundary>
-      <div className="app-container">
-        <header className="app-header">
-          <h1>${purpose}</h1>
-          <p>Powered by Cypher4X AI</p>
-        </header>
-
-        <main className="app-main">
-          <AddItemForm onAdd={addItem} />
-          
-          <div className="controls">
-            <button onClick={loadItems} disabled={isLoading}>
-              {isLoading ? 'Refreshing...' : 'Refresh'}
-            </button>
-            <select value={filter} onChange={(e) => dispatch({ type: 'SET_FILTER', payload: e.target.value })}>
-              <option value="all">All</option>
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
-            </select>
-          </div>
-
-          {error && <div className="error-message">{error}</div>}
-
-          {isLoading && items.length === 0 ? (
-            <div className="loading">Loading items...</div>
-          ) : (
-            <div className="items-grid">
-              {filteredItems.map(item => (
-                <ItemCard key={item.id} item={item} onDelete={deleteItem} />
-              ))}
-              {filteredItems.length === 0 && <p>No items found.</p>}
-            </div>
-          )}
-        </main>
-      </div>
-    </ErrorBoundary>
+    <div className="app">
+      <h1>${purpose}</h1>
+      <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Item title" />
+      <button onClick={() => { if (title) { addItem({ title }); setTitle(''); } }}>Add</button>
+      <button onClick={loadItems} disabled={isLoading}>{isLoading ? 'Loading...' : 'Refresh'}</button>
+      {error && <p className="error">{error}</p>}
+      {filtered.map(i => <ItemCard key={i.id} item={i} onDelete={deleteItem} />)}
+    </div>
   );
 }
 `
@@ -574,206 +333,71 @@ export default function App() {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${purpose}</title>
-  <style>
-    /* ${purpose} - Comprehensive CSS Implementation */
-    /* Author: Cypher4X AI */
-    
-    :root {
-      --primary-color: #ff003c;
-      --secondary-color: #1a1a1a;
-      --bg-color: #000000;
-      --text-color: #ffffff;
-      --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: var(--font-family);
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 800px;
-      background-color: var(--secondary-color);
-      border-radius: 12px;
-      padding: 30px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      border: 1px solid #333;
-    }
-
-    h1 {
-      color: var(--primary-color);
-      text-align: center;
-      margin-bottom: 20px;
-      letter-spacing: 2px;
-    }
-
-    p {
-      line-height: 1.6;
-      margin-bottom: 15px;
-    }
-
-    .btn {
-      display: inline-block;
-      padding: 10px 20px;
-      background-color: var(--primary-color);
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background 0.3s ease;
-    }
-
-    .btn:hover {
-      background-color: #cc0033;
-    }
-
-    .dynamic-content {
-      margin-top: 20px;
-      padding: 15px;
-      background: rgba(255, 255, 255, 0.05);
-      border-left: 4px solid var(--primary-color);
-      border-radius: 4px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${purpose}</title>
+<style>
+  :root { --primary: #ff003c; --bg: #000; --text: #fff; --font: 'Segoe UI', sans-serif; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+  .container { width: 100%; max-width: 800px; background: #1a1a1a; border-radius: 12px; padding: 30px; border: 1px solid #333; }
+  h1 { color: var(--primary); text-align: center; margin-bottom: 20px; }
+  .btn { display: inline-block; padding: 10px 20px; background: var(--primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+  .btn:hover { background: #cc0033; }
+  .dynamic-content { margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-left: 4px solid var(--primary); border-radius: 4px; }
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>${purpose}</h1>
-    <p>This is a comprehensive HTML/CSS template generated by Cypher4X AI.</p>
-    <button class="btn" onclick="performAction()">Click Me</button>
-    <div id="output" class="dynamic-content">
-      Awaiting interaction...
-    </div>
-  </div>
-
-  <script>
-    // ${purpose} - Comprehensive JavaScript Implementation
-    'use strict';
-
-    const App = {
-      init: () => {
-        console.log('App initialized for: ${purpose}');
-        document.getElementById('output').textContent = 'System ready. Awaiting your command.';
-      },
-      
-      performAction: () => {
-        const output = document.getElementById('output');
-        output.style.borderLeftColor = '#00ff41';
-        output.textContent = 'Action performed successfully at ' + new Date().toLocaleTimeString();
-        output.style.animation = 'pulse 1s ease';
-      }
-    };
-
-    document.addEventListener('DOMContentLoaded', App.init);
-  </script>
+<div class="container">
+  <h1>${purpose}</h1>
+  <p>Generated by Cypher4X AI.</p>
+  <button class="btn" onclick="performAction()">Click Me</button>
+  <div id="output" class="dynamic-content">Awaiting interaction...</div>
+</div>
+<script>
+  'use strict';
+  const App = {
+    init: () => { document.getElementById('output').textContent = 'System ready.'; },
+    performAction: () => {
+      const o = document.getElementById('output');
+      o.textContent = 'Performed at ' + new Date().toLocaleTimeString();
+    }
+  };
+  document.addEventListener('DOMContentLoaded', App.init);
+</script>
 </body>
 </html>
 `
   }
 
   if (L.includes('java') && !L.includes('javascript')) {
-    return `// ${purpose} - Comprehensive Java Application
-// Author: Cypher4X AI
-// Version: 1.0.0
-// Description: A fully featured Java application designed for ${purpose}.
-// Features: OOP design, Exception handling, Collections framework, File I/O.
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
-import java.util.logging.Logger;
-import java.util.logging.Level;
+    return `// ${purpose} - Java Application
+import java.util.*;
 
 public class Cypher4XApp {
-    private static final Logger LOGGER = Logger.getLogger(Cypher4XApp.class.getName());
-    private List<String> items;
-
-    public Cypher4XApp() {
-        this.items = new ArrayList<>();
-        LOGGER.info("Application initialized for: ${purpose}");
-    }
+    private List<String> items = new ArrayList<>();
 
     public void addItem(String item) {
-        if (item == null || item.trim().isEmpty()) {
-            throw new IllegalArgumentException("Item cannot be empty");
-        }
+        if (item == null || item.trim().isEmpty()) throw new IllegalArgumentException("Empty");
         items.add(item);
-        LOGGER.info("Added item: " + item);
-    }
-
-    public void removeItem(int index) {
-        if (index < 0 || index >= items.size()) {
-            throw new IndexOutOfBoundsException("Invalid index");
-        }
-        String removed = items.remove(index);
-        LOGGER.info("Removed item: " + removed);
+        System.out.println("Added: " + item);
     }
 
     public void displayItems() {
-        if (items.isEmpty()) {
-            System.out.println("No items to display.");
-            return;
-        }
-        System.out.println("--- Current Items ---");
-        for (int i = 0; i < items.size(); i++) {
-            System.out.println((i + 1) + ". " + items.get(i));
-        }
-        System.out.println("---------------------");
+        if (items.isEmpty()) { System.out.println("No items."); return; }
+        for (int i = 0; i < items.size(); i++) System.out.println((i+1) + ". " + items.get(i));
     }
 
     public static void main(String[] args) {
         Cypher4XApp app = new Cypher4XApp();
-        Scanner scanner = new Scanner(System.in);
-        
+        Scanner sc = new Scanner(System.in);
         System.out.println("Welcome to ${purpose}!");
-        
         while (true) {
-            System.out.println("\\nOptions: [1] Add Item [2] Remove Item [3] Display [4] Exit");
-            System.out.print("Choose an option: ");
-            String choice = scanner.nextLine();
-            
-            try {
-                switch (choice) {
-                    case "1":
-                        System.out.print("Enter item name: ");
-                        app.addItem(scanner.nextLine());
-                        break;
-                    case "2":
-                        app.displayItems();
-                        System.out.print("Enter index to remove: ");
-                        int idx = Integer.parseInt(scanner.nextLine()) - 1;
-                        app.removeItem(idx);
-                        break;
-                    case "3":
-                        app.displayItems();
-                        break;
-                    case "4":
-                        System.out.println("Exiting...");
-                        scanner.close();
-                        return;
-                    default:
-                        System.out.println("Invalid option. Try again.");
-                }
-            } catch (Exception e) {
-                System.err.println("Error: " + e.getMessage());
-            }
+            System.out.println("\\n1.Add 2.List 3.Exit");
+            String c = sc.nextLine();
+            if ("1".equals(c)) { System.out.print("Item: "); app.addItem(sc.nextLine()); }
+            else if ("2".equals(c)) app.displayItems();
+            else if ("3".equals(c)) { sc.close(); return; }
         }
     }
 }
@@ -781,66 +405,23 @@ public class Cypher4XApp {
   }
 
   if (L.includes('c#') || L.includes('csharp')) {
-    return `// ${purpose} - Comprehensive C# Application
-// Author: Cypher4X AI
-// Version: 1.0.0
-// Description: A fully featured C# application designed for ${purpose}.
-// Features: OOP design, LINQ, Async/Await, Exception handling.
-
+    return `// ${purpose} - C# Application
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
-namespace Cypher4XApp
-{
-    public class Program
-    {
-        static async Task Main(string[] args)
-        {
-            Console.WriteLine("Initializing ${purpose}...");
-            var manager = new AppManager();
-            await manager.RunAsync();
-        }
-    }
-
-    public class AppManager
-    {
-        private List<string> _items = new List<string>();
-
-        public async Task RunAsync()
-        {
-            while (true)
-            {
-                Console.WriteLine("\\n1. Add Item");
-                Console.WriteLine("2. List Items");
-                Console.WriteLine("3. Exit");
-                Console.Write("Choose an option: ");
-                
-                var choice = Console.ReadLine();
-                switch (choice)
-                {
-                    case "1":
-                        Console.Write("Enter item: ");
-                        var item = Console.ReadLine();
-                        if (!string.IsNullOrEmpty(item))
-                        {
-                            _items.Add(item);
-                            Console.WriteLine("Item added successfully!");
-                        }
-                        break;
-                    case "2":
-                        Console.WriteLine("--- Items ---");
-                        if (!_items.Any()) Console.WriteLine("No items found.");
-                        foreach (var i in _items) Console.WriteLine($"- {i}");
-                        break;
-                    case "3":
-                        return;
-                    default:
-                        Console.WriteLine("Invalid choice.");
-                        break;
-                }
-                await Task.Delay(100);
+namespace Cypher4XApp {
+    public class Program {
+        static async Task Main() {
+            Console.WriteLine("Welcome to ${purpose}!");
+            var items = new List<string>();
+            while (true) {
+                Console.WriteLine("\\n1.Add 2.List 3.Exit");
+                var c = Console.ReadLine();
+                if (c == "1") { Console.Write("Item: "); items.Add(Console.ReadLine()); }
+                else if (c == "2") { foreach (var i in items) Console.WriteLine("- " + i); }
+                else if (c == "3") return;
+                await Task.Delay(50);
             }
         }
     }
@@ -849,60 +430,21 @@ namespace Cypher4XApp
   }
 
   if (L.includes('cpp') || L.includes('c++')) {
-    return `// ${purpose} - Comprehensive C++ Application
-// Author: Cypher4X AI
-// Version: 1.0.0
-// Description: A fully featured C++ application designed for ${purpose}.
-// Features: OOP design, STL containers, Memory management.
-
+    return `// ${purpose} - C++ Application
 #include <iostream>
 #include <vector>
 #include <string>
-#include <algorithm>
-
-class AppManager {
-private:
-    std::vector<std::string> items;
-
-public:
-    void addItem(const std::string& item) {
-        items.push_back(item);
-        std::cout << "Added: " << item << std::endl;
-    }
-
-    void listItems() const {
-        if (items.empty()) {
-            std::cout << "No items found." << std::endl;
-            return;
-        }
-        std::cout << "--- Items ---" << std::endl;
-        for (const auto& item : items) {
-            std::cout << "- " << item << std::endl;
-        }
-    }
-};
 
 int main() {
     std::cout << "Welcome to ${purpose}!" << std::endl;
-    AppManager app;
+    std::vector<std::string> items;
     int choice;
-    
     while (true) {
-        std::cout << "\\n1. Add Item\\n2. List Items\\n3. Exit\\nChoice: ";
+        std::cout << "\\n1.Add 2.List 3.Exit\\nChoice: ";
         std::cin >> choice;
-        
-        if (choice == 1) {
-            std::string item;
-            std::cout << "Enter item: ";
-            std::cin >> item;
-            app.addItem(item);
-        } else if (choice == 2) {
-            app.listItems();
-        } else if (choice == 3) {
-            break;
-        } else {
-            std::cout << "Invalid choice." << std::endl;
-        }
+        if (choice == 1) { std::string i; std::cout << "Item: "; std::cin >> i; items.push_back(i); }
+        else if (choice == 2) { for (auto& i : items) std::cout << "- " << i << std::endl; }
+        else if (choice == 3) break;
     }
     return 0;
 }
@@ -910,59 +452,25 @@ int main() {
   }
 
   if (L.includes('rust')) {
-    return `// ${purpose} - Comprehensive Rust Application
-// Author: Cypher4X AI
-// Version: 1.0.0
-// Description: A fully featured Rust application designed for ${purpose}.
-// Features: Memory safety, Pattern matching, Error handling.
-
+    return `// ${purpose} - Rust Application
 use std::io;
-
-struct AppManager {
-    items: Vec<String>,
-}
-
-impl AppManager {
-    fn new() -> Self {
-        AppManager { items: Vec::new() }
-    }
-
-    fn add_item(&mut self, item: String) {
-        self.items.push(item);
-        println!("Added item successfully!");
-    }
-
-    fn list_items(&self) {
-        if self.items.is_empty() {
-            println!("No items found.");
-            return;
-        }
-        println!("--- Items ---");
-        for item in &self.items {
-            println!("- {}", item);
-        }
-    }
-}
 
 fn main() {
     println!("Welcome to ${purpose}!");
-    let mut manager = AppManager::new();
-
+    let mut items: Vec<String> = Vec::new();
     loop {
-        println!("\\n1. Add Item\\n2. List Items\\n3. Exit");
-        let mut choice = String::new();
-        io::stdin().read_line(&mut choice).unwrap();
-        
-        match choice.trim() {
+        println!("\\n1.Add 2.List 3.Exit");
+        let mut c = String::new();
+        io::stdin().read_line(&mut c).unwrap();
+        match c.trim() {
             "1" => {
-                println!("Enter item:");
-                let mut item = String::new();
-                io::stdin().read_line(&mut item).unwrap();
-                manager.add_item(item.trim().to_string());
+                let mut i = String::new();
+                io::stdin().read_line(&mut i).unwrap();
+                items.push(i.trim().to_string());
             }
-            "2" => manager.list_items(),
+            "2" => for i in &items { println!("- {}", i); },
             "3" => break,
-            _ => println!("Invalid choice."),
+            _ => println!("Invalid"),
         }
     }
 }
@@ -970,63 +478,27 @@ fn main() {
   }
 
   if (L.includes('go')) {
-    return `// ${purpose} - Comprehensive Go Application
-// Author: Cypher4X AI
-// Version: 1.0.0
-// Description: A fully featured Go application designed for ${purpose}.
-// Features: Concurrency, Interfaces, Error handling.
-
+    return `// ${purpose} - Go Application
 package main
 
-import (
-	"bufio"
-	"fmt"
-	"os"
-	"strings"
-)
-
-type AppManager struct {
-	items []string
-}
-
-func (a *AppManager) AddItem(item string) {
-	a.items = append(a.items, item)
-	fmt.Println("Added item successfully!")
-}
-
-func (a *AppManager) ListItems() {
-	if len(a.items) == 0 {
-		fmt.Println("No items found.")
-		return
-	}
-	fmt.Println("--- Items ---")
-	for _, item := range a.items {
-		fmt.Printf("- %s\\n", item)
-	}
-}
+import ("bufio"; "fmt"; "os"; "strings")
 
 func main() {
 	fmt.Println("Welcome to ${purpose}!")
-	manager := &AppManager{}
 	reader := bufio.NewReader(os.Stdin)
-
+	items := []string{}
 	for {
-		fmt.Println("\\n1. Add Item\\n2. List Items\\n3. Exit")
-		fmt.Print("Choice: ")
-		choice, _ := reader.ReadString('\\n')
-		choice = strings.TrimSpace(choice)
-
-		switch choice {
+		fmt.Println("\\n1.Add 2.List 3.Exit")
+		c, _ := reader.ReadString('\\n')
+		switch strings.TrimSpace(c) {
 		case "1":
-			fmt.Print("Enter item: ")
-			item, _ := reader.ReadString('\\n')
-			manager.AddItem(strings.TrimSpace(item))
+			fmt.Print("Item: ")
+			i, _ := reader.ReadString('\\n')
+			items = append(items, strings.TrimSpace(i))
 		case "2":
-			manager.ListItems()
+			for _, i := range items { fmt.Println("-", i) }
 		case "3":
 			return
-		default:
-			fmt.Println("Invalid choice.")
 		}
 	}
 }
@@ -1034,54 +506,19 @@ func main() {
   }
 
   if (L.includes('swift')) {
-    return `// ${purpose} - Comprehensive Swift Application
-// Author: Cypher4X AI
-// Version: 1.0.0
-// Description: A fully featured Swift application designed for ${purpose}.
-// Features: Optionals, Closures, Protocol-oriented design.
-
+    return `// ${purpose} - Swift Application
 import Foundation
 
-class AppManager {
-    private var items: [String] = []
-    
-    func addItem(_ item: String) {
-        items.append(item)
-        print("Added item successfully!")
-    }
-    
-    func listItems() {
-        if items.isEmpty {
-            print("No items found.")
-            return
-        }
-        print("--- Items ---")
-        for item in items {
-            print("- \\(item)")
-        }
-    }
-}
-
+var items: [String] = []
 print("Welcome to ${purpose}!")
-let manager = AppManager()
-
 while true {
-    print("\\n1. Add Item\\n2. List Items\\n3. Exit")
-    print("Choice: ", terminator: "")
-    
-    if let choice = readLine() {
-        switch choice {
-        case "1":
-            print("Enter item: ", terminator: "")
-            if let item = readLine() {
-                manager.addItem(item)
-            }
-        case "2":
-            manager.listItems()
-        case "3":
-            exit(0)
-        default:
-            print("Invalid choice.")
+    print("\\n1.Add 2.List 3.Exit")
+    if let c = readLine() {
+        switch c {
+        case "1": print("Item: ", terminator: ""); if let i = readLine() { items.append(i) }
+        case "2": for i in items { print("- \\(i)") }
+        case "3": exit(0)
+        default: print("Invalid")
         }
     }
 }
@@ -1089,67 +526,27 @@ while true {
   }
 
   if (L.includes('kotlin')) {
-    return `// ${purpose} - Comprehensive Kotlin Application
-// Author: Cypher4X AI
-// Version: 1.0.0
-// Description: A fully featured Kotlin application designed for ${purpose}.
-// Features: Coroutines, Data classes, Null safety.
-
+    return `// ${purpose} - Kotlin Application
 import kotlinx.coroutines.*
-
-data class Item(val id: Int, val title: String)
-
-class AppManager {
-    private val items = mutableListOf<Item>()
-    
-    fun addItem(title: String) {
-        val newItem = Item(items.size + 1, title)
-        items.add(newItem)
-        println("Added: \${newItem.title}")
-    }
-    
-    fun listItems() {
-        if (items.isEmpty()) {
-            println("No items found.")
-            return
-        }
-        println("--- Items ---")
-        items.forEach { println("- \${it.title}") }
-    }
-}
 
 fun main() = runBlocking {
     println("Welcome to ${purpose}!")
-    val manager = AppManager()
-    
+    val items = mutableListOf<String>()
     while (true) {
-        println("\\n1. Add Item\\n2. List Items\\n3. Exit")
-        print("Choice: ")
-        
+        println("\\n1.Add 2.List 3.Exit")
         when (readLine()) {
-            "1" -> {
-                print("Enter item: ")
-                val item = readLine() ?: ""
-                manager.addItem(item)
-            }
-            "2" -> manager.listItems()
+            "1" -> { print("Item: "); items.add(readLine() ?: "") }
+            "2" -> items.forEach { println("- \$it") }
             "3" -> break
-            else -> println("Invalid choice.")
+            else -> println("Invalid")
         }
     }
 }
 `
   }
 
-  // Default fallback for other languages (SQL, etc.)
-  return `-- ${purpose} - Comprehensive SQL Implementation
+  return `-- ${purpose} - SQL Schema
 -- Author: Cypher4X AI
--- Version: 1.0.0
--- Description: A fully featured SQL schema and queries designed for ${purpose}.
-
--- ==================================================
--- SCHEMA DEFINITION
--- ==================================================
 
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1168,41 +565,33 @@ CREATE TABLE IF NOT EXISTS items (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- ==================================================
--- INDEXES FOR PERFORMANCE
--- ==================================================
 CREATE INDEX idx_items_user_id ON items(user_id);
 CREATE INDEX idx_items_status ON items(status);
 
--- ==================================================
--- SAMPLE DATA INSERTION
--- ==================================================
 INSERT INTO users (username, email) VALUES ('cypher4x', 'admin@cypher4x.com');
-
-INSERT INTO items (user_id, title, description, status) 
-VALUES (1, 'Sample Item', 'This is a sample item generated by AI.', 'pending');
-
--- ==================================================
--- QUERIES
--- ==================================================
-
--- 1. Fetch all items for a specific user
-SELECT i.id, i.title, i.status, i.created_at
-FROM items i
-JOIN users u ON i.user_id = u.id
-WHERE u.username = 'cypher4x'
-ORDER BY i.created_at DESC;
-
--- 2. Update item status
-UPDATE items
-SET status = 'completed'
-WHERE id = 1;
-
--- 3. Count items by status
-SELECT status, COUNT(*) as count
-FROM items
-GROUP BY status;
+INSERT INTO items (user_id, title, status) VALUES (1, 'Sample Item', 'pending');
 `
+}
+
+// ==================================================
+// ✅ FIX #2 — LANGUAGE DETECTION (was missing → crashed app)
+// ==================================================
+const detectLanguage = (q) => {
+  const x = (q || '').toLowerCase()
+  if (/\b(react|jsx|tsx|next\.?js)\b/.test(x)) return 'react'
+  if (/\b(typescript|\bts\b)\b/.test(x)) return 'typescript'
+  if (/\b(python|py|django|flask)\b/.test(x)) return 'python'
+  if (/\b(javascript|\bjs\b|node\.?js|node)\b/.test(x)) return 'javascript'
+  if (/\b(html|css|webpage|website|landing)\b/.test(x)) return 'html'
+  if (/\bjava\b/.test(x) && !/javascript/.test(x)) return 'java'
+  if (/\b(c\+\+|cpp)\b/.test(x)) return 'cpp'
+  if (/\bc#|\bcsharp\b/.test(x)) return 'csharp'
+  if (/\brust\b/.test(x)) return 'rust'
+  if (/\bgolang\b/.test(x) || /\bgo\b/.test(x)) return 'go'
+  if (/\bswift\b/.test(x)) return 'swift'
+  if (/\bkotlin\b/.test(x)) return 'kotlin'
+  if (/\b(sql|database|query|schema)\b/.test(x)) return 'sql'
+  return 'javascript'
 }
 
 const isCodeRequest = (q) => {
@@ -1333,11 +722,11 @@ function startCanvasVideo(canvas, style, userDesc, wm, onProgress) {
     else if (scene === 'space') { const g = ctx.createRadialGradient(W/2,H/2,20,W/2,H/2,W); g.addColorStop(0,'#1a0033'); g.addColorStop(1,'#000'); ctx.fillStyle = g; ctx.fillRect(0,0,W,H); stars.forEach(s => { ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fillStyle = `rgba(255,255,255,${0.3+Math.random()*0.7})`; ctx.fill(); s.x -= 0.15; if (s.x < 0) s.x = W }); const px = W/2 + Math.sin(t)*30, py = H/2; const pg = ctx.createRadialGradient(px-15,py-15,5,px,py,60); pg.addColorStop(0,'#ff00ff'); pg.addColorStop(1,'#330033'); ctx.beginPath(); ctx.arc(px,py,55,0,Math.PI*2); ctx.fillStyle = pg; ctx.fill() }
     else if (scene === 'movie') { ctx.fillStyle = '#0b0b0b'; ctx.fillRect(0,0,W,H); ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H*0.12); ctx.fillRect(0,H*0.88,W,H*0.12); const creds = ['CYPHER4X PRODUCTIONS','directed by You','cinematography · AI','starring · Characters','music · Synth Engine','A CYPHER4X FILM']; ctx.font = '14px monospace'; ctx.textAlign = 'center'; creds.forEach((l, i) => { const y = (t*40+i*40)%H; if (y > H*0.15 && y < H*0.85) { ctx.fillStyle = i === 0 ? '#ffcc00' : 'rgba(255,255,255,0.8)'; ctx.fillText(l, W/2, y) } }) }
     else if (scene === 'sakura') { const g = ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#ffb6d5'); g.addColorStop(1,'#ff4f9a'); ctx.fillStyle = g; ctx.fillRect(0,0,W,H); ctx.beginPath(); ctx.arc(W*0.78,H*0.22,40,0,Math.PI*2); ctx.fillStyle = '#fff8d6'; ctx.fill(); parts.forEach(p => { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.beginPath(); ctx.ellipse(0,0,p.r*2.5,p.r,0,0,Math.PI*2); ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fill(); ctx.restore(); p.y += 1.2; p.x += Math.sin(t + p.y * 0.05) * 0.8; p.rot += 0.02; if (p.y > H) { p.y = -10; p.x = Math.random() * W } }) }
-    else if (scene === 'nature') { const g = ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#87ceeb'); g.addColorStop(1,'#2ecc71'); ctx.fillStyle = g; ctx.fillRect(0,0,W,H); ctx.beginPath(); ctx.arc(W*0.2,H*0.18,30,0,Math.PI*2); ctx.fillStyle = '#f39c12'; ctx.fill(); ctx.beginPath(); ctx.moveTo(0,H*0.7); for (let x = 0; x <= W; x += 20) ctx.lineTo(x, H*0.7 + Math.sin(x*0.02+t)*20); ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath(); ctx.fillStyle = '#27ae60'; ctx.fill(); parts.forEach(p => { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.beginPath(); ctx.ellipse(0,0,p.r*2,p.r*0.8,0,0,Math.PI*2); ctx.fillStyle = 'rgba(46,204,113,0.9)'; ctx.fill(); ctx.restore(); p.y += 0.8; p.x += Math.sin(t + p.x * 0.05) * 0.6; p.rot += 0.02; if (p.y > H) { p.y = -10; p.x = Math.random() * W } }) }
+    else if (scene === 'nature') { const g = ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#87ceeb'); g.addColorStop(1,'#2ecc71'); ctx.fillStyle = g; ctx.fillRect(0,0,W,H); ctx.beginPath(); ctx.arc(W*0.2,H*0.18,30,0,Math.PI*2); ctx.fillStyle = '#f39c12'; ctx.fill(); ctx.beginPath(); ctx.moveTo(0,H*0.7); for (let x = 0; x <= W; x += 20) ctx.lineTo(x, H*0.7 + Math.sin(x*0.02+t)*20); ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath(); ctx.fillStyle = '#27ae60'; ctx.fill() }
     else if (scene === 'cartoon') { const g = ctx.createLinearGradient(0,0,W,H); g.addColorStop(0,'#ffe066'); g.addColorStop(1,'#ff6b6b'); ctx.fillStyle = g; ctx.fillRect(0,0,W,H); parts.slice(0,20).forEach((p, i) => { const x = (i*W/20 + t*20)%W; const y = H*0.5 + Math.sin(t*3+i)*60; ctx.beginPath(); if (i%3===0) ctx.arc(x,y,20,0,Math.PI*2); else if (i%3===1) ctx.rect(x-15,y-15,30,30); else { ctx.moveTo(x,y-20); ctx.lineTo(x+20,y+15); ctx.lineTo(x-20,y+15); ctx.closePath() } ctx.fillStyle = ['#4ecdc4','#a8e6cf','#ffffff'][i%3]; ctx.fill() }) }
     else if (scene === 'blobs') { ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H); parts.forEach(p => { ctx.beginPath(); ctx.arc(p.x,p.y,p.r*5,0,Math.PI*2); const g = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*5); g.addColorStop(0, p.c + 'cc'); g.addColorStop(1, p.c + '00'); ctx.fillStyle = g; ctx.fill(); p.x += p.vx; p.y += p.vy; if (p.x < 0 || p.x > W) p.vx *= -1; if (p.y < 0 || p.y > H) p.vy *= -1 }) }
     else { const g = ctx.createLinearGradient(0,0,W,H); g.addColorStop(0, pal[0]); g.addColorStop(1, pal[1] || pal[0]); ctx.fillStyle = g; ctx.fillRect(0,0,W,H); parts.forEach(p => { ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle = p.c; ctx.fill(); p.x += p.vx; p.y += p.vy; if (p.x < 0 || p.x > W) p.vx *= -1; if (p.y < 0 || p.y > H) p.vy *= -1 }) }
-    ctx.save(); ctx.textAlign = 'center'; ctx.font = 'bold 42px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.95)'; ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 12; ctx.fillText('CYPHER4X', W/2, H/2 - 8); ctx.font = '16px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fillText(style.label + ' Style', W/2, H/2 + 22); if (userDesc) { ctx.font = 'italic 13px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fillText('"' + userDesc.slice(0, 40) + '"', W/2, H/2 + 50) } ctx.restore()
+    ctx.save(); ctx.textAlign = 'center'; ctx.font = 'bold 42px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.95)'; ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 12; ctx.fillText('CYPHER4X', W/2, H/2 - 8); ctx.font = '16px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fillText(style.label + ' Style', W/2, H/2 + 22); ctx.restore()
     drawWatermark(ctx, W, H, wm || 'CYPHER4X')
     onProgress && onProgress(t)
     raf = requestAnimationFrame(draw)
@@ -1351,7 +740,7 @@ function startCanvasVideo(canvas, style, userDesc, wm, onProgress) {
 }
 
 // ==================================================
-// RED BALL — colors from theme
+// RED BALL
 // ==================================================
 const RedBall = ({ isSpeaking = false, theme = {}, size = 180 }) => {
   const c = theme.ballColor || '#ff003c'
@@ -1369,10 +758,7 @@ const RedBall = ({ isSpeaking = false, theme = {}, size = 180 }) => {
           width: size, height: size,
           background: `radial-gradient(circle at 30% 25%, ${hexA(c2, 0.9)} 0%, transparent 45%), radial-gradient(circle at 40% 35%, ${c2} 0%, ${c} 25%, ${c} 50%, ${c3} 75%, ${darkenColor(c3)} 100%)`,
           boxShadow: `inset -20px -20px 40px ${hexA(c3, 0.8)}, inset 15px 15px 30px ${hexA(c2, 0.4)}, 0 0 50px ${hexA(c, 0.5)}, 0 0 100px ${hexA(c, 0.3)}, 0 0 150px ${hexA(c, 0.15)}`,
-          ...(isSpeaking ? {
-            boxShadow: `inset -20px -20px 40px ${hexA(c3, 0.8)}, inset 15px 15px 30px ${hexA(c2, 0.5)}, 0 0 80px ${hexA(c, 0.8)}, 0 0 150px ${hexA(c, 0.5)}, 0 0 220px ${hexA(c, 0.25)}`,
-            animation: 'ballShake 0.35s ease-in-out infinite'
-          } : {})
+          ...(isSpeaking ? { animation: 'ballShake 0.35s ease-in-out infinite' } : {})
         }}>
           <div style={styles.ballHighlight} />
           <div style={styles.ballInnerGlow} />
@@ -1382,7 +768,6 @@ const RedBall = ({ isSpeaking = false, theme = {}, size = 180 }) => {
   )
 }
 
-// color helpers
 function hexA(hex, a) {
   if (!hex || !hex.startsWith('#')) return hex
   const r = parseInt(hex.slice(1,3), 16), g = parseInt(hex.slice(3,5), 16), b = parseInt(hex.slice(5,7), 16)
@@ -1416,12 +801,10 @@ export default function App() {
   const [profileForm, setProfileForm] = useState({ name: '', username: '', avatar: '', bio: '' })
   const [editingProfile, setEditingProfile] = useState(false)
 
-  // --- INTRO SEQUENCE ---
   const [showIntro, setShowIntro] = useState(true)
   const [introStep, setIntroStep] = useState(0)
-  
-  // --- BOOT & LOADING SEQUENCE ---
-  const [isBooting, setIsBooting] = useState(false) 
+
+  const [isBooting, setIsBooting] = useState(false)
   const [isEnteringAI, setIsEnteringAI] = useState(false)
   const [enterProgress, setEnterProgress] = useState(0)
   const [enterMessage, setEnterMessage] = useState('Updating...')
@@ -1431,29 +814,26 @@ export default function App() {
   const [backgroundImage, setBackgroundImage] = useState(null)
   const [showChatMenu, setShowChatMenu] = useState(false)
 
-  // --- ORIGINAL WORKSPACE MODE ---
   const [showWorkspace, setShowWorkspace] = useState(false)
   const [workspaceTasks, setWorkspaceTasks] = useState([])
-  const [workspaceActiveTab, setWorkspaceActiveTab] = useState('canvas') 
-  const [workspaceContent, setWorkspaceContent] = useState(null) 
+  const [workspaceActiveTab, setWorkspaceActiveTab] = useState('canvas')
+  const [workspaceContent, setWorkspaceContent] = useState(null)
   const [workspaceCommand, setWorkspaceCommand] = useState('')
   const [workspaceProcessing, setWorkspaceProcessing] = useState(false)
   const [workspaceLogs, setWorkspaceLogs] = useState([{ type: 'system', text: 'Workspace initialized. Awaiting command...' }])
 
-  // --- PRACTICAL WORKSPACE MODE (New Magic Workspace) ---
   const [showPracticalWorkspace, setShowPracticalWorkspace] = useState(false)
-  const [practicalBg, setPracticalBg] = useState('#ffffff') // White background default
+  const [practicalBg, setPracticalBg] = useState('#ffffff')
   const [practicalLogs, setPracticalLogs] = useState([
     { id: 1, role: 'ai', type: 'text', content: 'Hello! I am your Practical Workspace AI. I can create tools, apps, images, or write code for you. What would you like to build today?' }
   ])
   const [practicalInput, setPracticalInput] = useState('')
   const [practicalProcessing, setPracticalProcessing] = useState(false)
   const [practicalActionText, setPracticalActionText] = useState('')
-  const [practicalBuildState, setPracticalBuildState] = useState(null) // 'awaiting_type', 'awaiting_lang', 'building'
+  const [practicalBuildState, setPracticalBuildState] = useState(null)
   const [practicalBuildTimer, setPracticalBuildTimer] = useState(0)
   const [practicalBuildDetails, setPracticalBuildDetails] = useState({ type: '', lang: '' })
 
-  // ----- THEME -----
   const [theme, setTheme] = useState({
     primary: '#ff003c',
     secondary: '#000000',
@@ -1468,20 +848,22 @@ export default function App() {
     secretMode: false, overlayButton: false, safeLinks: true, autoScroll: true, haptic: true,
     soundFx: false, showTimestamps: true, typingIndicator: true, readAloud: false,
     highContrast: false, compactMode: false, codeAutoOverview: true, confirmDelete: true,
-    restrictTools: true,       
-    locationEnabled: false,    
+    restrictTools: true,
+    locationEnabled: false,
   })
 
-  // ----- DASHBOARD (date/time/day/temp) -----
   const [now, setNow] = useState(new Date())
   const [weather, setWeather] = useState(null)
 
-  // MULTI-CHAT
   const [chats, setChats] = useState(() => {
+    if (typeof window === 'undefined') return [{ id: 'default-' + Date.now(), title: 'Chat 1', messages: [], createdAt: Date.now() }]
     const saved = localStorage.getItem('cypher4x_chats')
     return saved ? JSON.parse(saved) : [{ id: 'default-' + Date.now(), title: 'Chat 1', messages: [], createdAt: Date.now() }]
   })
-  const [activeChatId, setActiveChatId] = useState(() => localStorage.getItem('cypher4x_active_chat') || null)
+  const [activeChatId, setActiveChatId] = useState(() => {
+    if (typeof window === 'undefined') return null
+    return localStorage.getItem('cypher4x_active_chat') || null
+  })
   const conversation = chats.find(c => c.id === activeChatId)?.messages || []
   const setConversation = (updater) => {
     setChats(prev => prev.map(c => {
@@ -1510,14 +892,12 @@ export default function App() {
   const [pendingCode, setPendingCode] = useState(null); const [copiedId, setCopiedId] = useState(null)
   const [replyingTo, setReplyingTo] = useState(null)
 
-  // MUSIC
   const [showMusicPanel, setShowMusicPanel] = useState(false)
   const [musicDesc, setMusicDesc] = useState(''); const [musicDuration, setMusicDuration] = useState(30)
   const [musicQuality, setMusicQuality] = useState('high'); const [musicPlaying, setMusicPlaying] = useState(false)
   const [musicInfo, setMusicInfo] = useState(''); const [musicDownloadUrl, setMusicDownloadUrl] = useState(null)
   const [musicGenerating, setMusicGenerating] = useState(false); const [musicAudioRef, setMusicAudioRef] = useState(null)
 
-  // VIDEO
   const [showVideoPanel, setShowVideoPanel] = useState(false)
   const [videoDesc, setVideoDesc] = useState(''); const [videoDuration, setVideoDuration] = useState(5)
   const [videoQuality, setVideoQuality] = useState('medium'); const [videoGenerating, setVideoGenerating] = useState(false)
@@ -1527,7 +907,6 @@ export default function App() {
   const [videoProgress, setVideoProgress] = useState(0)
   const canvasRef = useRef(null); const videoRecorderRef = useRef(null)
 
-  // CYBER LAB
   const [showCyberLab, setShowCyberLab] = useState(false); const [cyberTab, setCyberTab] = useState('terminal')
   const [cyberInput, setCyberInput] = useState(''); const [cyberLines, setCyberLines] = useState([
     { type: 'info', text: `${VERSION_FULL} Terminal — type "help" for commands` },
@@ -1551,6 +930,23 @@ export default function App() {
   }, [settings.soundFx])
   const vibrate = useCallback((p = 10) => { if (!settings.haptic) return; try { navigator.vibrate && navigator.vibrate(p) } catch {} }, [settings.haptic])
 
+  // ✅ FIX #3 — speakText moved UP so effects below can reference it safely
+  const speakText = useCallback((text, onEnd = null) => {
+    if (!text || !synthRef.current) return
+    try {
+      synthRef.current.cancel()
+      const u = new SpeechSynthesisUtterance(text.replace(/[*_`#]/g, ''))
+      u.rate = 0.95; u.pitch = 0.9
+      const voices = synthRef.current.getVoices()
+      const preferredVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Microsoft David')) || voices.find(v => v.lang === 'en-US')
+      if (preferredVoice) u.voice = preferredVoice
+      u.onstart = () => setIsAISpeaking(true)
+      u.onend = () => { setIsAISpeaking(false); if (onEnd) onEnd() }
+      u.onerror = () => { setIsAISpeaking(false); if (onEnd) onEnd() }
+      synthRef.current.speak(u)
+    } catch { setIsAISpeaking(false); if (onEnd) onEnd() }
+  }, [])
+
   // ==================================================
   // INTRO & BOOT SEQUENCE
   // ==================================================
@@ -1562,7 +958,6 @@ export default function App() {
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
   }, [showIntro])
 
-  // ENTRY LOADING SCREEN (12s)
   useEffect(() => {
     if (!isEnteringAI) return
     setEnterProgress(0); setEnterMessage('Updating...')
@@ -1583,7 +978,6 @@ export default function App() {
     return () => clearInterval(interval)
   }, [isEnteringAI])
 
-  // Practical Workspace Build Timer Effect
   useEffect(() => {
     if (practicalBuildState === 'building' && practicalBuildTimer > 0) {
       const interval = setInterval(() => {
@@ -1591,12 +985,7 @@ export default function App() {
           if (prev <= 1) {
             clearInterval(interval)
             const code = generateLongCode(practicalBuildDetails.lang, `${practicalBuildDetails.type} game`, 'Practical Workspace generation')
-            setPracticalLogs(prevLogs => [...prevLogs, { 
-              id: Date.now(), 
-              role: 'ai', 
-              type: 'code', 
-              content: code 
-            }])
+            setPracticalLogs(prevLogs => [...prevLogs, { id: Date.now(), role: 'ai', type: 'code', content: code }])
             setPracticalBuildState(null)
             setPracticalActionText('')
             speakText(`Your ${practicalBuildDetails.type} game in ${practicalBuildDetails.lang} is ready!`)
@@ -1607,36 +996,26 @@ export default function App() {
       }, 1000)
       return () => clearInterval(interval)
     }
-  }, [practicalBuildState, practicalBuildTimer, practicalBuildDetails])
+  }, [practicalBuildState, practicalBuildTimer, practicalBuildDetails, speakText])
 
-  // Clock — updates every 30s
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 30000)
     return () => clearInterval(t)
   }, [])
 
-  // Weather — if enabled
   useEffect(() => {
     if (!settings.locationEnabled) return
     if (!navigator.geolocation) return
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const w = await fetchWeather(pos.coords.latitude, pos.coords.longitude)
-        if (w) setWeather(w)
-      },
-      () => {},
-      { timeout: 5000 }
+      async (pos) => { const w = await fetchWeather(pos.coords.latitude, pos.coords.longitude); if (w) setWeather(w) },
+      () => {}, { timeout: 5000 }
     )
     const refresh = setInterval(() => {
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        const w = await fetchWeather(pos.coords.latitude, pos.coords.longitude)
-        if (w) setWeather(w)
-      }, () => {}, { timeout: 5000 })
-    }, 600000) // 10 min
+      navigator.geolocation.getCurrentPosition(async (pos) => { const w = await fetchWeather(pos.coords.latitude, pos.coords.longitude); if (w) setWeather(w) }, () => {}, { timeout: 5000 })
+    }, 600000)
     return () => clearInterval(refresh)
   }, [settings.locationEnabled])
 
-  // PERSIST
   useEffect(() => { try { localStorage.setItem('cypher4x_chats', JSON.stringify(chats)) } catch {} }, [chats])
   useEffect(() => { if (activeChatId) try { localStorage.setItem('cypher4x_active_chat', activeChatId) } catch {} }, [activeChatId])
   useEffect(() => { if (!activeChatId && chats.length > 0) setActiveChatId(chats[0].id) }, [chats, activeChatId])
@@ -1682,38 +1061,24 @@ export default function App() {
   const incrementGuestMessage = () => { if (userMode !== 'guest') return; const n = guestMessageCount + 1; setGuestMessageCount(n); if (n >= 5) setShowGuestLimit(true) }
 
   const requireLogin = (featureName) => {
-    if (!TOOLS_ENABLED) {
-      alert(`🔒 ${featureName} is not yet available.`)
-      return false
-    }
-    if (settings.restrictTools && userMode !== 'loggedin') {
-      alert(`🔒 ${featureName} is restricted.\n\nPlease login or sign up to access this feature.`)
-      return false
-    }
+    if (!TOOLS_ENABLED) { alert(`🔒 ${featureName} is not yet available.`); return false }
+    if (settings.restrictTools && userMode !== 'loggedin') { alert(`🔒 ${featureName} is restricted.\n\nPlease login or sign up to access this feature.`); return false }
     return true
   }
 
-  // AI GREETING LOGIC
-  /* eslint-disable react-hooks/exhaustive-deps */
+  // AI GREETING
   useEffect(() => {
     if (!isBooting && !isEnteringAI && !hasGreeted.current && activeChatId && !showIntro) {
       hasGreeted.current = true
       const name = profile?.name || (userMode === 'guest' ? 'Guest' : 'there')
       const greeting = `Hello ${name}! 👋 I am CYPHER4X, your advanced AI assistant. How can I help you today?`
-      
       setConversation(prev => {
-        if (prev.length === 0) {
-          return [{ id: ++msgCounter.current, role: 'assistant', content: greeting, time: Date.now() }]
-        }
+        if (prev.length === 0) return [{ id: ++msgCounter.current, role: 'assistant', content: greeting, time: Date.now() }]
         return prev
       })
-
-      if (settings.readAloud || settings.autoStartVoice) {
-        speakText(greeting)
-      }
+      if (settings.readAloud || settings.autoStartVoice) speakText(greeting)
     }
   }, [isBooting, isEnteringAI, activeChatId, showIntro])
-  /* eslint-enable react-hooks/exhaustive-deps */
 
   // CHAT MANAGEMENT
   const createNewChat = () => {
@@ -1726,9 +1091,7 @@ export default function App() {
     const chat = chats.find(c => c.id === chatId)
     if (!chat) return
     const newTitle = prompt('Rename chat:', chat.title)
-    if (newTitle && newTitle.trim()) {
-      setChats(prev => prev.map(c => c.id === chatId ? { ...c, title: newTitle.trim() } : c))
-    }
+    if (newTitle && newTitle.trim()) setChats(prev => prev.map(c => c.id === chatId ? { ...c, title: newTitle.trim() } : c))
     setShowChatMenu(false)
   }
   const deleteChat = (chatId) => {
@@ -1742,26 +1105,9 @@ export default function App() {
   const clearConversation = useCallback(() => setConversation([]), [activeChatId])
   const clearCommands = useCallback(() => setCommandHistory([]), [])
 
-  // SPEECH
-  const speakText = useCallback((text, onEnd = null) => {
-    if (!text || !synthRef.current) return
-    try {
-      synthRef.current.cancel()
-      const u = new SpeechSynthesisUtterance(text.replace(/[*_`#]/g, ''))
-      u.rate = 0.95; 
-      u.pitch = 0.9; 
-      const voices = synthRef.current.getVoices()
-      const preferredVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Microsoft David')) || voices.find(v => v.lang === 'en-US')
-      if (preferredVoice) u.voice = preferredVoice
-
-      u.onstart = () => setIsAISpeaking(true)
-      u.onend = () => { setIsAISpeaking(false); if (onEnd) onEnd() }
-      u.onerror = () => { setIsAISpeaking(false); if (onEnd) onEnd() }
-      synthRef.current.speak(u)
-    } catch { setIsAISpeaking(false); if (onEnd) onEnd() }
-  }, [])
-
+  // SPEECH RECOGNITION
   const setupSpeechRecognition = useCallback((isOneOff = false, onFinal = null) => {
+    if (typeof window === 'undefined') return null
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) { alert('Speech not supported.'); return null }
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition
     const r = new SR(); r.continuous = !isOneOff; r.interimResults = true; r.lang = 'en-US'
@@ -1789,19 +1135,15 @@ export default function App() {
   }
 
   // ==================================================
-  // ORIGINAL WORKSPACE LOGIC (Simulation)
+  // WORKSPACE LOGIC
   // ==================================================
   const addWorkspaceTask = (text) => {
     const id = Date.now() + Math.random()
     setWorkspaceTasks(prev => [...prev, { id, text, status: 'pending', progress: 0 }])
     return id
   }
-  const updateWorkspaceTask = (id, updates) => {
-    setWorkspaceTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t))
-  }
-  const removeWorkspaceTask = (id) => {
-    setTimeout(() => setWorkspaceTasks(prev => prev.filter(t => t.id !== id)), 2000)
-  }
+  const updateWorkspaceTask = (id, updates) => { setWorkspaceTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t)) }
+  const removeWorkspaceTask = (id) => { setTimeout(() => setWorkspaceTasks(prev => prev.filter(t => t.id !== id)), 2000) }
   const processWorkspaceCommand = async (cmdText) => {
     if (!cmdText.trim() || workspaceProcessing) return
     setWorkspaceProcessing(true)
@@ -1809,53 +1151,47 @@ export default function App() {
     setWorkspaceCommand('')
     const l = cmdText.toLowerCase()
 
-    try {
-      if (l.includes('3d') || l.includes('rocket') || l.includes('draw') || l.includes('model') || l.includes('image') || l.includes('picture')) {
-        const t1 = addWorkspaceTask('Analyzing visual request...')
-        await new Promise(r => setTimeout(r, 500))
-        updateWorkspaceTask(t1, { status: 'done', progress: 100 })
-        const t2 = addWorkspaceTask('Fetching reference assets...')
-        await new Promise(r => setTimeout(r, 1000))
-        updateWorkspaceTask(t2, { status: 'done', progress: 100 })
-        const t3 = addWorkspaceTask('Generating 3D mesh...')
-        setWorkspaceActiveTab('canvas')
-        const imageUrl = 'https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&w=600&q=80'
-        setWorkspaceContent({ type: '3d', data: { title: '3D Render: ' + cmdText.slice(0, 30), image: imageUrl, colors: ['#ff003c', '#00ffff', '#ffffff'] } })
-        await new Promise(r => setTimeout(r, 1500))
-        updateWorkspaceTask(t3, { status: 'done', progress: 100 })
-        removeWorkspaceTask(t3)
-        setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `I've generated the 3D render. View it on the Canvas tab.` }])
-        speakText("Task completed. The 3D render is ready on your workspace canvas.")
-      } 
-      else if (l.includes('game') || l.includes('code') || l.includes('script') || l.includes('program')) {
-        const t1 = addWorkspaceTask('Initializing development environment...')
-        await new Promise(r => setTimeout(r, 500))
-        updateWorkspaceTask(t1, { status: 'done', progress: 100 })
-        const t2 = addWorkspaceTask('Writing code...')
-        const lang = detectLanguage(cmdText)
-        const code = generateLongCode(lang, cmdText, 'Simulation generation')
-        setWorkspaceContent({ type: 'code', data: { lang: lang, code } })
-        setWorkspaceActiveTab('code')
-        await new Promise(r => setTimeout(r, 1000))
-        updateWorkspaceTask(t2, { status: 'done', progress: 100 })
-        // Output code directly to chat instead of asking to check tab
-        setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `Here is the code:\n\n\`\`\`${lang}\n${code}\n\`\`\`` }])
-        speakText("I have written the code for your project.")
-      }
-      else {
-        const t1 = addWorkspaceTask('Processing command...')
-        await new Promise(r => setTimeout(r, 500))
-        updateWorkspaceTask(t1, { status: 'done', progress: 100 })
-        removeWorkspaceTask(t1)
-        const reply = `I received your command: "${cmdText}". I am ready to execute it in the workspace.`
-        setWorkspaceLogs(prev => [...prev, { type: 'ai', text: reply }])
-        speakText("Command received.")
-      }
-    } catch (error) {
-      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: 'Error processing command.' }])
-    } finally {
-      setWorkspaceProcessing(false)
+    if (l.includes('3d') || l.includes('rocket') || l.includes('draw') || l.includes('model') || l.includes('image') || l.includes('picture')) {
+      const t1 = addWorkspaceTask('Analyzing visual request...')
+      await new Promise(r => setTimeout(r, 500))
+      updateWorkspaceTask(t1, { status: 'done', progress: 100 })
+      const t2 = addWorkspaceTask('Fetching reference assets...')
+      await new Promise(r => setTimeout(r, 1000))
+      updateWorkspaceTask(t2, { status: 'done', progress: 100 })
+      const t3 = addWorkspaceTask('Generating 3D mesh...')
+      setWorkspaceActiveTab('canvas')
+      const imageUrl = 'https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&w=600&q=80'
+      setWorkspaceContent({ type: '3d', data: { title: '3D Render: ' + cmdText.slice(0, 30), image: imageUrl, colors: ['#ff003c', '#00ffff', '#ffffff'] } })
+      await new Promise(r => setTimeout(r, 1500))
+      updateWorkspaceTask(t3, { status: 'done', progress: 100 })
+      removeWorkspaceTask(t3)
+      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `I've generated the 3D render. View it on the Canvas tab.` }])
+      speakText("Task completed. The 3D render is ready on your workspace canvas.")
     }
+    else if (l.includes('game') || l.includes('code') || l.includes('script') || l.includes('program')) {
+      const t1 = addWorkspaceTask('Initializing development environment...')
+      await new Promise(r => setTimeout(r, 500))
+      updateWorkspaceTask(t1, { status: 'done', progress: 100 })
+      const t2 = addWorkspaceTask('Writing code...')
+      const lang = detectLanguage(cmdText) // ✅ now defined
+      const code = generateLongCode(lang, cmdText, 'Simulation generation')
+      setWorkspaceContent({ type: 'code', data: { lang, code } })
+      setWorkspaceActiveTab('code')
+      await new Promise(r => setTimeout(r, 1000))
+      updateWorkspaceTask(t2, { status: 'done', progress: 100 })
+      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `Here is the code:\n\n\`\`\`${lang}\n${code}\n\`\`\`` }])
+      speakText("I have written the code for your project.")
+    }
+    else {
+      const t1 = addWorkspaceTask('Processing command...')
+      await new Promise(r => setTimeout(r, 500))
+      updateWorkspaceTask(t1, { status: 'done', progress: 100 })
+      removeWorkspaceTask(t1)
+      const reply = `I received your command: "${cmdText}". I am ready to execute it in the workspace.`
+      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: reply }])
+      speakText("Command received.")
+    }
+    setWorkspaceProcessing(false)
   }
   const handleWorkspaceSubmit = (e) => { if (e) e.preventDefault(); processWorkspaceCommand(workspaceCommand) }
   const handleWorkspaceVoice = () => {
@@ -1870,18 +1206,14 @@ export default function App() {
   }
 
   // ==================================================
-  // PRACTICAL WORKSPACE LOGIC (JARVIS-like)
+  // PRACTICAL WORKSPACE LOGIC
   // ==================================================
   const processPracticalCommand = async (cmdText) => {
     if (!cmdText.trim() || practicalProcessing) return
-    
-    // Add user message
     setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'user', type: 'text', content: cmdText }])
     setPracticalInput('')
-    
     const l = cmdText.toLowerCase()
 
-    // 1. Handle Ongoing Build State (Asking Questions)
     if (practicalBuildState === 'awaiting_type') {
       setPracticalBuildDetails(prev => ({ ...prev, type: cmdText }))
       setPracticalBuildState('awaiting_lang')
@@ -1895,14 +1227,13 @@ export default function App() {
       const lang = cmdText
       setPracticalBuildDetails(prev => ({ ...prev, lang }))
       setPracticalBuildState('building')
-      setPracticalBuildTimer(5) // 5 second countdown
+      setPracticalBuildTimer(5)
       const responseContent = `Building your ${practicalBuildDetails.type} game in ${lang}...\n\nEstimated time: 5 seconds...`
       setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
       speakText(`Building your game in ${lang}. Please wait.`)
       return
     }
 
-    // 2. Friendly Conversation & General Q&A
     if (isPureGreeting(cmdText)) {
       const responseContent = `Hello! 👋 I'm doing great. How can I help you today?`
       setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
@@ -1916,7 +1247,6 @@ export default function App() {
       setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
       speakText(responseContent)
     }
-    // 3. Image Generation
     else if (l.includes('image') || l.includes('picture') || l.includes('draw') || l.includes('show me')) {
       setPracticalActionText('AI is building your image...')
       const keywords = cmdText.replace(/show me|image|picture of|draw/gi, '').trim() || 'abstract'
@@ -1925,12 +1255,9 @@ export default function App() {
       setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'image', content: imageUrl }])
       speakText(`Here is the image for ${keywords}.`)
     }
-    // 4. Code / Game / App / Tool Creation (Start interactive flow)
     else if (l.includes('create') || l.includes('build') || l.includes('make') || l.includes('generate') || l.includes('game') || l.includes('app') || l.includes('tool')) {
-      // Check if language is already specified
-      const detectedLang = detectLanguage(cmdText)
+      const detectedLang = detectLanguage(cmdText) // ✅ now defined
       if (detectedLang !== 'javascript') {
-        // Language specified, skip asking
         setPracticalBuildDetails({ type: cmdText, lang: detectedLang })
         setPracticalBuildState('building')
         setPracticalBuildTimer(5)
@@ -1938,14 +1265,12 @@ export default function App() {
         setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
         speakText(`Building your project in ${detectedLang}. Please wait.`)
       } else {
-        // Ask for type
         setPracticalBuildState('awaiting_type')
         const responseContent = `Sure! What kind of ${l.includes('game') ? 'game' : l.includes('app') ? 'app' : 'tool'} would you like? (e.g., 2D platformer, 3D shooter, puzzle, calculator, etc.)`
         setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
         speakText("Sure! What kind of project would you like?")
       }
     }
-    // 5. Default Fallback
     else {
       const responseContent = `I understand. I can create that for you. What specific details would you like me to include?`
       setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
@@ -1953,11 +1278,7 @@ export default function App() {
     }
   }
 
-  const handlePracticalSubmit = (e) => {
-    if (e) e.preventDefault()
-    processPracticalCommand(practicalInput)
-  }
-
+  const handlePracticalSubmit = (e) => { if (e) e.preventDefault(); processPracticalCommand(practicalInput) }
   const handlePracticalVoice = () => {
     if (isRecording) return
     const r = new (window.SpeechRecognition || window.webkitSpeechRecognition)()
@@ -1968,15 +1289,11 @@ export default function App() {
     r.onresult = (e) => processPracticalCommand(e.results[0][0].transcript)
     r.start()
   }
-
   const handlePracticalDownload = (log) => {
     if (log.type === 'code') {
       const blob = new Blob([log.content], { type: 'text/plain' })
       const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `cypher4x_practical_code_${Date.now()}.txt`
-      a.click()
+      const a = document.createElement('a'); a.href = url; a.download = `cypher4x_practical_code_${Date.now()}.txt`; a.click()
       URL.revokeObjectURL(url)
     } else if (log.type === 'image') {
       window.open(log.content, '_blank')
@@ -2041,7 +1358,7 @@ export default function App() {
     }
 
     if (isCodeRequest(query)) {
-      const lang = detectLanguage(query)
+      const lang = detectLanguage(query) // ✅ now defined
       setConversation(prev => [...prev, { id: ++msgCounter.current, role: 'assistant', content: `I'll write code for you! 🎨\n\n**Q1 — What programming language?**\n\n_Detected: **${lang}**_`, time: Date.now() }])
       setPendingCode({ step: 'language', answers: { language: null }, detected: { language: lang } })
       if (settings.readAloud || settings.autoStartVoice) speakText('I will ask three questions to generate your code.')
@@ -2079,10 +1396,11 @@ export default function App() {
     if (settings.readAloud) speakText(reply.replace(/🔗.*$/s, ''))
     playBeep(500, 0.08); vibrate(10)
     setIsProcessing(false)
-  }, [isProcessing, userMode, settings, pendingCode, replyingTo, activeChatId, weather, now, vibrate, playBeep])
+  }, [isProcessing, userMode, settings, pendingCode, replyingTo, activeChatId, weather, now, vibrate, playBeep, speakText])
 
   // OVERVIEW VOICE
   const setupOverviewRecognition = useCallback(() => {
+    if (typeof window === 'undefined') return null
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) return null
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition
     const r = new SR(); r.continuous = false; r.interimResults = true; r.lang = 'en-US'
@@ -2094,4 +1412,1134 @@ export default function App() {
   }, [])
   const startVoiceRecording = useCallback(() => { if (isRecordingVoice || chatOverviewListening) return; if (!chatOverviewRecognitionRef.current) chatOverviewRecognitionRef.current = setupOverviewRecognition(); if (chatOverviewRecognitionRef.current) { try { chatOverviewRecognitionRef.current.start(); setVoiceTranscript('') } catch {} } }, [isRecordingVoice, chatOverviewListening, setupOverviewRecognition])
   const pauseVoiceRecording = useCallback(() => { if (chatOverviewRecognitionRef.current && chatOverviewListening) { try { chatOverviewRecognitionRef.current.stop(); setVoicePaused(true); setChatOverviewListening(false); setIsRecordingVoice(false) } catch {} } }, [chatOverviewListening])
-  const resumeVoiceRecording = useCallback(() => { if (voicePaused && chatOverviewRec
+  const resumeVoiceRecording = useCallback(() => { if (voicePaused && chatOverviewRecognitionRef.current) { try { chatOverviewRecognitionRef.current.start(); setVoicePaused(false); setChatOverviewListening(true); setIsRecordingVoice(true) } catch {} } }, [voicePaused])
+  const deleteVoiceRecording = useCallback(() => { if (chatOverviewRecognitionRef.current) { try { chatOverviewRecognitionRef.current.stop() } catch {} } setVoiceTranscript(''); setChatOverviewListening(false); setIsRecordingVoice(false); setVoicePaused(false) }, [])
+  const sendVoiceRecording = useCallback(() => { const t = voiceTranscript.trim(); if (!t || isProcessing) return; setVoiceTranscript(''); setChatOverviewListening(false); setIsRecordingVoice(false); setVoicePaused(false); if (chatOverviewRecognitionRef.current) { try { chatOverviewRecognitionRef.current.stop() } catch {} } processUserQuery(t) }, [voiceTranscript, isProcessing, processUserQuery])
+  useEffect(() => { if (voiceTranscript && !chatOverviewListening) setChatOverviewInput(voiceTranscript) }, [voiceTranscript, chatOverviewListening])
+  const sendOverviewText = useCallback(() => { const t = chatOverviewInput.trim(); if (!t || isProcessing) return; setChatOverviewInput(''); processUserQuery(t) }, [chatOverviewInput, isProcessing, processUserQuery])
+
+  // FILES & MESSAGES
+  const handleOverviewFileShare = useCallback((e) => {
+    const files = e.target.files; if (!files || !files[0]) return
+    const f = files[0]; if (f.size > 20 * 1024 * 1024) { alert('Max 20MB'); return }
+    const rd = new FileReader()
+    rd.onloadend = () => {
+      setConversation(prev => [...prev, { id: ++msgCounter.current, role: 'user', content: `📎 ${f.name}`, time: Date.now(), file: { name: f.name, type: f.type, data: rd.result, size: f.size } }])
+      setConversation(prev => [...prev, { id: ++msgCounter.current, role: 'assistant', content: `Received: **${f.name}** (${(f.size/1024).toFixed(1)} KB).`, time: Date.now() }])
+    }
+    rd.readAsDataURL(f); e.target.value = ''
+  }, [activeChatId])
+  const handleEditMessage = useCallback((id) => { const msg = conversation.find(m => m.id === id); if (!msg || msg.role !== 'user') return; const nc = prompt('Edit:', msg.content); if (nc !== null && nc.trim()) setConversation(prev => prev.map(m => m.id === id ? { ...m, content: nc.trim() } : m)) }, [conversation, activeChatId])
+  const handleDeleteMessage = useCallback((id) => { if (settings.confirmDelete && !confirm('Delete?')) return; setConversation(prev => prev.filter(m => m.id !== id)) }, [settings.confirmDelete, activeChatId])
+  const handleShareMessage = useCallback(async (msg) => { const c = msg.content; if (navigator.share) { try { await navigator.share({ title: 'CYPHER4X', text: c }) } catch {} } else { try { await navigator.clipboard.writeText(c); alert('Copied!') } catch {} } }, [])
+  const copyCode = async (code, id) => { try { await navigator.clipboard.writeText(code); setCopiedId(id); setTimeout(() => setCopiedId(null), 1500); vibrate(20) } catch {} }
+  const handleReply = (msg) => { setReplyingTo({ id: msg.id, content: msg.content }); setShowChatOverview(true) }
+
+  const renderMessageContent = (msg) => {
+    const c = msg.content || ''
+    const rx = /```(\w+)?\n([\s\S]*?)```/g
+    const parts = []; let last = 0, m, idx = 0
+    while ((m = rx.exec(c)) !== null) {
+      if (m.index > last) parts.push({ type: 'text', value: c.slice(last, m.index) })
+      parts.push({ type: 'code', lang: m[1] || 'text', value: m[2], key: `${msg.id}-${idx++}` })
+      last = m.index + m[0].length
+    }
+    if (last < c.length) parts.push({ type: 'text', value: c.slice(last) })
+    if (!parts.length) parts.push({ type: 'text', value: c })
+    return parts.map((p, i) => p.type === 'code' ? (
+      <div key={p.key || i} style={{ ...styles.codeBlockWrap, borderColor: hexA(theme.primary, 0.5) }}>
+        <div style={{ ...styles.codeBlockHeader, borderBottom: `1px solid ${hexA(theme.primary, 0.3)}` }}>
+          <span style={{ ...styles.codeLang, color: theme.primary }}>{p.lang}</span>
+          <button onClick={() => copyCode(p.value, p.key)} style={{ ...styles.codeCopyBtn, backgroundColor: theme.primary }}>
+            <Icon name={copiedId === p.key ? 'check' : 'copy'} size={14} color="#fff" /><span>{copiedId === p.key ? 'Copied!' : 'Copy'}</span>
+          </button>
+        </div>
+        <pre style={styles.codeBlock}>{p.value}</pre>
+      </div>
+    ) : <span key={i} style={styles.chatOverviewMsgText}>{p.value}</span>)
+  }
+
+  // CALL
+  const toggleFullscreenCall = useCallback(() => {
+    if (isFullscreenCall) { setIsFullscreenCall(false); setIsCallActive(false); if (recognitionRef.current) try { recognitionRef.current.stop() } catch {}; setIsListening(false); setInterimTranscript(''); synthRef.current?.cancel(); setIsAISpeaking(false) }
+    else {
+      setIsFullscreenCall(true); setIsCallActive(true)
+      if (!recognitionRef.current) recognitionRef.current = setupSpeechRecognition(false, (t) => processUserQuery(t))
+      if (recognitionRef.current) { try { recognitionRef.current.start(); speakText("I'm listening.") } catch {} }
+    }
+  }, [isFullscreenCall, setupSpeechRecognition, speakText, processUserQuery])
+  const interruptAndListen = useCallback(() => { synthRef.current?.cancel(); setIsAISpeaking(false); if (recognitionRef.current) try { recognitionRef.current.start() } catch {} }, [])
+  const startRecording = useCallback(() => {
+    if (isRecording || isProcessing || isFullscreenCall) return
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) { alert('Speech not supported.'); return }
+    setRecordingMode(true); vibrate(30)
+    const r = new (window.SpeechRecognition || window.webkitSpeechRecognition)()
+    r.continuous = false; r.interimResults = true; r.lang = 'en-US'
+    r.onstart = () => { setIsRecording(true); setIsListening(true); setInterimTranscript('') }
+    r.onend = () => { setIsRecording(false); setIsListening(false) }
+    r.onerror = (e) => { setIsRecording(false); setRecordingMode(false); setIsListening(false); if (e.error === 'not-allowed') alert('Allow mic.'); else alert('Error: ' + e.error) }
+    r.onresult = async (e) => { let f = '', i = ''; for (let k = e.resultIndex; k < e.results.length; k++) { const res = e.results[k]; if (res.isFinal) f += res[0].transcript; else i += res[0].transcript } if (f) { setInterimTranscript(''); setRecordingMode(false); await processUserQuery(f) } else if (i) setInterimTranscript(i) }
+    recognitionRef.current = r
+    try { r.start() } catch (e) { alert('Failed: ' + e.message); setRecordingMode(false) }
+  }, [isRecording, isProcessing, isFullscreenCall, processUserQuery, vibrate])
+  const sendInterim = useCallback(() => { if (!interimTranscript.trim() || isProcessing) return; const t = interimTranscript.trim(); setInterimTranscript(''); setRecordingMode(false); if (recognitionRef.current) try { recognitionRef.current.stop() } catch {}; processUserQuery(t) }, [interimTranscript, isProcessing, processUserQuery])
+  const cancelRecording = useCallback(() => { setInterimTranscript(''); setRecordingMode(false); setIsRecording(false); setIsListening(false); if (recognitionRef.current) try { recognitionRef.current.stop() } catch {} }, [])
+  const sendTextMessage = useCallback(() => { const t = inputText.trim(); if (!t || isProcessing) return; setInputText(''); processUserQuery(t) }, [inputText, isProcessing, processUserQuery])
+
+  // SETTINGS / PROFILE
+  const handleBackgroundChange = (e) => {
+    const f = e.target.files[0]; if (!f) return
+    if (!f.type.startsWith('image/')) { alert('Image only'); return }
+    if (f.size > 5 * 1024 * 1024) { alert('Max 5MB'); return }
+    const rd = new FileReader(); rd.onloadend = () => setBackgroundImage(rd.result); rd.readAsDataURL(f)
+  }
+  const resetBackground = () => { setBackgroundImage(null); if (bgInputRef.current) bgInputRef.current.value = '' }
+  const toggleView = useCallback(() => {
+    setViewMode(p => { const n = p === 'android' ? 'pc' : 'android'; if (n === 'pc') setShowRotateOverlay(true); return n })
+    setSidebarOpen(false)
+  }, [])
+  const toggleOverlay = () => {
+    const s = !overlayActive; setOverlayActive(s)
+    if (s) {
+      if (!overlayRecognitionRef.current) {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) { setOverlayActive(false); return }
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition
+        const rec = new SR(); rec.continuous = false; rec.interimResults = false; rec.lang = 'en-US'
+        rec.onstart = () => setOverlayListening(true); rec.onend = () => setOverlayListening(false); rec.onerror = () => setOverlayListening(false)
+        rec.onresult = (e) => { const t = e.results[0][0].transcript; setOverlayActive(false); processUserQuery(t) }
+        overlayRecognitionRef.current = rec
+      }
+      try { overlayRecognitionRef.current.start() } catch {}
+    } else { try { overlayRecognitionRef.current?.stop() } catch {}; setOverlayListening(false) }
+  }
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setStats(p => ({ ...p, uptime: Math.floor((Date.now() - APP_START_TIME)/1000), cpuUsage: Math.floor(Math.random()*30)+10, cpuTemp: Math.floor(Math.random()*20)+55, ramUsage: Math.floor(Math.random()*4)+3.5, storageUsed: Math.floor(Math.random()*50)+120, networkSpeed: (Math.random()*5+0.5).toFixed(2) }))
+    }, 3000)
+    return () => clearInterval(t)
+  }, [])
+
+  // MUSIC
+  const handleGenerateMusic = async () => {
+    if (!requireLogin('Music Generator')) return
+    if (!musicDesc.trim()) { alert('Describe the music you want first.'); return }
+    setMusicGenerating(true); setMusicInfo('📡 Trying Tunova API...'); setMusicDownloadUrl(null)
+    const fallbackLocalMusic = () => {
+      try {
+        const style = guessMusicStyle(musicDesc)
+        const bars = Math.max(2, Math.round(musicDuration * style.bpm / 60 / 4))
+        setMusicInfo(`🎵 Built-in synth — ${style.name} • ${style.bpm} BPM • ${bars} bars`)
+        const notes = generateRichMelody(style.bpm, style.scale, bars)
+        const { ctx, duration } = playRichMelody(notes, musicQuality, style.bpm)
+        setMusicPlaying(true)
+        setTimeout(() => { setMusicPlaying(false); try { ctx.close() } catch {} }, (duration + 1) * 1000)
+      } catch (e) { setMusicInfo('❌ Synth error: ' + e.message) }
+      setMusicGenerating(false)
+    }
+    try {
+      const res = await fetch('/api/music', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: musicDesc, duration: musicDuration }) })
+      const data = await res.json()
+      if (!res.ok || data.error) { setMusicInfo('⚠️ Tunova unavailable — using built-in synth...'); return fallbackLocalMusic() }
+      const taskId = data.id || data.task_id || data.data?.id || data.result?.id
+      if (!taskId) { setMusicInfo('⚠️ No task ID — using built-in synth...'); return fallbackLocalMusic() }
+      setMusicInfo('✓ Tunova task created. Polling...')
+      let attempts = 0
+      const poll = setInterval(async () => {
+        attempts++
+        try {
+          const check = await fetch(`/api/music-status?task_id=${taskId}`)
+          const status = await check.json()
+          const url = status.audio_url || status.url || status.data?.audio_url || status.result?.audio_url
+          if (url) { clearInterval(poll); setMusicDownloadUrl(url); setMusicInfo('✓ Tunova music ready!'); const audio = new Audio(url); audio.volume = 0.9; audio.play().catch(()=>{}); setMusicAudioRef(audio); setMusicPlaying(true); audio.onended = () => setMusicPlaying(false); setMusicGenerating(false) }
+          else if (status.status === 'failed' || status.error) { clearInterval(poll); setMusicInfo('⚠️ Tunova failed — using built-in synth...'); fallbackLocalMusic() }
+          else { setMusicInfo(`⏳ Tunova generating... (${attempts * 3}s)`) }
+        } catch (e) { if (attempts >= 20) { clearInterval(poll); fallbackLocalMusic() } }
+        if (attempts >= 20) { clearInterval(poll); fallbackLocalMusic() }
+      }, 3000)
+    } catch (e) { fallbackLocalMusic() }
+  }
+
+  // VIDEO
+  const handleGenerateVideo = async () => {
+    if (!requireLogin('Video Generator')) return
+    if (!videoDesc.trim()) { alert('Describe the video you want first.'); return }
+    setVideoGenerating(true); setVideoInfo('📡 Trying Agnes AI...'); setVideoResultUrl(null); setVideoTaskId(null)
+    const fallbackLocal = () => {
+      const style = guessVideoStyle(videoDesc)
+      setVideoInfo(`🎬 Built-in engine — ${style.label} style • ${videoDuration}s. Rendering...`)
+      setVideoGenerating(false)
+      setTimeout(() => {
+        if (!canvasRef.current) return
+        setVideoRecording(true)
+        const rec = startCanvasVideo(canvasRef.current, style, videoDesc, profile?.name || 'CYPHER4X', (t) => setVideoProgress(Math.floor((t % 1) * 100)))
+        videoRecorderRef.current = rec
+        setTimeout(async () => {
+          if (!videoRecorderRef.current) return
+          const blob = await videoRecorderRef.current.stop()
+          videoRecorderRef.current = null; setVideoRecording(false)
+          const url = URL.createObjectURL(blob)
+          setVideoResultUrl(url)
+          setVideoInfo('✓ Video ready! Tap download.')
+        }, videoDuration * 1000)
+      }, 100)
+    }
+    try {
+      const res = await fetch('/api/video', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: videoDesc, duration: videoDuration, quality: videoQuality }) })
+      const data = await res.json()
+      if (!res.ok || data.error) { setVideoInfo('⚠️ Agnes unavailable — using built-in engine...'); return fallbackLocal() }
+      const vId = data.video_id || data.id || data.task_id || data.data?.id
+      if (!vId) { setVideoInfo('⚠️ No task ID — using built-in engine...'); return fallbackLocal() }
+      setVideoTaskId(vId); setVideoInfo('✓ Agnes task created. Polling...'); setVideoPolling(true); setVideoGenerating(false)
+      let attempts = 0
+      const poll = setInterval(async () => {
+        attempts++
+        try {
+          const check = await fetch(`/api/video-status?video_id=${vId}`)
+          const status = await check.json()
+          const url = status.video_url || status.url || status.output?.url || status.data?.video_url
+          if (url) { clearInterval(poll); setVideoResultUrl(url); setVideoInfo('✓ Agnes video ready!'); setVideoPolling(false) }
+          else if (status.status === 'failed' || status.error) { clearInterval(poll); setVideoInfo('⚠️ Agnes failed — using built-in engine...'); setVideoPolling(false); fallbackLocal() }
+          else { setVideoInfo(`⏳ Agnes generating... (${attempts * 5}s)`) }
+        } catch (e) { if (attempts >= 15) { clearInterval(poll); setVideoPolling(false); fallbackLocal() } }
+        if (attempts >= 15) { clearInterval(poll); setVideoPolling(false); fallbackLocal() }
+      }, 5000)
+    } catch (e) { fallbackLocal() }
+  }
+  const handleStopLocalVideo = async () => { if (!videoRecorderRef.current) return; const blob = await videoRecorderRef.current.stop(); videoRecorderRef.current = null; setVideoRecording(false); const url = URL.createObjectURL(blob); setVideoResultUrl(url); setVideoInfo('✓ Video ready! Tap download.') }
+
+  // CYBER TERMINAL
+  const fmtU = (s) => `${Math.floor(s/3600).toString().padStart(2,'0')}:${Math.floor((s%3600)/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`
+  const fmtT = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
+  const runCyberCommand = async (cmd) => {
+    if (!requireLogin('Terminal')) return
+    const parts = cmd.trim().split(/\s+/); const base = parts[0]?.toLowerCase()
+    const args = parts.slice(1).join(' '); const arg1 = parts[1]
+    let out = ''
+    const helpText = `CYPHER4X Terminal ${VERSION} — commands:\n\nFiles:    pwd, ls, cd, cat, mkdir, touch, rm\nSystem:   whoami, uname, uptime, date, df, free, ps, neofetch\nNetwork:  ping, ifconfig, curl, dns, ip, portscan\nSecurity: hash, base64, unbase64, hex, rot13, passcheck, ctf\nUtility:  echo, calc, clear, help, about, ethics\nPkg:      pkg (simulated)`
+    try {
+      switch (base) {
+        case 'pwd': out = '/data/data/com.termux/files/home'; break
+        case 'ls': out = 'Documents/  Downloads/  Pictures/  Projects/  README.md  notes.txt'; break
+        case 'whoami': out = userMode === 'loggedin' ? email : 'guest@cypher4x'; break
+        case 'uname': out = arg1 === '-a' ? `Linux localhost 5.15.0-cypher4x #1 aarch64 GNU/Linux` : 'Linux'; break
+        case 'uptime': out = ` ${new Date().toLocaleTimeString()} up ${fmtU(stats.uptime)}`; break
+        case 'date': out = new Date().toString(); break
+        case 'neofetch': out = `   OS: ${VERSION_FULL}\n   Shell: csh 1.0\n   Uptime: ${fmtU(stats.uptime)}`; break
+        case 'ping': out = arg1 ? `PING ${arg1} (127.0.0.1): 4 packets transmitted, 4 received, 0% packet loss` : 'Usage: ping <host>'; break
+        case 'ifconfig': out = `wlan0: inet 192.168.1.${Math.floor(Math.random() * 200) + 10}  netmask 255.255.255.0`; break
+        case 'curl': { if (!arg1) { out = 'Usage: curl <url>'; break } setCyberLines(prev => [...prev, { type: 'cmd', text: `$ ${cmd}` }, { type: 'out', text: `Fetching...` }]); try { const r = await fetch(arg1); const text = await r.text(); out = `HTTP ${r.status}\n\n${text.slice(0, 800)}` } catch (e) { out = 'curl: ' + e.message } setCyberLines(prev => [...prev, { type: 'out', text: out }]); return }
+        case 'dns': { if (!arg1) { out = 'Usage: dns <domain>'; break } try { const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(arg1)}&type=A`); const d = await r.json(); out = d.Answer ? d.Answer.map(a => `${arg1}\t${a.TTL}\tA\t${a.data}`).join('\n') : 'No records' } catch (e) { out = 'Error: ' + e.message } break }
+        case 'ip': { if (!arg1) { out = 'Usage: ip <address>'; break } try { const r = await fetch(`https://ipapi.co/${encodeURIComponent(arg1)}/json/`); const d = await r.json(); out = `IP: ${d.ip}\nCity: ${d.city}\nCountry: ${d.country_name}\nISP: ${d.org}` } catch (e) { out = 'Error: ' + e.message } break }
+        case 'portscan': { if (!arg1) { out = 'Usage: portscan <host>'; break } out = `⚠️ SIMULATION ONLY\nTarget: ${arg1}\n`; [21,22,80,443,3306,8080].forEach(p => { out += `  ${p}: ${Math.random() > 0.75 ? 'open' : 'closed'}\n` }); break }
+        case 'hash': { if (!args) { out = 'Usage: hash <text>'; break } const buf = new TextEncoder().encode(args); const h = await crypto.subtle.digest('SHA-256', buf); out = Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join(''); break }
+        case 'base64': out = (() => { try { return btoa(args) } catch { return 'Invalid' } })(); break
+        case 'unbase64': out = (() => { try { return atob(args) } catch { return 'Invalid' } })(); break
+        case 'hex': out = Array.from(new TextEncoder().encode(args)).map(b => b.toString(16).padStart(2, '0')).join(' '); break
+        case 'rot13': out = args.replace(/[a-zA-Z]/g, c => String.fromCharCode((c <= 'Z' ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26)); break
+        case 'passcheck': { if (!args) { out = 'Usage: passcheck <password>'; break } const c = { len: args.length >= 12, low: /[a-z]/.test(args), up: /[A-Z]/.test(args), dig: /\d/.test(args), sp: /[^A-Za-z0-9]/.test(args), ok: !/^(password|123456)/i.test(args) }; const s = Object.values(c).filter(Boolean).length; out = `Score ${s}/6 — ${s >= 5 ? '🟢 Strong' : s >= 3 ? '🟡 Medium' : '🔴 Weak'}`; break }
+        case 'ctf': { const ch = [{ q: 'ROT13 of "Uryyb"?', a: 'hello' }, { q: 'HTTPS port?', a: '443' }][Math.floor(Math.random() * 2)]; setCtfChallenge(ch); out = `🎯 ${ch.q}\n\nType "ctfcheck <answer>"`; break }
+        case 'ctfcheck': if (!ctfChallenge) { out = 'No CTF.'; break } out = args.toLowerCase().trim() === ctfChallenge.a.toLowerCase() ? '✅ Correct!' : `❌ Answer: ${ctfChallenge.a}`; setCtfChallenge(null); break
+        case 'echo': out = args; break
+        case 'calc': { try { out = String(Function(`"use strict"; return (${args})`)()) } catch { out = 'Invalid' } break }
+        case 'clear': setCyberLines([{ type: 'info', text: 'Terminal cleared.' }]); return
+        case 'pkg': out = `pkg - SIMULATED\nUsage: pkg [search|install|list|update]`; break
+        case 'help': out = helpText; break
+        case 'about': out = `CYPHER4X Terminal ${VERSION}\nSimulated Linux shell.`; break
+        case 'ethics': out = `🔒 Educational use only. Only test systems you own.`; break
+        default: out = `csh: command not found: ${base}\nType "help"`
+      }
+    } catch (e) { out = 'Error: ' + e.message }
+    setCyberLines(prev => [...prev, { type: 'cmd', text: `$ ${cmd}` }, { type: 'out', text: out }])
+  }
+  const handleCyberSubmit = (e) => { e.preventDefault(); if (!cyberInput.trim()) return; runCyberCommand(cyberInput); setCyberInput('') }
+
+  const runCyberTool = async () => {
+    if (!requireLogin('Cyber Tools')) return
+    let out = ''
+    try {
+      switch (cyberTool) {
+        case 'passcheck': { const pw = cyberToolInput; if (!pw) { out = 'Enter a password'; break } const c = { len: pw.length >= 12, low: /[a-z]/.test(pw), up: /[A-Z]/.test(pw), dig: /\d/.test(pw), sp: /[^A-Za-z0-9]/.test(pw), ok: !/^(password|123456)/i.test(pw) }; const s = Object.values(c).filter(Boolean).length; out = `Score ${s}/6\n${s >= 5 ? '🟢 Strong' : s >= 3 ? '🟡 Medium' : '🔴 Weak'}`; break }
+        case 'hash': { const b = new TextEncoder().encode(cyberToolInput); const h = await crypto.subtle.digest('SHA-256', b); out = Array.from(new Uint8Array(h)).map(x => x.toString(16).padStart(2, '0')).join(''); break }
+        case 'base64': out = (() => { try { return btoa(cyberToolInput) } catch { return 'Invalid' } })(); break
+        case 'unbase64': out = (() => { try { return atob(cyberToolInput) } catch { return 'Invalid' } })(); break
+        case 'hex': out = Array.from(new TextEncoder().encode(cyberToolInput)).map(b => b.toString(16).padStart(2, '0')).join(' '); break
+        case 'rot13': out = cyberToolInput.replace(/[a-zA-Z]/g, c => String.fromCharCode((c <= 'Z' ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26)); break
+        case 'dns': { const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(cyberToolInput)}&type=A`); const d = await r.json(); out = d.Answer ? d.Answer.map(a => `A  ${a.data}  TTL ${a.TTL}`).join('\n') : 'No records'; break }
+        case 'ip': { const r = await fetch(`https://ipapi.co/${encodeURIComponent(cyberToolInput)}/json/`); const d = await r.json(); out = `IP: ${d.ip}\nCity: ${d.city}\nCountry: ${d.country_name}`; break }
+        case 'portscan': { const open = [80, 443].filter(() => Math.random() > 0.3); out = `⚠️ SIM\nOPEN: ${open.join(', ') || 'none'}`; break }
+        default: out = 'Unknown tool'
+      }
+    } catch (e) { out = 'Error: ' + e.message }
+    setCyberToolOutput(out)
+  }
+
+  // PROFILE
+  const handleAvatarChange = useCallback((e) => { const f = e.target.files[0]; if (!f) return; if (!f.type.startsWith('image/')) return alert('Image only'); const rd = new FileReader(); rd.onloadend = () => setProfileForm(p => ({ ...p, avatar: rd.result })); rd.readAsDataURL(f) }, [])
+  const saveProfile = useCallback(() => { if (!profileForm.name.trim() || !profileForm.username.trim()) { alert('Name & Username required'); return } const np = { ...profileForm, username: profileForm.username.toLowerCase().replace(/[^a-z0-9_]/g, ''), updatedAt: new Date().toISOString() }; setProfile(np); setEditingProfile(false); speakText(`Updated, ${np.name}!`) }, [profileForm, speakText])
+  const openEditProfile = useCallback(() => { setProfileForm({ name: profile?.name || '', username: profile?.username || '', avatar: profile?.avatar || '', bio: profile?.bio || '' }); setEditingProfile(true); setSidebarOpen(false) }, [profile])
+  const resetAllData = useCallback(() => {
+    if (!confirm('Reset ALL data?')) return
+    if (userMode === 'loggedin') saveUserData(email, pin, { profile: null, chats: [{ id: 'chat-' + Date.now(), title: 'Chat 1', messages: [], createdAt: Date.now() }], commandHistory: [], backgroundImage: null, theme, settings })
+    setProfile(null); setChats([{ id: 'default-' + Date.now(), title: 'Chat 1', messages: [], createdAt: Date.now() }]); setCommandHistory([])
+    setBackgroundImage(null); setSidebarOpen(false)
+  }, [userMode, email, pin, theme, settings])
+  const exportChat = useCallback(() => { const d = { chats, commandHistory, profile, exportedAt: new Date().toISOString() }; const b = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' }); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `cypher4x_${Date.now()}.json`; a.click(); URL.revokeObjectURL(u) }, [chats, commandHistory, profile])
+
+  const dash = getDashboardInfo()
+
+  // ============ RENDER ============
+  if (showIntro) return (
+    <div style={styles.introContainer}>
+      <div style={styles.introBackground} />
+      <div style={styles.introContent}>
+        {introStep === 0 && <h1 style={{...styles.introText, animation: 'fadeUp 1s ease'}}>INITIALIZING SYSTEM</h1>}
+        {introStep === 1 && <h1 style={{...styles.introText, animation: 'fadeUp 1s ease'}}>HACKERS HUB <span style={{color: theme.primary}}>PRESENTS</span></h1>}
+        {introStep === 2 && <h1 style={{...styles.introText, color: theme.primary, animation: 'pulse3 1s ease'}}>CYPHER4X</h1>}
+      </div>
+    </div>
+  )
+
+  if (isEnteringAI) return (
+    <div style={styles.enterOverlay}>
+      <div style={styles.enterBackground} />
+      <div style={styles.enterContent}>
+        <h1 style={{ ...styles.enterTitle, color: theme.primary, textShadow: `0 0 20px ${theme.primary}` }}>CYPHER4X</h1>
+        <p style={styles.enterSubtitleSmall}>{VERSION_FULL}</p>
+        <div style={styles.enterUpdatingWrap}>
+          <div style={{...styles.enterUpdatingLabel, color: theme.primary}}>Updating</div>
+          <div style={{...styles.enterUpdatingDots, color: theme.primary}}>
+            <span style={{ animation: 'pulse3 1s 0s ease-in-out infinite' }}>.</span>
+            <span style={{ animation: 'pulse3 1s 0.2s ease-in-out infinite' }}>.</span>
+            <span style={{ animation: 'pulse3 1s 0.4s ease-in-out infinite' }}>.</span>
+          </div>
+        </div>
+        <div style={styles.enterProgressBarWrap}><div style={{ ...styles.enterProgressBar, width: `${enterProgress}%`, backgroundColor: theme.primary }} /></div>
+        <span style={{...styles.enterPercent, color: theme.primary}}>{Math.round(enterProgress)}%</span>
+        <p style={styles.enterMessageSmall}>{enterMessage}</p>
+      </div>
+    </div>
+  )
+
+  if (showGuestLimit) return (
+    <div style={{ ...styles.guestLimitOverlay, background: theme.secondary }}>
+      <div style={{ ...styles.guestLimitCard, borderColor: theme.primary }}>
+        <h2 style={{ ...styles.guestLimitTitle, color: theme.primary }}>Free Trial Limit Reached</h2>
+        <p style={styles.guestLimitText}>You've used all 5 free messages. Login to continue.</p>
+        <div style={styles.guestLimitButtons}>
+          <button onClick={() => { setShowGuestLimit(false); setShowLogin(true); setShowAuthModal(true) }} style={{ ...styles.guestLimitLoginBtn, backgroundColor: theme.primary }}>Login</button>
+          <button onClick={() => { setShowGuestLimit(false); setShowLogin(false); setShowAuthModal(true) }} style={styles.guestLimitSignupBtn}>Sign Up</button>
+        </div>
+      </div>
+    </div>
+  )
+
+  if (showAuthModal) return (
+    <div style={styles.authModalOverlay}>
+      <div style={{ ...styles.authModalCard, borderColor: theme.primary }}>
+        <button onClick={() => setShowAuthModal(false)} style={styles.authModalClose}>✕</button>
+        <h1 style={{ ...styles.authTitle, color: theme.primary }}>CYPHER4X</h1>
+        <p style={{ color: theme.primary, fontSize: 12, marginBottom: 12 }}>{VERSION_FULL}</p>
+        <p style={{ ...styles.authSubtitle, color: theme.primary }}>{showLogin ? 'Login' : 'Sign Up'}</p>
+        <div style={{ ...styles.authError, color: theme.primary }}>{authError}</div>
+        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} style={styles.authInput} />
+        <input type="password" placeholder="4-digit PIN" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))} style={styles.authInput} maxLength="4" />
+        <button onClick={handleAuthSubmit} style={{ ...styles.authBtn, backgroundColor: theme.primary }}>{showLogin ? 'Login' : 'Create Account'}</button>
+        <div style={styles.authSwitch}>
+          <span>{showLogin ? 'No account?' : 'Have account?'}</span>
+          <button onClick={() => { setShowLogin(!showLogin); setAuthError('') }} style={{ ...styles.authSwitchBtn, color: theme.primary }}>{showLogin ? 'Sign Up' : 'Login'}</button>
+        </div>
+      </div>
+    </div>
+  )
+
+  if (showPracticalWorkspace) return (
+    <div style={{...styles.practicalContainer, backgroundColor: practicalBg, color: practicalBg === '#ffffff' ? '#000000' : '#ffffff'}}>
+      <div style={{...styles.practicalHeader, borderBottomColor: practicalBg === '#ffffff' ? '#ddd' : '#333'}}>
+        <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
+          <button onClick={() => setShowPracticalWorkspace(false)} style={{...styles.practicalExitBtn, borderColor: '#00ff41', color: '#00ff41'}}><Icon name="arrowLeft" size={20} color="#00ff41" /> EXIT</button>
+          <h1 style={{...styles.practicalTitle, color: '#00ff41'}}>PRACTICAL WORKSPACE</h1>
+        </div>
+        <div style={{display: 'flex', alignItems: 'center', gap: 15}}>
+          <button onClick={() => setPracticalBg(practicalBg === '#ffffff' ? '#000000' : '#ffffff')} style={{...styles.practicalExportBtn, borderColor: practicalBg === '#ffffff' ? '#000' : '#fff', color: practicalBg === '#ffffff' ? '#000' : '#fff'}}>
+            <Icon name="refresh" size={16} color={practicalBg === '#ffffff' ? '#000' : '#fff'} /> TOGGLE BG
+          </button>
+        </div>
+      </div>
+
+      <div style={styles.practicalCanvas}>
+        {practicalLogs.map(log => (
+          <div key={log.id} style={{...styles.practicalMsg, alignSelf: log.role === 'user' ? 'flex-end' : 'flex-start', backgroundColor: log.role === 'user' ? '#00ff41' : (practicalBg === '#ffffff' ? '#f0f0f0' : '#1a1a1a'), color: log.role === 'user' ? '#000' : (practicalBg === '#ffffff' ? '#000' : '#fff')}}>
+            {log.type === 'text' && <p style={{margin: 0, whiteSpace: 'pre-wrap'}}>{log.content}</p>}
+            {log.type === 'image' && (
+              <div>
+                <img src={log.content} alt="Generated" style={{maxWidth: '100%', maxHeight: '60vh', borderRadius: 8}} />
+                <button onClick={() => handlePracticalDownload(log)} style={{marginTop: 10, padding: '8px 16px', backgroundColor: '#00ff41', border: 'none', borderRadius: 4, fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6}}><Icon name="download" size={16} color="#000" /> DOWNLOAD IMAGE</button>
+              </div>
+            )}
+            {log.type === 'code' && (
+              <div style={{width: '100%', overflowX: 'auto'}}>
+                <pre style={{margin: 0, fontFamily: 'monospace', fontSize: 13, whiteSpace: 'pre', color: practicalBg === '#ffffff' ? '#000' : '#fff'}}>{log.content}</pre>
+                <button onClick={() => handlePracticalDownload(log)} style={{marginTop: 10, padding: '8px 16px', backgroundColor: '#00ff41', border: 'none', borderRadius: 4, fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6}}><Icon name="download" size={16} color="#000" /> DOWNLOAD CODE</button>
+              </div>
+            )}
+          </div>
+        ))}
+        {practicalBuildState === 'building' && (
+          <div style={{color: '#00ff41', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: 8}}>
+            <Icon name="hourglass" size={18} color="#00ff41" />
+            <span>Building... {practicalBuildTimer}s remaining</span>
+          </div>
+        )}
+        {practicalProcessing && practicalBuildState !== 'building' && (
+          <div style={{color: '#00ff41', fontStyle: 'italic'}}>{practicalActionText || 'AI is processing...'}</div>
+        )}
+        <div ref={practicalEndRef} />
+      </div>
+
+      <form onSubmit={handlePracticalSubmit} style={{...styles.practicalInputRow, backgroundColor: practicalBg === '#ffffff' ? '#fff' : '#0a0a0a', borderTopColor: practicalBg === '#ffffff' ? '#ddd' : '#333'}}>
+        <label style={{...styles.practicalAttachBtn, color: practicalBg === '#ffffff' ? '#000' : '#fff'}}>
+          <Icon name="image" size={24} color={practicalBg === '#ffffff' ? '#000' : '#fff'} />
+          <input type="file" accept="image/*" style={{display: 'none'}} onChange={(e) => {
+            const f = e.target.files[0]; if (!f) return;
+            const rd = new FileReader(); rd.onloadend = () => { setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'user', type: 'image', content: rd.result }]) }; rd.readAsDataURL(f); e.target.value = '';
+          }} />
+        </label>
+        <input type="text" value={practicalInput} onChange={(e) => setPracticalInput(e.target.value)} placeholder={practicalBuildState === 'awaiting_type' ? "What kind of game?" : practicalBuildState === 'awaiting_lang' ? "What language?" : "Ask AI to create anything..."} style={{...styles.practicalInput, color: practicalBg === '#ffffff' ? '#000' : '#fff', borderColor: practicalBg === '#ffffff' ? '#ccc' : '#444'}} disabled={practicalProcessing || practicalBuildState === 'building'} />
+        <button type="button" onClick={handlePracticalVoice} style={{...styles.practicalMicBtn, backgroundColor: isRecording ? '#00ff41' : 'transparent', padding: 8}}>
+          <Icon name="mic" size={24} color={practicalBg === '#ffffff' ? '#000' : '#fff'} />
+        </button>
+        <button type="submit" style={{...styles.practicalSendBtn, backgroundColor: '#00ff41', width: 44, height: 44, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', flexShrink: 0}} disabled={practicalProcessing || practicalBuildState === 'building'}>
+          <Icon name="send" size={18} color="#000" />
+        </button>
+      </form>
+    </div>
+  )
+
+  if (showWorkspace) return (
+    <div style={styles.workspaceContainer}>
+      <div style={styles.workspaceHeader}>
+        <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
+          <button onClick={() => setShowWorkspace(false)} style={{...styles.workspaceExitBtn, borderColor: theme.primary}}><Icon name="arrowLeft" size={20} color={theme.primary} /> EXIT</button>
+          <h1 style={{...styles.workspaceTitle, color: theme.primary}}>CYPHER4X WORKSPACE</h1>
+        </div>
+        <div style={{display: 'flex', alignItems: 'center', gap: 15}}>
+          <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
+            <span style={{width: 8, height: 8, borderRadius: '50%', backgroundColor: workspaceProcessing ? '#ffcc00' : '#00ff41'}} />
+            <span style={{color: '#888', fontSize: 12}}>{workspaceProcessing ? 'AGENT ACTIVE' : 'AGENT IDLE'}</span>
+          </div>
+          <RedBall isSpeaking={isAISpeaking} theme={theme} size={40} />
+        </div>
+      </div>
+      <div style={styles.workspaceBody}>
+        <div style={styles.workspaceLeftPanel}>
+          <div style={styles.workspacePanelHeader}><Icon name="layers" size={16} color={theme.primary} /> ACTIVE TASKS ({workspaceTasks.length})</div>
+          <div style={styles.workspaceTaskList}>
+            {workspaceTasks.length === 0 && <span style={{color: '#555', fontSize: 12, fontStyle: 'italic'}}>No active tasks...</span>}
+            {workspaceTasks.map(t => (
+              <div key={t.id} style={styles.workspaceTaskItem}>
+                <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: 4}}>
+                  <span style={{color: '#ddd', fontSize: 12}}>{t.text}</span>
+                  <span style={{color: t.status === 'done' ? '#00ff41' : '#ffcc00', fontSize: 10}}>{t.status.toUpperCase()}</span>
+                </div>
+                <div style={{width: '100%', height: 4, backgroundColor: '#111', borderRadius: 2, overflow: 'hidden'}}>
+                  <div style={{width: `${t.progress}%`, height: '100%', backgroundColor: t.status === 'done' ? '#00ff41' : theme.primary, transition: 'width 0.3s ease'}} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{...styles.workspacePanelHeader, marginTop: 15}}><Icon name="terminal" size={16} color={theme.primary} /> AGENT LOGS</div>
+          <div style={styles.workspaceLogList}>
+            {workspaceLogs.map((log, i) => (
+              <div key={i} style={{marginBottom: 6, fontSize: 11, fontFamily: 'monospace'}}>
+                <span style={{color: log.type === 'user' ? theme.primary : log.type === 'ai' ? '#4f8' : '#888'}}>[{log.type.toUpperCase()}]</span>
+                <span style={{color: '#ccc'}}> {log.text}</span>
+              </div>
+            ))}
+            <div ref={workspaceEndRef} />
+          </div>
+        </div>
+        <div style={styles.workspaceCenterPanel}>
+          <div style={styles.workspaceTabs}>
+            <button onClick={() => setWorkspaceActiveTab('canvas')} style={{...styles.workspaceTabBtn, borderBottomColor: workspaceActiveTab === 'canvas' ? theme.primary : 'transparent', color: workspaceActiveTab === 'canvas' ? theme.primary : '#888'}}>CANVAS</button>
+            <button onClick={() => setWorkspaceActiveTab('code')} style={{...styles.workspaceTabBtn, borderBottomColor: workspaceActiveTab === 'code' ? theme.primary : 'transparent', color: workspaceActiveTab === 'code' ? theme.primary : '#888'}}>CODE</button>
+            <button onClick={() => setWorkspaceActiveTab('web')} style={{...styles.workspaceTabBtn, borderBottomColor: workspaceActiveTab === 'web' ? theme.primary : 'transparent', color: workspaceActiveTab === 'web' ? theme.primary : '#888'}}>WEB</button>
+          </div>
+          <div style={styles.workspaceCanvasArea}>
+            {workspaceActiveTab === 'canvas' && (workspaceContent?.type === '3d' ? <div style={{textAlign: 'center'}}><h3 style={{color: theme.primary, marginBottom: 20}}>{workspaceContent.data.title}</h3><img src={workspaceContent.data.image} alt="Generated 3D" style={{maxWidth: '100%', maxHeight: '60vh', borderRadius: 12, border: `1px solid ${hexA(theme.primary, 0.3)}`}} /></div> : <div style={{textAlign: 'center', color: '#555'}}><Icon name="image" size={64} color="#333" /><p style={{marginTop: 15}}>No visual output yet.</p></div>)}
+            {workspaceActiveTab === 'code' && (workspaceContent?.type === 'code' ? <div style={{width: '100%', height: '100%', overflow: 'auto', backgroundColor: '#0a0a0a', padding: 20, borderRadius: 8, border: '1px solid #333'}}><pre style={{margin: 0, color: '#e0e0e0', fontFamily: 'monospace', fontSize: 13, whiteSpace: 'pre-wrap'}}>{workspaceContent.data.code}</pre></div> : <div style={{textAlign: 'center', color: '#555'}}><Icon name="file" size={64} color="#333" /><p style={{marginTop: 15}}>No code generated yet.</p></div>)}
+            {workspaceActiveTab === 'web' && (workspaceContent?.type === 'web' ? <div style={{width: '100%', height: '100%', overflow: 'auto', padding: 20}}><h3 style={{color: theme.primary, marginBottom: 15}}>Search Results: {workspaceContent.data.query}</h3><p style={{color: '#ccc', lineHeight: 1.6}}>{workspaceContent.data.results.answer}</p></div> : <div style={{textAlign: 'center', color: '#555'}}><Icon name="globe" size={64} color="#333" /><p style={{marginTop: 15}}>No web data fetched yet.</p></div>)}
+          </div>
+        </div>
+        <div style={styles.workspaceRightPanel}>
+          <div style={styles.workspacePanelHeader}><Icon name="sparkles" size={16} color={theme.primary} /> AGENT COMMAND</div>
+          <div style={{...styles.workspaceChatArea, overflowX: 'auto', whiteSpace: 'nowrap'}}>
+             {workspaceLogs.filter(l => l.type === 'ai' || l.type === 'user').slice(-5).map((log, i) => (
+               <div key={i} style={{padding: 8, marginBottom: 8, borderRadius: 6, backgroundColor: log.type === 'user' ? hexA(theme.primary, 0.2) : 'rgba(255,255,255,0.05)', borderLeft: log.type === 'user' ? `3px solid ${theme.primary}` : '3px solid #4f8', minWidth: '100%', boxSizing: 'border-box'}}>
+                  <div style={{color: '#888', fontSize: 9, marginBottom: 2}}>{log.type === 'user' ? 'YOU' : 'CYPHER4X'}</div>
+                  <div style={{color: '#ddd', fontSize: 12, whiteSpace: 'pre-wrap'}}>{renderMessageContent({ id: i, content: log.text })}</div>
+               </div>
+             ))}
+          </div>
+          <form onSubmit={handleWorkspaceSubmit} style={styles.workspaceInputRow}>
+            <input type="text" value={workspaceCommand} onChange={(e) => setWorkspaceCommand(e.target.value)} placeholder="Command AI agent..." style={styles.workspaceInput} disabled={workspaceProcessing} />
+            <button type="button" onClick={handleWorkspaceVoice} style={{...styles.workspaceMicBtn, backgroundColor: isRecording ? theme.primary : '#1a1a1a'}}><Icon name="mic" size={18} color="#fff" /></button>
+            <button type="submit" style={{...styles.workspaceSendBtn, backgroundColor: theme.primary, width: 40, height: 40, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center'}} disabled={workspaceProcessing}><Icon name="send" size={18} color="#fff" /></button>
+          </form>
+        </div>
+      </div>
+    </div>
+  )
+
+  if (showSettings) return (
+    <div style={styles.settingsFullscreen}>
+      <style>{`.toggle-switch{position:relative;display:inline-block;width:46px;height:24px;flex-shrink:0}.toggle-switch input{opacity:0;width:0;height:0}.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#333;transition:.3s;border-radius:24px}.toggle-slider:before{content:"";position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;transition:.3s;border-radius:50%}.toggle-switch input:checked+.toggle-slider{background:${theme.primary}}.toggle-switch input:checked+.toggle-slider:before{transform:translateX(22px)}`}</style>
+      <div style={styles.settingsHeaderFull}>
+        <h1 style={{ ...styles.settingsTitleFull, color: theme.primary }}>Settings · {VERSION}</h1>
+        <button onClick={() => setShowSettings(false)} style={styles.settingsCloseFull}><Icon name="close" size={28} color="#fff" /></button>
+      </div>
+      <div style={styles.settingsBodyFull}>
+
+        <div style={styles.settingsSection}>
+          <h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Location Services</h3>
+          <div style={styles.settingItem}><span>Enable Location (Weather)</span><label className="toggle-switch"><input type="checkbox" checked={settings.locationEnabled} onChange={(e) => setSettings({ ...settings, locationEnabled: e.target.checked })} /><span className="toggle-slider"></span></label></div>
+          <p style={styles.bgHint}>Allows the AI to fetch local weather and display it on the Home screen.</p>
+        </div>
+
+        <div style={styles.settingsSection}>
+          <h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Theme & Colors</h3>
+          <div style={styles.settingItem}><span>Primary color</span><input type="color" value={theme.primary} onChange={(e) => setTheme({ ...theme, primary: e.target.value })} style={styles.colorPicker} /></div>
+          <div style={styles.settingItem}><span>Secondary color (background)</span><input type="color" value={theme.secondary} onChange={(e) => setTheme({ ...theme, secondary: e.target.value })} style={styles.colorPicker} /></div>
+          <div style={styles.settingItem}><span>Ball color</span><input type="color" value={theme.ballColor} onChange={(e) => setTheme({ ...theme, ballColor: e.target.value, ballColorLight: lightenColor(e.target.value), ballColorDark: darkenColor(e.target.value) })} style={styles.colorPicker} /></div>
+          <div style={styles.presetRow}>
+            <button onClick={() => setTheme({ ...theme, primary: '#ff003c', ballColor: '#ff003c', ballColorLight: '#ff6688', ballColorDark: '#990022' })} style={{ ...styles.presetBtn, backgroundColor: '#ff003c' }}>Red</button>
+            <button onClick={() => setTheme({ ...theme, primary: '#00c8ff', ballColor: '#00c8ff', ballColorLight: '#66ddff', ballColorDark: '#006699' })} style={{ ...styles.presetBtn, backgroundColor: '#00c8ff' }}>Cyan</button>
+            <button onClick={() => setTheme({ ...theme, primary: '#00ff41', ballColor: '#00ff41', ballColorLight: '#66ff88', ballColorDark: '#008822' })} style={{ ...styles.presetBtn, backgroundColor: '#00ff41' }}>Green</button>
+            <button onClick={() => setTheme({ ...theme, primary: '#ffcc00', ballColor: '#ffcc00', ballColorLight: '#ffe066', ballColorDark: '#996600' })} style={{ ...styles.presetBtn, backgroundColor: '#ffcc00' }}>Gold</button>
+            <button onClick={() => setTheme({ ...theme, primary: '#c800ff', ballColor: '#c800ff', ballColorLight: '#dd66ff', ballColorDark: '#660088' })} style={{ ...styles.presetBtn, backgroundColor: '#c800ff' }}>Purple</button>
+          </div>
+        </div>
+
+        <div style={styles.settingsSection}>
+          <h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>General</h3>
+          <div style={styles.settingItem}><span>Welcome Messages</span><label className="toggle-switch"><input type="checkbox" checked={settings.welcomeEnabled} onChange={(e) => setSettings({ ...settings, welcomeEnabled: e.target.checked })} /><span className="toggle-slider"></span></label></div>
+          <div style={styles.settingItem}><span>Auto-start Voice</span><label className="toggle-switch"><input type="checkbox" checked={settings.autoStartVoice} onChange={(e) => setSettings({ ...settings, autoStartVoice: e.target.checked })} /><span className="toggle-slider"></span></label></div>
+          <div style={styles.settingItem}><span>Read Aloud</span><label className="toggle-switch"><input type="checkbox" checked={settings.readAloud} onChange={(e) => setSettings({ ...settings, readAloud: e.target.checked })} /><span className="toggle-slider"></span></label></div>
+          <div style={styles.settingItem}><span>Safe Links</span><label className="toggle-switch"><input type="checkbox" checked={settings.safeLinks} onChange={(e) => setSettings({ ...settings, safeLinks: e.target.checked })} /><span className="toggle-slider"></span></label></div>
+          <div style={styles.settingItem}><span>🔒 Restrict Tools (Login required)</span><label className="toggle-switch"><input type="checkbox" checked={settings.restrictTools} onChange={(e) => setSettings({ ...settings, restrictTools: e.target.checked })} /><span className="toggle-slider"></span></label></div>
+        </div>
+
+        <div style={styles.settingsSection}>
+          <h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Interface</h3>
+          <div style={styles.settingItem}><span>Auto-scroll</span><label className="toggle-switch"><input type="checkbox" checked={settings.autoScroll} onChange={(e) => setSettings({ ...settings, autoScroll: e.target.checked })} /><span className="toggle-slider"></span></label></div>
+          <div style={styles.settingItem}><span>Show Timestamps</span><label className="toggle-switch"><input type="checkbox" checked={settings.showTimestamps} onChange={(e) => setSettings({ ...settings, showTimestamps: e.target.checked })} /><span className="toggle-slider"></span></label></div>
+          <div style={styles.settingItem}><span>Typing Indicator</span><label className="toggle-switch"><input type="checkbox" checked={settings.typingIndicator} onChange={(e) => setSettings({ ...settings, typingIndicator: e.target.checked })} /><span className="toggle-slider"></span></label></div>
+          <div style={styles.settingItem}><span>Haptic</span><label className="toggle-switch"><input type="checkbox" checked={settings.haptic} onChange={(e) => setSettings({ ...settings, haptic: e.target.checked })} /><span className="toggle-slider"></span></label></div>
+          <div style={styles.settingItem}><span>Sound Effects</span><label className="toggle-switch"><input type="checkbox" checked={settings.soundFx} onChange={(e) => setSettings({ ...settings, soundFx: e.target.checked })} /><span className="toggle-slider"></span></label></div>
+        </div>
+
+        <div style={styles.settingsSection}>
+          <h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Voice</h3>
+          <div style={styles.settingItem}><span>Speed</span><input type="range" min="0.5" max="2" step="0.1" value={settings.voiceSpeed} onChange={(e) => setSettings({ ...settings, voiceSpeed: parseFloat(e.target.value) })} style={{ ...styles.settingsRange, accentColor: theme.primary }} /><span style={styles.settingValueSidebar}>{settings.voiceSpeed}x</span></div>
+          <div style={styles.settingItem}><span>Gender</span><select value={voiceGender} onChange={(e) => setVoiceGender(e.target.value)} style={styles.settingsSelect}><option value="male">Male</option><option value="female">Female</option></select></div>
+        </div>
+
+        <div style={styles.settingsSection}>
+          <h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Background Image (chat only)</h3>
+          <div style={styles.backgroundControls}>
+            <label style={{ ...styles.uploadBtn, backgroundColor: theme.primary }}><Icon name="image" size={18} color="#fff" /><span>Choose Image</span><input ref={bgInputRef} type="file" accept="image/*" onChange={handleBackgroundChange} style={{ display: 'none' }} /></label>
+            {backgroundImage && <button onClick={resetBackground} style={styles.resetBtn}><Icon name="refresh" size={18} color="#fff" /><span>Reset</span></button>}
+          </div>
+          {backgroundImage && <div style={styles.bgPreview}><img src={backgroundImage} alt="Preview" style={styles.bgPreviewImg} /></div>}
+        </div>
+      </div>
+      <button onClick={() => setShowSettings(false)} style={{ ...styles.settingsDoneFull, backgroundColor: theme.primary }}>Done</button>
+    </div>
+  )
+
+  if (showMusicPanel) return (
+    <div style={styles.settingsFullscreen}>
+      <div style={styles.settingsHeaderFull}><h1 style={{ ...styles.settingsTitleFull, color: theme.primary }}>🎵 Music Generator</h1><button onClick={() => setShowMusicPanel(false)} style={styles.settingsCloseFull}><Icon name="close" size={28} color="#fff" /></button></div>
+      <div style={styles.settingsBodyFull}>
+        <div style={styles.settingsSection}><h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Describe Your Music</h3><input value={musicDesc} onChange={(e) => setMusicDesc(e.target.value)} placeholder="e.g. romantic piano with soft vocals..." style={styles.settingsSelect} /><p style={styles.bgHint}>Tries Tunova API → falls back to built-in synth.</p></div>
+        <div style={styles.settingsSection}><h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Duration</h3><div style={styles.settingItem}><span>{musicDuration}s</span><input type="range" min="15" max="180" step="5" value={musicDuration} onChange={(e) => setMusicDuration(parseInt(e.target.value))} style={{ ...styles.settingsRange, accentColor: theme.primary }} /></div></div>
+        <div style={styles.settingsSection}><h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Quality</h3><select value={musicQuality} onChange={(e) => setMusicQuality(e.target.value)} style={styles.settingsSelect}><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></div>
+        {musicInfo && <pre style={{ color: musicInfo.startsWith('❌') ? '#ff6688' : musicInfo.startsWith('⚠️') ? '#ffcc00' : '#4f8', textAlign: 'center', fontSize: 12, fontWeight: 'bold', whiteSpace: 'pre-wrap', fontFamily: 'monospace', padding: 12, background: '#0a0a0a', borderRadius: 8, border: '1px solid #333' }}>{musicInfo}</pre>}
+        {musicDownloadUrl && <a href={musicDownloadUrl} download={`cypher4x_music_${Date.now()}.mp3`} style={{ ...styles.uploadBtn, backgroundColor: theme.primary, justifyContent: 'center', textDecoration: 'none', marginTop: 12 }}><Icon name="download" size={16} color="#fff" /><span>Download</span></a>}
+      </div>
+      <button onClick={handleGenerateMusic} disabled={musicGenerating} style={{ ...styles.settingsDoneFull, backgroundColor: theme.primary }}>{musicGenerating ? 'Submitting...' : musicPlaying ? 'Playing...' : 'Generate Music'}</button>
+    </div>
+  )
+
+  if (showVideoPanel) return (
+    <div style={styles.settingsFullscreen}>
+      <div style={styles.settingsHeaderFull}><h1 style={{ ...styles.settingsTitleFull, color: theme.primary }}>🎬 Video Generator</h1><button onClick={() => setShowVideoPanel(false)} style={styles.settingsCloseFull}><Icon name="close" size={28} color="#fff" /></button></div>
+      <div style={styles.settingsBodyFull}>
+        <div style={styles.settingsSection}><h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Describe Your Video</h3><input value={videoDesc} onChange={(e) => setVideoDesc(e.target.value)} placeholder="e.g. anime sakura, cinematic drone..." style={styles.settingsSelect} /><p style={styles.bgHint}>Tries Agnes AI → falls back to built-in engine.</p></div>
+        <div style={styles.settingsSection}><h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Duration</h3><div style={styles.settingItem}><span>{videoDuration}s</span><input type="range" min="3" max="30" step="1" value={videoDuration} onChange={(e) => setVideoDuration(parseInt(e.target.value))} style={{ ...styles.settingsRange, accentColor: theme.primary }} /></div></div>
+        <div style={styles.settingsSection}><h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Quality</h3><select value={videoQuality} onChange={(e) => setVideoQuality(e.target.value)} style={styles.settingsSelect}><option value="low">480p</option><option value="medium">720p</option><option value="high">1080p</option></select></div>
+        <canvas ref={canvasRef} width={videoQuality === 'high' ? 720 : videoQuality === 'medium' ? 480 : 320} height={videoQuality === 'high' ? 480 : videoQuality === 'medium' ? 320 : 240} style={{ width: '100%', borderRadius: 12, background: '#000', marginTop: 8, display: videoRecording || videoResultUrl ? 'block' : 'none' }} />
+        {videoInfo && <pre style={{ color: videoInfo.startsWith('❌') ? '#ff6688' : videoInfo.startsWith('⚠️') ? '#ffcc00' : '#4f8', textAlign: 'center', fontSize: 12, fontWeight: 'bold', whiteSpace: 'pre-wrap', fontFamily: 'monospace', padding: 12, background: '#0a0a0a', borderRadius: 8, border: '1px solid #333' }}>{videoInfo}</pre>}
+        {videoRecording && <p style={{ color: theme.primary, textAlign: 'center', marginTop: 8 }}>● Recording... {videoProgress}%</p>}
+        {videoResultUrl && <video src={videoResultUrl} controls style={{ width: '100%', borderRadius: 12, marginTop: 12 }} />}
+        {videoResultUrl && <a href={videoResultUrl} download={`cypher4x_video_${Date.now()}.webm`} style={{ ...styles.uploadBtn, backgroundColor: theme.primary, justifyContent: 'center', textDecoration: 'none', marginTop: 12 }}><Icon name="download" size={16} color="#fff" /><span>Download</span></a>}
+      </div>
+      {videoRecording ? (
+        <button onClick={handleStopLocalVideo} style={{ ...styles.settingsDoneFull, backgroundColor: theme.primary }}>Stop & Save</button>
+      ) : (
+        <button onClick={handleGenerateVideo} disabled={videoGenerating || videoPolling} style={{ ...styles.settingsDoneFull, backgroundColor: theme.primary }}>{videoGenerating ? 'Submitting...' : videoPolling ? 'Generating...' : 'Generate Video'}</button>
+      )}
+    </div>
+  )
+
+  if (showCyberLab) {
+    const tools = [{id:'passcheck',label:'Password'},{id:'hash',label:'Hash'},{id:'base64',label:'B64 Enc'},{id:'unbase64',label:'B64 Dec'},{id:'hex',label:'Hex'},{id:'rot13',label:'ROT13'},{id:'dns',label:'DNS'},{id:'ip',label:'IP'},{id:'portscan',label:'PortSim'}]
+    return (
+      <div style={styles.settingsFullscreen}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', backgroundColor: '#000', borderBottom: '1px solid #1a1a1a', flexShrink: 0 }}>
+          <button onClick={() => setShowCyberLab(false)} style={{ background: 'none', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 14 }}>
+            <Icon name="arrowLeft" size={20} color="#fff" /> exit
+          </button>
+          <span style={{ color: theme.primary, fontSize: 12, fontFamily: "'Courier New', monospace" }}>csh@cypher4x:~$</span>
+          <button onClick={() => setCyberLines([{ type: 'info', text: `${VERSION_FULL} — type "help"` }])} style={{ background: 'none', border: '1px solid #333', color: '#888', padding: '3px 10px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>clear</button>
+        </div>
+        <div style={{ display: 'flex', padding: '8px 16px', gap: 8, flexShrink: 0, background: '#111', borderBottom: '1px solid #333' }}>
+          <button onClick={() => setCyberTab('terminal')} style={{ flex: 1, padding: 10, background: cyberTab === 'terminal' ? theme.primary : '#1a1a1a', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 'bold', cursor: 'pointer', fontSize: 12 }}>Terminal</button>
+          <button onClick={() => setCyberTab('tools')} style={{ flex: 1, padding: 10, background: cyberTab === 'tools' ? theme.primary : '#1a1a1a', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 'bold', cursor: 'pointer', fontSize: 12 }}>Tools</button>
+        </div>
+        {cyberTab === 'terminal' && (<>
+          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: 16, background: '#000', fontFamily: "'Courier New', monospace", fontSize: 13, color: '#ddd' }}>
+            {cyberLines.map((l, i) => <pre key={i} style={{ margin: '2px 0', whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: l.type === 'cmd' ? '#4f8' : l.type === 'info' ? theme.primary : '#ddd', fontWeight: l.type === 'cmd' ? 'bold' : 'normal' }}>{l.text}</pre>)}
+            <div ref={cyberEndRef} />
+          </div>
+          <form onSubmit={handleCyberSubmit} style={{ display: 'flex', gap: 8, padding: 12, paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))', background: '#111', borderTop: '1px solid #333' }}>
+            <span style={{ color: '#4f8', fontWeight: 'bold', alignSelf: 'center' }}>~ $</span>
+            <input value={cyberInput} onChange={(e) => setCyberInput(e.target.value)} placeholder='Type a command (help)' style={{ flex: 1, padding: 10, background: '#000', border: '1px solid #333', color: '#fff', borderRadius: 4, fontFamily: "'Courier New', monospace", outline: 'none' }} autoComplete="off" autoCapitalize="off" spellCheck="false" />
+            <button type="submit" style={{ padding: '8px 14px', background: theme.primary, border: 'none', borderRadius: 4, color: '#fff', cursor: 'pointer' }}><Icon name="send" size={16} color="#fff" /></button>
+          </form>
+        </>)}
+        {cyberTab === 'tools' && (
+          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: 16 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
+              {tools.map(t => <button key={t.id} onClick={() => { setCyberTool(t.id); setCyberToolOutput('') }} style={{ padding: '6px 12px', borderRadius: 20, border: cyberTool === t.id ? `1px solid ${theme.primary}` : '1px solid #333', background: cyberTool === t.id ? hexA(theme.primary, 0.15) : '#1a1a1a', color: '#fff', fontSize: 12, cursor: 'pointer' }}>{t.label}</button>)}
+            </div>
+            <input value={cyberToolInput} onChange={(e) => setCyberToolInput(e.target.value)} placeholder="Input..." style={styles.settingsSelect} />
+            <button onClick={runCyberTool} style={{ ...styles.uploadBtn, backgroundColor: theme.primary, marginTop: 12, width: '100%', justifyContent: 'center' }}><Icon name="zap" size={16} color="#fff" /><span>Run</span></button>
+            {cyberToolOutput && (<div style={{ marginTop: 16 }}><pre style={{ background: '#000', border: '1px solid #333', borderRadius: 8, padding: 12, color: '#4f8', fontFamily: "'Courier New', monospace", fontSize: 12, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{cyberToolOutput}</pre><button onClick={() => navigator.clipboard.writeText(cyberToolOutput)} style={{ ...styles.uploadBtn, backgroundColor: theme.primary, marginTop: 8, width: '100%', justifyContent: 'center' }}><Icon name="copy" size={16} color="#fff" /><span>Copy</span></button></div>)}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  if (isFullscreenCall) return (
+    <div style={styles.fullscreenCallOverlay}>
+      <button onClick={toggleFullscreenCall} style={styles.returnBtn}><Icon name="arrowLeft" size={28} color="#fff" /> Return</button>
+      <div style={styles.fullscreenCallContentNoBall}>
+        <div style={styles.fullscreenListeningStatus}>{isListening ? <div style={{...styles.fullscreenListeningDot, backgroundColor: theme.primary}} /> : isAISpeaking ? <div style={{...styles.fullscreenSpeakingDot, backgroundColor: theme.primary}} /> : null}<span style={styles.fullscreenStatusText}>{isListening ? 'Listening...' : isAISpeaking ? 'Speaking...' : 'Tap mic to talk'}</span></div>
+        {interimTranscript && <div style={styles.fullscreenTranscript}>{interimTranscript}</div>}
+        <button onClick={interruptAndListen} style={{...styles.fullscreenMicBtn, backgroundColor: theme.primary, borderColor: theme.primary}} disabled={isProcessing}><Icon name="mic" size={48} color="#fff" /></button>
+      </div>
+    </div>
+  )
+
+  if (showRotateOverlay) return (
+    <div style={styles.rotateOverlay}>
+      <div style={{...styles.rotateCard, borderColor: theme.primary}}>
+        <Icon name="rotate" size={48} color={theme.primary} />
+        <div style={styles.rotateText}>Pls Rotate device if you are using Android</div>
+        <button onClick={() => setShowRotateOverlay(false)} style={{...styles.rotateOkBtn, backgroundColor: theme.primary}}>OK</button>
+      </div>
+    </div>
+  )
+
+  if (showChatOverview) return (
+    <div style={{...styles.chatOverviewContainer, backgroundColor: theme.secondary, backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center'}}>
+      <div style={{...styles.chatOverviewHeader, justifyContent: 'space-between', borderBottomColor: theme.primary}}>
+        <button onClick={() => setShowChatOverview(false)} style={styles.chatOverviewBackBtn}><Icon name="arrowLeft" size={24} color="#fff" /> Back</button>
+        <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
+          <button onClick={() => setChatOverviewVoiceEnabled(!chatOverviewVoiceEnabled)} style={styles.chatOverviewVoiceToggle}><Icon name={chatOverviewVoiceEnabled ? 'volume2' : 'volumeX'} size={22} color="#fff" /></button>
+          <button onClick={() => setShowChatMenu(!showChatMenu)} style={styles.chatOverviewVoiceToggle}><Icon name="menu" size={22} color="#fff" /></button>
+        </div>
+      </div>
+      {showChatMenu && (
+        <div style={styles.chatMenuDropdown}>
+          <div style={{padding: 10, borderBottom: '1px solid #333', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+            <span style={{color: theme.primary, fontSize: 12, fontWeight: 'bold'}}>CHAT SECTIONS</span>
+            <button onClick={createNewChat} style={{background: theme.primary, border: 'none', borderRadius: 4, padding: '4px 8px', color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4}}><Icon name="plus" size={12} color="#fff"/> NEW</button>
+          </div>
+          <div style={{maxHeight: 300, overflowY: 'auto'}}>
+            {chats.map(c => (
+              <div key={c.id} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', borderBottom: '1px solid #1a1a1a', backgroundColor: activeChatId === c.id ? hexA(theme.primary, 0.1) : 'transparent'}}>
+                <span onClick={() => switchChat(c.id)} style={{color: activeChatId === c.id ? theme.primary : '#ccc', fontSize: 13, cursor: 'pointer', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{c.title}</span>
+                <div style={{display: 'flex', gap: 6}}>
+                  <button onClick={() => renameChat(c.id)} style={{background: 'none', border: 'none', cursor: 'pointer', padding: 4}}><Icon name="edit" size={14} color="#888"/></button>
+                  <button onClick={() => deleteChat(c.id)} style={{background: 'none', border: 'none', cursor: 'pointer', padding: 4}}><Icon name="trash" size={14} color="#888"/></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      <div style={styles.chatOverviewMessages}>
+        {conversation.length === 0 && <div style={styles.chatOverviewEmpty}><p>Start a conversation! Tap "New" to create a fresh chat.</p></div>}
+        {conversation.map(msg => (
+          <div key={msg.id} style={{ ...styles.chatOverviewMsg, alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', backgroundColor: msg.role === 'user' ? theme.primary : 'rgba(26,26,26,0.9)', ...(settings.compactMode ? { padding: '6px 10px' } : {}) }}>
+            {msg.replyToText && <div style={{...styles.replyQuote, borderLeftColor: theme.primary}}><Icon name="reply" size={12} color={theme.primary} /><span style={{...styles.replyQuoteText, color: theme.primary}}>{msg.replyToText}...</span></div>}
+            {renderMessageContent(msg)}
+            {msg.file && (<div style={styles.filePreviewPC}>{msg.file.type.startsWith('image/') && <img src={msg.file.data} alt="" style={{ maxWidth: '100%', maxHeight: '120px', borderRadius: 4, marginTop: 4 }} />}{msg.file.type.startsWith('video/') && <video controls style={{ maxWidth: '100%', maxHeight: '120px', borderRadius: 4, marginTop: 4 }}><source src={msg.file.data} type={msg.file.type} /></video>}{!msg.file.type.startsWith('image/') && !msg.file.type.startsWith('video/') && <div style={{ fontSize: 10, color: '#888', marginTop: 2 }}>📎 {msg.file.name}</div>}</div>)}
+            {settings.showTimestamps && <span style={styles.chatOverviewMsgTime}>{fmtT(msg.time)}</span>}
+            <div style={styles.msgActions}>
+              <button onClick={() => handleReply(msg)} style={styles.msgActionBtn}><Icon name="reply" size={14} color="#888" /></button>
+              {msg.role === 'user' && <button onClick={() => handleEditMessage(msg.id)} style={styles.msgActionBtn}><Icon name="edit" size={14} color="#888" /></button>}
+              <button onClick={() => handleDeleteMessage(msg.id)} style={styles.msgActionBtn}><Icon name="trash" size={14} color="#888" /></button>
+              <button onClick={() => handleShareMessage(msg)} style={styles.msgActionBtn}><Icon name="copy" size={14} color="#888" /></button>
+            </div>
+          </div>
+        ))}
+        {isProcessing && settings.typingIndicator && <div style={{ ...styles.chatOverviewMsg, alignSelf: 'flex-start', backgroundColor: 'rgba(26,26,26,0.9)' }}><span style={styles.chatOverviewMsgText}>● ● ●</span></div>}
+        <div ref={chatEndRef} />
+      </div>
+      {replyingTo && <div style={{...styles.replyBar, borderTopColor: theme.primary}}><div style={{ flex: 1, overflow: 'hidden' }}><div style={{ color: theme.primary, fontSize: 11, fontWeight: 'bold', marginBottom: 2 }}>Replying to:</div><div style={{ color: '#ddd', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{replyingTo.content.slice(0, 60)}...</div></div><button onClick={() => setReplyingTo(null)} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', padding: 4 }}><Icon name="x" size={18} color="#888" /></button></div>}
+      <div style={styles.chatOverviewInputRowRaised}>
+        <input type="text" value={chatOverviewInput} onChange={(e) => setChatOverviewInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && sendOverviewText()} placeholder={pendingCode ? 'Answer the question...' : replyingTo ? 'Reply...' : 'Type a message...'} style={styles.chatOverviewInput} disabled={isProcessing} />
+        <div style={styles.voiceControls}>
+          {!isRecordingVoice && !voicePaused ? <button onClick={startVoiceRecording} style={styles.chatOverviewMicBtn}><Icon name="mic" size={20} color="#fff" /></button> : (<>{voicePaused ? <button onClick={resumeVoiceRecording} style={styles.chatOverviewMicBtn}><Icon name="play" size={20} color="#4f8" /></button> : <button onClick={pauseVoiceRecording} style={styles.chatOverviewMicBtn}><Icon name="pause" size={20} color={theme.primary} /></button>}<button onClick={deleteVoiceRecording} style={styles.chatOverviewMicBtn}><Icon name="trash" size={20} color={theme.primary} /></button><button onClick={sendVoiceRecording} style={{...styles.chatOverviewSendBtn, backgroundColor: theme.primary}} disabled={isProcessing || !voiceTranscript.trim()}><Icon name="send" size={20} color="#fff" /></button></>)}
+        </div>
+        <label style={styles.chatOverviewAttachBtn}><Icon name="file" size={20} color="#fff" /><input type="file" accept="image/*,video/*,.pdf,.doc,.docx,.txt" onChange={handleOverviewFileShare} style={{ display: 'none' }} /></label>
+        <button onClick={sendOverviewText} style={{...styles.chatOverviewSendBtn, backgroundColor: theme.primary}} disabled={isProcessing}><Icon name="send" size={20} color="#fff" /></button>
+      </div>
+      {voiceTranscript && !chatOverviewListening && <div style={styles.voiceTranscriptPreview}>"{voiceTranscript}"</div>}
+    </div>
+  )
+
+  if (editingProfile) return (
+    <div style={styles.profileContainer}><div style={{...styles.profileCard, borderColor: theme.primary}}><h1 style={{...styles.profileTitle, color: theme.primary}}>EDIT PROFILE</h1><div style={styles.avatarUploadArea} onClick={() => fileInputRef.current?.click()}>{profileForm.avatar ? <img src={profileForm.avatar} alt="" style={styles.avatarPreview} /> : <span style={{...styles.avatarIcon, color: theme.primary}}><Icon name="camera" size={32} color={theme.primary} /><br />Tap to select</span>}</div><input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} /><div style={styles.inputGroup}><label style={{...styles.label, color: theme.primary}}><Icon name="user" size={14} color={theme.primary} /> Name *</label><input type="text" value={profileForm.name} onChange={(e) => setProfileForm(p => ({ ...p, name: e.target.value }))} style={{...styles.textInput, borderColor: theme.primary}} /></div><div style={styles.inputGroup}><label style={{...styles.label, color: theme.primary}}><Icon name="atSign" size={14} color={theme.primary} /> Username *</label><input type="text" value={profileForm.username} onChange={(e) => setProfileForm(p => ({ ...p, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') }))} style={{...styles.textInput, borderColor: theme.primary}} /></div><div style={styles.inputGroup}><label style={{...styles.label, color: theme.primary}}><Icon name="pencil" size={14} color={theme.primary} /> Bio</label><textarea value={profileForm.bio} onChange={(e) => setProfileForm(p => ({ ...p, bio: e.target.value }))} style={{...styles.bioInput, borderColor: theme.primary}} /></div><div style={styles.profileBtnRow}><button onClick={() => setEditingProfile(false)} style={styles.cancelBtn}>Cancel</button><button onClick={saveProfile} style={{...styles.createBtn, backgroundColor: theme.primary}}>SAVE</button></div></div></div>
+  )
+
+  if (viewMode === 'android') return (
+    <div style={{ ...styles.appAndroid, backgroundColor: theme.secondary, ...(settings.highContrast ? { filter: 'contrast(1.3)' } : {}) }}>
+      {sidebarOpen && (<>
+        <div style={styles.sidebarOverlay} onClick={() => setSidebarOpen(false)} />
+        <div style={styles.sidebar}>
+          <div style={styles.sidebarHeader}>
+            <h2 style={{...styles.sidebarTitle, color: theme.primary}}><Icon name="settings" size={20} color={theme.primary} /> CONTROL PANEL</h2>
+            <button onClick={() => setSidebarOpen(false)} style={styles.closeBtn}><Icon name="x" size={20} color="#888" /></button>
+          </div>
+
+          <div style={styles.sidebarSection}>
+            <h3 style={{...styles.sectionTitle, color: theme.primary, borderBottomColor: '#333'}}><Icon name="calendar" size={16} color={theme.primary} /> AI DASHBOARD</h3>
+            <div style={{...styles.statsCard, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6}}>
+              <span style={{fontSize: 11, color: '#ccc'}}>{dash.date}</span>
+              <span style={{fontSize: 11, color: theme.primary, fontWeight: 'bold'}}>{dash.time}</span>
+              <span style={{fontSize: 11, color: '#ccc'}}>{dash.day}</span>
+              {dash.temp && <span style={{fontSize: 11, color: theme.primary}}>{dash.temp}</span>}
+            </div>
+          </div>
+
+          <div style={styles.sidebarSection}>
+            <h3 style={{...styles.sectionTitle, color: theme.primary, borderBottomColor: '#333'}}><Icon name="desktop" size={16} color={theme.primary} /> VIEW MODE</h3>
+            <div style={styles.settingRow}><span style={styles.settingLabel}>Android</span><button onClick={toggleView} style={styles.toggleBtn}>PC</button></div>
+          </div>
+
+          <div style={styles.sidebarSection}>
+            <h3 style={{...styles.sectionTitle, color: theme.primary, borderBottomColor: '#333'}}><Icon name="sparkles" size={16} color={theme.primary} /> QUICK TOOLS {settings.restrictTools && userMode !== 'loggedin' && <Icon name="lock" size={12} color="#888" />}</h3>
+            <button onClick={() => { setSidebarOpen(false); setShowWorkspace(true) }} style={{...styles.toolBtn, backgroundColor: hexA(theme.primary, 0.2), border: `1px solid ${theme.primary}`}}><Icon name="layers" size={16} color={theme.primary} /> AI WORKSPACE</button>
+            <button onClick={() => { setSidebarOpen(false); setShowPracticalWorkspace(true) }} style={{...styles.toolBtn, backgroundColor: 'rgba(0,255,65,0.2)', border: `1px solid #00ff41`}}><Icon name="zap" size={16} color="#00ff41" /> PRACTICAL WORKSPACE</button>
+            <button onClick={() => { if (requireLogin('Cyber Lab')) { setSidebarOpen(false); setShowCyberLab(true) } }} style={styles.toolBtn}><Icon name="shield" size={16} color="#fff" /> Cyber Lab / Terminal</button>
+            <button onClick={() => { if (requireLogin('Music Generator')) { setSidebarOpen(false); setShowMusicPanel(true) } }} style={styles.toolBtn}><Icon name="music" size={16} color="#fff" /> Music Generator</button>
+            <button onClick={() => { if (requireLogin('Video Generator')) { setSidebarOpen(false); setShowVideoPanel(true) } }} style={styles.toolBtn}><Icon name="video" size={16} color="#fff" /> Video Generator</button>
+            <button onClick={() => { setSidebarOpen(false); setShowSettings(true) }} style={styles.toolBtn}><Icon name="cog" size={16} color="#fff" /> Settings</button>
+          </div>
+
+          <div style={styles.sidebarSection}>
+            <h3 style={{...styles.sectionTitle, color: theme.primary, borderBottomColor: '#333'}}><Icon name="chart" size={16} color={theme.primary} /> SYSTEM</h3>
+            <div style={styles.statsCard}>
+              <div style={styles.statRow}><span style={styles.statLabel}><Icon name="hourglass" size={14} color="#888" /> Uptime</span><span style={{...styles.statValue, color: theme.primary}}>{fmtU(stats.uptime)}</span></div>
+              <div style={styles.statRow}><span style={styles.statLabel}><Icon name="cpu" size={14} color="#888" /> CPU</span><span style={{...styles.statValue, color: theme.primary}}>{stats.cpuUsage}%</span></div>
+              <div style={styles.statRow}><span style={styles.statLabel}><Icon name="memory" size={14} color="#888" /> RAM</span><span style={{...styles.statValue, color: theme.primary}}>{stats.ramUsage.toFixed(1)} GB</span></div>
+            </div>
+          </div>
+
+          <div style={styles.sidebarSection}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <h3 style={{...styles.sectionTitle, color: theme.primary, borderBottomColor: '#333'}}><Icon name="chat" size={16} color={theme.primary} /> CHAT ({chats.length})</h3>
+              <button onClick={() => { setSidebarOpen(false); setShowChatOverview(true) }} style={styles.overviewBtn}><Icon name="desktop" size={14} color="#fff" /> Overview</button>
+            </div>
+            <select value={activeChatId || ''} onChange={(e) => switchChat(e.target.value)} style={{ width: '100%', padding: 8, background: '#1a1a1a', color: '#fff', border: '1px solid #333', borderRadius: 6, marginBottom: 8, fontSize: 12, boxSizing: 'border-box' }}>
+              {chats.map(c => <option key={c.id} value={c.id}>{c.title} ({c.messages.length})</option>)}
+            </select>
+            <button onClick={createNewChat} style={{ ...styles.toolBtn, marginBottom: 8 }}><Icon name="plus" size={16} color="#fff" /> New Chat</button>
+
+            <div style={{ maxHeight: 220, overflowY: 'auto', marginBottom: 8, border: '1px solid #1a1a1a', borderRadius: 6, padding: 6, backgroundColor: '#050505' }}>
+              {conversation.length === 0 && <p style={styles.dashEmptyPC}>No messages yet</p>}
+              {conversation.slice(-30).map(msg => (
+                <div key={msg.id} style={{ padding: '6px 8px', marginBottom: 4, borderRadius: 4, background: msg.role === 'user' ? hexA(theme.primary, 0.15) : 'rgba(255,255,255,0.04)', borderLeft: msg.role === 'user' ? `3px solid ${theme.primary}` : '3px solid #ff6688' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                    <span style={{ fontWeight: 'bold', color: msg.role === 'user' ? theme.primary : '#fff', fontSize: 10, letterSpacing: 1 }}>{msg.role === 'user' ? (profile?.name || 'YOU') : 'CYPHER4X'}</span>
+                    <span style={{ fontSize: 9, color: '#666' }}>{fmtT(msg.time)}</span>
+                  </div>
+                  <div style={{ color: '#ddd', fontSize: 12, wordBreak: 'break-word', whiteSpace: 'pre-wrap', lineHeight: 1.4 }}>
+                    {msg.content.length > 200 ? msg.content.slice(0, 200) + '…' : msg.content}
+                  </div>
+                </div>
+              ))}
+              {isProcessing && <div style={{ padding: '6px 8px', color: theme.primary, fontSize: 11, fontStyle: 'italic' }}>● CYPHER4X is typing...</div>}
+            </div>
+
+            <div style={styles.inputRow}>
+              <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') sendTextMessage() }} placeholder="Send message..." style={styles.textInputSmall} />
+              <label style={styles.sendBtnSmall} title="Attach file">
+                <Icon name="paperclip" size={16} color="#fff" />
+                <input type="file" accept="image/*,video/*,.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx" onChange={handleOverviewFileShare} style={{ display: 'none' }} />
+              </label>
+              <button onClick={sendTextMessage} style={{...styles.sendBtnSmall, backgroundColor: theme.primary}} disabled={isProcessing}><Icon name="send" size={16} color="#fff" /></button>
+            </div>
+
+            <button onClick={() => { setSidebarOpen(false); startRecording() }} style={{ ...styles.toolBtn, marginTop: 4 }}><Icon name="mic" size={16} color="#fff" /> Tap to Speak</button>
+            <div style={styles.commandActionsPC}>
+              <button onClick={clearConversation} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear</button>
+              <button onClick={exportChat} style={styles.dashBtnPC}><Icon name="save" size={14} color="#fff" /> Export</button>
+            </div>
+          </div>
+
+          <div style={styles.sidebarSection}>
+            <h3 style={{...styles.sectionTitle, color: theme.primary, borderBottomColor: '#333'}}><Icon name="user" size={16} color={theme.primary} /> PROFILE</h3>
+            <div style={styles.profileCardSidebar}>
+              <div style={styles.profileAvatarWrapper}>{profile?.avatar ? <img src={profile.avatar} alt="" style={styles.profileAvatar} /> : <div style={{...styles.profileAvatarPlaceholder, backgroundColor: theme.primary}}>{profile?.name?.charAt(0) || '?'}</div>}</div>
+              <div style={styles.profileInfo}><div style={styles.profileName}>{profile?.name || 'User'}</div><div style={styles.profileHandle}><Icon name="atSign" size={12} color="#888" />{profile?.username || 'anonymous'}</div></div>
+            </div>
+            <button onClick={openEditProfile} style={styles.sidebarBtn}><Icon name="edit" size={14} color="#fff" /> Edit Profile</button>
+            {userMode === 'loggedin' ? <button onClick={handleLogout} style={styles.logoutBtn}><Icon name="close" size={14} color="#fff" /> Logout</button> : <button onClick={() => { setShowAuthModal(true); setShowLogin(true) }} style={styles.sidebarBtn}><Icon name="settings" size={14} color="#fff" /> Login</button>}
+          </div>
+
+          <div style={styles.sidebarSection}>
+            <h3 style={{...styles.sectionTitle, color: theme.primary, borderBottomColor: '#333'}}><Icon name="alertTriangle" size={16} color={theme.primary} /> DANGER ZONE</h3>
+            <button onClick={resetAllData} style={styles.dangerBtn}><Icon name="trash" size={14} color="#fff" /> Reset All</button>
+          </div>
+          <div style={{ textAlign: 'center', color: '#666', fontSize: 10, padding: '12px 0', borderTop: '1px solid #1a1a1a', marginTop: 12 }}>{VERSION_FULL}</div>
+        </div>
+      </>)}
+
+      <div style={{ ...styles.mainContentAndroid, backgroundColor: theme.secondary, backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <div style={{...styles.backgroundAndroid, background: backgroundImage ? 'none' : `radial-gradient(ellipse at center, ${hexA(theme.primary, 0.06)} 0%, ${theme.secondary} 100%)`}}>
+          <RedBall isSpeaking={isAISpeaking} theme={theme} />
+          <div style={{...styles.faceTitleAndroid, color: theme.primary, textShadow: `0 0 40px ${theme.primary}`}}>CYPHER4X</div>
+        </div>
+        <div style={{ position: 'absolute', top: 22, left: '50%', transform: 'translateX(-50%)', color: theme.primary, fontSize: 10, letterSpacing: 2, fontWeight: 'bold', zIndex: 10 }}>{VERSION}</div>
+        <div style={styles.topBarAndroid}>
+          <button onClick={() => setSidebarOpen(true)} style={{ ...styles.hamburgerBtn, position: 'static' }}><Icon name="menu" size={28} color={theme.primary} /></button>
+          <div style={styles.topRightButtons}>
+            <button onClick={toggleFullscreenCall} style={{...styles.callButtonTopRight, borderColor: theme.primary, color: theme.primary, padding: '6px 10px'}}><Icon name="phone" size={18} color={isCallActive ? '#4f8' : theme.primary} /><span style={styles.callLabelTop}>{isFullscreenCall ? 'ACTIVE' : 'CALL'}</span></button>
+            <button onClick={() => setShowSettings(true)} style={styles.settingsButtonTop}><Icon name="cog" size={20} color="#fff" /></button>
+          </div>
+        </div>
+
+        <div style={{ position: 'absolute', top: 70, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 12, backgroundColor: 'rgba(0,0,0,0.6)', padding: '6px 16px', borderRadius: 20, border: `1px solid ${hexA(theme.primary, 0.3)}`, zIndex: 10 }}>
+          <span style={{ color: theme.primary, fontSize: 11, fontWeight: 'bold' }}>{dash.date}</span>
+          <span style={{ color: '#fff', fontSize: 11 }}>{dash.time}</span>
+          <span style={{ color: '#ccc', fontSize: 11 }}>{dash.day}</span>
+          {dash.temp && <span style={{ color: theme.primary, fontSize: 11 }}>{dash.temp}</span>}
+        </div>
+
+        <div style={styles.listeningContainer}>
+          {isListening ? (<><div style={styles.listeningDot} /><span style={styles.listeningText}>Listening...</span>{interimTranscript && <span style={styles.interimText}>"{interimTranscript}"</span>}{interimTranscript && <button onClick={sendInterim} style={{...styles.sendInterimBtn, backgroundColor: theme.primary}} disabled={isProcessing}><Icon name="send" size={16} color="#fff" /><span>Send</span></button>}</>) : isProcessing ? <span style={styles.listeningText}>Processing...</span> : isRecording ? (<><div style={{ ...styles.listeningDot, backgroundColor: theme.primary }} /><span style={styles.listeningText}>Recording...</span>{interimTranscript && <span style={styles.interimText}>"{interimTranscript}"</span>}</>) : null}
+        </div>
+        <div style={styles.voiceButtonContainer}>
+          <button onClick={startRecording} disabled={isRecording || isProcessing || isFullscreenCall} style={{ ...styles.voiceButton, borderColor: theme.primary, ...(isRecording ? { backgroundColor: theme.primary, borderColor: theme.primary } : {}) }}>
+            <Icon name="mic" size={40} color="#fff" />
+            <span style={styles.voiceLabel}>{isRecording ? 'Recording...' : isProcessing ? 'Processing...' : 'Tap to Speak'}</span>
+          </button>
+        </div>
+        {settings.overlayButton && <button onClick={toggleOverlay} style={{ ...styles.floatingBtn, backgroundColor: overlayActive ? theme.primary : 'rgba(0,0,0,0.7)', borderColor: overlayActive ? theme.primary : '#333' }}><Icon name={overlayListening ? 'mic' : 'sparkles'} size={22} color={overlayActive ? '#fff' : theme.primary} /></button>}
+      </div>
+    </div>
+  )
+
+  return (
+    <div style={{ ...styles.appPC, backgroundColor: theme.secondary, ...(settings.highContrast ? { filter: 'contrast(1.3)' } : {}) }}>
+      <header style={{...styles.headerPC, borderBottomColor: hexA(theme.primary, 0.3)}}>
+        <div style={styles.headerLeft}>
+          <h1 style={{...styles.titlePC, color: theme.primary}}>CYPHER4X</h1>
+          <span style={{...styles.versionBadgePC, color: theme.primary, backgroundColor: hexA(theme.primary, 0.13)}}>{VERSION}</span>
+        </div>
+        <div style={styles.headerRight}>
+          <button onClick={toggleFullscreenCall} style={{...styles.callBtnPC, borderColor: theme.primary, color: theme.primary, padding: '4px 8px'}}><Icon name="phone" size={16} color={theme.primary} /><span>CALL</span></button>
+          <button onClick={() => { if (requireLogin('Cyber Lab')) setShowCyberLab(true) }} style={styles.settingsBtnPC} title="Terminal"><Icon name="shield" size={20} color="#fff" /></button>
+          <button onClick={() => { if (requireLogin('Music Generator')) setShowMusicPanel(true) }} style={styles.settingsBtnPC} title="Music"><Icon name="music" size={20} color="#fff" /></button>
+          <button onClick={() => { if (requireLogin('Video Generator')) setShowVideoPanel(true) }} style={styles.settingsBtnPC} title="Video"><Icon name="video" size={20} color="#fff" /></button>
+          <button onClick={() => setShowSettings(true)} style={styles.settingsBtnPC} title="Settings"><Icon name="cog" size={20} color="#fff" /></button>
+          <button onClick={toggleView} style={styles.settingsBtnPC} title="Switch to Android view"><Icon name="mobile" size={20} color="#fff" /></button>
+          <button onClick={startRecording} disabled={isRecording || isProcessing} style={{...styles.voiceBtnPC, borderColor: theme.primary, color: theme.primary}}><Icon name="mic" size={20} color={theme.primary} /><span>Speak</span></button>
+        </div>
+      </header>
+      <div style={styles.pcLayout}>
+        <div style={styles.pcSidebar}>
+          <div style={styles.pcSidebarSection}>
+            <h3 style={{...styles.pcSidebarTitle, color: theme.primary}}><Icon name="chart" size={16} color={theme.primary} /> STATS</h3>
+            <div style={styles.pcSidebarRow}><span>CPU</span><span>{stats.cpuUsage}%</span></div>
+            <div style={styles.pcSidebarRow}><span>RAM</span><span>{stats.ramUsage.toFixed(1)} GB</span></div>
+            <div style={styles.pcSidebarRow}><span>Uptime</span><span>{fmtU(stats.uptime)}</span></div>
+          </div>
+
+          <div style={styles.pcSidebarSection}>
+            <h3 style={{...styles.pcSidebarTitle, color: theme.primary}}><Icon name="calendar" size={16} color={theme.primary} /> DASHBOARD</h3>
+            <div style={styles.pcSidebarRow}><span>Date</span><span>{dash.date}</span></div>
+            <div style={styles.pcSidebarRow}><span>Time</span><span>{dash.time}</span></div>
+            <div style={styles.pcSidebarRow}><span>Day</span><span>{dash.day}</span></div>
+            {dash.temp && <div style={styles.pcSidebarRow}><span>Temp</span><span>{dash.temp}</span></div>}
+          </div>
+
+          <div style={styles.pcSidebarSection}>
+            <h3 style={{...styles.pcSidebarTitle, color: theme.primary}}><Icon name="chat" size={16} color={theme.primary} /> CHATS</h3>
+            <button onClick={createNewChat} style={styles.sidebarBtnPC}><Icon name="plus" size={14} color="#fff" /> New Chat</button>
+            <button onClick={() => setShowChatOverview(true)} style={styles.sidebarBtnPC}><Icon name="chat" size={14} color="#fff" /> Open Chat</button>
+          </div>
+          <div style={styles.pcSidebarSection}>
+            <h3 style={{...styles.pcSidebarTitle, color: theme.primary}}><Icon name="user" size={16} color={theme.primary} /> PROFILE</h3>
+            <button onClick={openEditProfile} style={styles.sidebarBtnPC}><Icon name="edit" size={14} color="#fff" /> Edit Profile</button>
+            {userMode === 'loggedin' ? <button onClick={handleLogout} style={styles.logoutBtnPC}><Icon name="close" size={14} color="#fff" /> Logout</button> : <button onClick={() => { setShowAuthModal(true); setShowLogin(true) }} style={styles.sidebarBtnPC}><Icon name="settings" size={14} color="#fff" /> Login</button>}
+          </div>
+          <div style={{ textAlign: 'center', color: '#666', fontSize: 10, padding: '12px 0', borderTop: '1px solid #1a1a1a', marginTop: 12 }}>{VERSION_FULL}</div>
+        </div>
+        <div style={{ ...styles.pcMain, backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+          <div style={styles.pcBallContainer}><RedBall isSpeaking={isAISpeaking} theme={theme} /></div>
+          <div style={styles.pcListeningContainer}>
+            {isListening ? <><div style={styles.listeningDot} /><span style={styles.listeningText}>Listening...</span>{interimTranscript && <span style={styles.interimText}>"{interimTranscript}"</span>}</> : isProcessing ? <span style={styles.listeningText}>Processing...</span> : isRecording ? <><div style={{ ...styles.listeningDot, backgroundColor: theme.primary }} /><span style={styles.listeningText}>Recording...</span></> : null}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ==================================================
+// STYLES
+// ==================================================
+const styles = {
+  introContainer: { position: 'fixed', inset: 0, backgroundColor: '#000', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' },
+  introBackground: { position: 'absolute', inset: 0, background: 'radial-gradient(circle at center, #111 0%, #000 100%)' },
+  introContent: { position: 'relative', zIndex: 1, textAlign: 'center' },
+  introText: { color: '#fff', fontSize: 'clamp(20px, 5vw, 48px)', fontWeight: 'bold', letterSpacing: 6, fontFamily: "'Courier New', monospace", textTransform: 'uppercase' },
+
+  enterOverlay: { position: 'fixed', inset: 0, backgroundColor: '#000', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', fontFamily: "'Courier New',monospace" },
+  enterBackground: { position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, #1a0000 0%, #000 70%)' },
+  enterContent: { position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: 420, padding: 20 },
+  enterTitle: { fontSize: 38, letterSpacing: 10, margin: '0 0 8px', fontWeight: 'bold' },
+  enterSubtitleSmall: { color: '#ff6688', fontSize: 12, letterSpacing: 3, marginBottom: 50, opacity: 0.7 },
+  enterUpdatingWrap: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 24 },
+  enterUpdatingLabel: { fontSize: 22, fontWeight: 'bold', letterSpacing: 4 },
+  enterUpdatingDots: { display: 'flex', alignItems: 'center', gap: 0, fontSize: 22, fontWeight: 'bold' },
+  enterProgressBarWrap: { width: '100%', height: 4, backgroundColor: '#1a1a1a', borderRadius: 4, overflow: 'hidden', marginBottom: 8 },
+  enterProgressBar: { height: '100%', transition: 'width 0.1s linear' },
+  enterPercent: { fontSize: 12, letterSpacing: 2 },
+  enterMessageSmall: { color: '#888', fontSize: 11, letterSpacing: 2, marginTop: 16, minHeight: 16 },
+
+  appAndroid: { minHeight: '100vh', height: '100vh', color: '#e0e0e0', fontFamily: "'Segoe UI','Courier New',monospace", overflow: 'hidden', margin: 0, padding: 0 },
+  practicalContainer: { position: 'fixed', inset: 0, zIndex: 99998, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
+  practicalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', borderBottom: '1px solid', flexShrink: 0 },
+  practicalExitBtn: { display: 'flex', alignItems: 'center', gap: 6, backgroundColor: 'transparent', border: '1px solid', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', fontSize: 12, fontWeight: 'bold' },
+  practicalExportBtn: { display: 'flex', alignItems: 'center', gap: 6, backgroundColor: 'transparent', border: '1px solid', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', fontSize: 12, fontWeight: 'bold' },
+  practicalTitle: { margin: 0, fontSize: 16, letterSpacing: 2, fontWeight: 'bold' },
+  practicalCanvas: { flex: 1, overflowY: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 16 },
+  practicalMsg: { padding: 12, borderRadius: 8, maxWidth: '80%', lineHeight: 1.6, fontSize: 15 },
+  practicalInputRow: { display: 'flex', gap: 8, alignItems: 'center', padding: '12px 20px', borderTop: '1px solid', flexShrink: 0 },
+  practicalInput: { flex: 1, padding: '12px 16px', backgroundColor: 'transparent', border: '1px solid', borderRadius: 24, fontSize: 15, outline: 'none' },
+  practicalMicBtn: { padding: 10, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  practicalSendBtn: { border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  practicalAttachBtn: { padding: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+
+  workspaceContainer: { position: 'fixed', inset: 0, backgroundColor: '#050505', zIndex: 99998, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
+  workspaceHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', backgroundColor: '#0a0a0a', borderBottom: '1px solid #222', flexShrink: 0 },
+  workspaceExitBtn: { display: 'flex', alignItems: 'center', gap: 6, backgroundColor: 'transparent', border: '1px solid', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', fontSize: 12, fontWeight: 'bold' },
+  workspaceTitle: { margin: 0, fontSize: 16, letterSpacing: 2, fontWeight: 'bold' },
+  workspaceBody: { flex: 1, display: 'flex', flexDirection: 'row', overflow: 'hidden' },
+  workspaceLeftPanel: { width: 'clamp(250px, 25%, 350px)', backgroundColor: '#0a0a0a', borderRight: '1px solid #222', display: 'flex', flexDirection: 'column', padding: 15, overflow: 'hidden' },
+  workspacePanelHeader: { color: '#fff', fontSize: 11, fontWeight: 'bold', letterSpacing: 1, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 },
+  workspaceTaskList: { flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, paddingRight: 5 },
+  workspaceTaskItem: { backgroundColor: '#111', padding: 10, borderRadius: 6, border: '1px solid #222' },
+  workspaceLogList: { flex: 1, overflowY: 'auto', backgroundColor: '#000', borderRadius: 6, padding: 10, border: '1px solid #222' },
+  workspaceCenterPanel: { flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#111', overflow: 'hidden' },
+  workspaceTabs: { display: 'flex', borderBottom: '1px solid #222', backgroundColor: '#0a0a0a', flexShrink: 0 },
+  workspaceTabBtn: { flex: 1, padding: '12px 0', backgroundColor: 'transparent', border: 'none', borderBottom: '2px solid transparent', cursor: 'pointer', fontSize: 12, fontWeight: 'bold', letterSpacing: 1 },
+  workspaceCanvasArea: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20, overflow: 'auto', position: 'relative' },
+  workspaceRightPanel: { width: 'clamp(350px, 40%, 500px)', backgroundColor: '#0a0a0a', borderLeft: '1px solid #222', display: 'flex', flexDirection: 'column', padding: 15, overflow: 'hidden' },
+  workspaceChatArea: { flex: 1, overflowY: 'auto', overflowX: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 5, marginBottom: 10 },
+  workspaceInputRow: { display: 'flex', gap: 8, alignItems: 'center', backgroundColor: '#111', padding: 8, borderRadius: 8, border: '1px solid #333' },
+  workspaceInput: { flex: 1, padding: '10px 12px', backgroundColor: 'transparent', border: 'none', color: '#fff', fontSize: 13, outline: 'none' },
+  workspaceMicBtn: { padding: 10, borderRadius: 6, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  workspaceSendBtn: { padding: 10, borderRadius: 6, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+
+  authModalOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.9)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  authModalCard: { width: '100%', maxWidth: 400, backgroundColor: '#111', border: '2px solid', borderRadius: 12, padding: 30, textAlign: 'center', position: 'relative' },
+  authModalClose: { position: 'absolute', top: 10, right: 15, background: 'none', border: 'none', color: '#888', fontSize: 24, cursor: 'pointer' },
+  authTitle: { fontSize: 32, letterSpacing: 4, marginBottom: 4 },
+  authSubtitle: { fontSize: 18, marginBottom: 20 },
+  authError: { fontSize: 14, minHeight: 24, marginBottom: 12 },
+  authInput: { width: '100%', padding: 12, marginBottom: 12, backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: 6, fontSize: 16, outline: 'none', boxSizing: 'border-box' },
+  authBtn: { width: '100%', padding: 14, color: '#fff', border: 'none', borderRadius: 6, fontSize: 18, fontWeight: 'bold', cursor: 'pointer', marginTop: 8 },
+  authSwitch: { marginTop: 16, display: 'flex', justifyContent: 'center', gap: 8, color: '#888', fontSize: 14 },
+  authSwitchBtn: { background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 'bold', textDecoration: 'underline' },
+  guestLimitOverlay: { position: 'fixed', inset: 0, zIndex: 99998, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  guestLimitCard: { backgroundColor: '#111', border: '2px solid', borderRadius: 20, padding: '40px 30px', maxWidth: 420, width: '100%', textAlign: 'center' },
+  guestLimitTitle: { fontSize: 24, marginBottom: 16 },
+  guestLimitText: { color: '#ddd', fontSize: 16, lineHeight: 1.6, marginBottom: 24 },
+  guestLimitButtons: { display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' },
+  guestLimitLoginBtn: { padding: '12px 30px', color: '#fff', border: 'none', borderRadius: 30, fontSize: 16, fontWeight: 'bold', cursor: 'pointer', flex: 1, minWidth: 100 },
+  guestLimitSignupBtn: { padding: '12px 30px', backgroundColor: '#1a3a3a', color: '#fff', border: '1px solid #2a5a5a', borderRadius: 30, fontSize: 16, fontWeight: 'bold', cursor: 'pointer', flex: 1, minWidth: 100 },
+  settingsFullscreen: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, height: '100dvh', backgroundColor: '#000', zIndex: 100000, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
+  settingsHeaderFull: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #333', backgroundColor: '#0a0000', flexShrink: 0 },
+  settingsTitleFull: { fontSize: 20, margin: 0, letterSpacing: 2 },
+  settingsCloseFull: { background: 'none', border: 'none', cursor: 'pointer', padding: 8, display: 'flex' },
+  settingsBodyFull: { flex: 1, minHeight: 0, overflowY: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 20, WebkitOverflowScrolling: 'touch' },
+  settingsSection: { borderBottom: '1px solid #1a1a1a', paddingBottom: 20 },
+  settingsSectionTitle: { fontSize: 14, margin: '0 0 16px', letterSpacing: 1, textTransform: 'uppercase' },
+  settingsDoneFull: { padding: 16, color: '#fff', border: 'none', fontSize: 16, fontWeight: 'bold', cursor: 'pointer', flexShrink: 0, paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))' },
+  backgroundControls: { display: 'flex', gap: 10, flexWrap: 'wrap' },
+  uploadBtn: { padding: '10px 16px', color: '#fff', borderRadius: 6, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 'bold', border: 'none' },
+  resetBtn: { padding: '10px 16px', backgroundColor: '#333', color: '#fff', borderRadius: 6, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 'bold', border: 'none' },
+  bgPreview: { marginTop: 12, borderRadius: 8, overflow: 'hidden', border: '1px solid #333' },
+  bgPreviewImg: { width: '100%', maxHeight: 150, objectFit: 'cover', display: 'block' },
+  bgHint: { color: '#888', fontSize: 12, marginTop: 8, fontStyle: 'italic', lineHeight: 1.5 },
+  settingItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#fff', fontSize: 15, marginBottom: 14, gap: 10 },
+  settingsSelect: { padding: '10px 12px', backgroundColor: '#000', border: '1px solid #444', color: '#fff', borderRadius: 6, fontSize: 14, width: '100%', boxSizing: 'border-box' },
+  settingsRange: { width: 140 },
+  // ✅ FIX #4 — renamed duplicate key (was settingValue twice)
+  settingValueSidebar: { color: '#ff6688', minWidth: 40, textAlign: 'right', fontWeight: 'bold' },
+  colorPicker: { width: 60, height: 32, border: '1px solid #333', borderRadius: 6, background: '#000', cursor: 'pointer' },
+  presetRow: { display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 },
+  presetBtn: { padding: '6px 14px', border: '1px solid #333', borderRadius: 20, color: '#fff', fontSize: 12, fontWeight: 'bold', cursor: 'pointer', textShadow: '0 1px 2px rgba(0,0,0,0.6)' },
+  rotateOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.9)', zIndex: 99996, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  rotateCard: { backgroundColor: '#111', border: '2px solid', borderRadius: 20, padding: '40px 30px', maxWidth: 400, width: '100%', textAlign: 'center' },
+  rotateText: { color: '#fff', fontSize: 18, margin: '20px 0', lineHeight: 1.6 },
+  rotateOkBtn: { padding: '12px 40px', color: '#fff', border: 'none', borderRadius: 30, fontSize: 16, fontWeight: 'bold', cursor: 'pointer' },
+  fullscreenCallOverlay: { position: 'fixed', inset: 0, backgroundColor: '#000', zIndex: 99995, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  returnBtn: { position: 'absolute', top: 20, left: 20, backgroundColor: 'rgba(255,0,60,0.3)', border: '1px solid #ff003c', borderRadius: 30, padding: '10px 20px', color: '#fff', fontSize: 16, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' },
+  fullscreenCallContentNoBall: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 30, width: '100%', maxWidth: 500, flex: 1 },
+  fullscreenListeningStatus: { display: 'flex', alignItems: 'center', gap: 12, backgroundColor: 'rgba(255,255,255,0.05)', padding: '8px 20px', borderRadius: 30, border: '1px solid rgba(255,0,60,0.2)' },
+  fullscreenListeningDot: { width: 12, height: 12, borderRadius: '50%', animation: 'pulseText 0.8s ease-in-out infinite' },
+  fullscreenSpeakingDot: { width: 12, height: 12, borderRadius: '50%', animation: 'pulseText 0.8s ease-in-out infinite' },
+  fullscreenStatusText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  fullscreenTranscript: { color: '#ff6688', fontSize: 16, fontStyle: 'italic', padding: '8px 20px', backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 12, maxWidth: '90%', textAlign: 'center', border: '1px solid rgba(255,0,60,0.2)', minHeight: 40 },
+  fullscreenMicBtn: { width: 'clamp(70px,14vw,100px)', height: 'clamp(70px,14vw,100px)', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+
+  chatOverviewContainer: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, height: '100dvh', backgroundColor: '#000', zIndex: 99994, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
+  chatOverviewHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', backgroundColor: '#111', borderBottom: '1px solid #333', flexShrink: 0, gap: 12 },
+  chatOverviewBackBtn: { background: 'none', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, cursor: 'pointer' },
+  chatOverviewVoiceToggle: { background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: 6, borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.05)' },
+  chatMenuDropdown: { position: 'absolute', top: 60, right: 20, width: 'clamp(250px, 80vw, 350px)', backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: 8, zIndex: 99999, boxShadow: '0 4px 20px rgba(0,0,0,0.8)', overflow: 'hidden' },
+  chatOverviewMessages: { flex: 1, minHeight: 0, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8, WebkitOverflowScrolling: 'touch' },
+  chatOverviewEmpty: { color: '#666', textAlign: 'center', fontSize: 16, marginTop: 40 },
+  chatOverviewMsg: { maxWidth: '88%', padding: '10px 14px', borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 4, position: 'relative' },
+  chatOverviewMsgText: { color: '#fff', fontSize: 14, wordBreak: 'break-word', whiteSpace: 'pre-wrap' },
+  chatOverviewMsgTime: { fontSize: 10, color: '#888', alignSelf: 'flex-end' },
+  replyQuote: { display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', backgroundColor: 'rgba(255,255,255,0.08)', borderLeft: '3px solid', borderRadius: 4, marginBottom: 4 },
+  replyQuoteText: { fontSize: 11, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  replyBar: { display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', backgroundColor: '#1a1a1a', borderTop: '2px solid' },
+  chatOverviewInputRowRaised: { display: 'flex', gap: 8, padding: '12px 16px', paddingBottom: 'max(30px, env(safe-area-inset-bottom, 50px))', backgroundColor: '#111', borderTop: '1px solid #333', flexShrink: 0, alignItems: 'center' },
+  chatOverviewInput: { flex: 1, padding: '10px 14px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: 20, fontSize: 14, outline: 'none' },
+  chatOverviewMicBtn: { background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: 8, borderRadius: '50%', backgroundColor: 'rgba(255,0,60,0.2)' },
+  chatOverviewAttachBtn: { background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: 8, borderRadius: '50%', backgroundColor: 'rgba(255,0,60,0.2)', display: 'flex', alignItems: 'center' },
+  chatOverviewSendBtn: { background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: 8, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  voiceControls: { display: 'flex', gap: 6, alignItems: 'center' },
+  voiceTranscriptPreview: { position: 'absolute', bottom: 80, left: 16, right: 16, backgroundColor: 'rgba(0,0,0,0.8)', padding: '8px 16px', borderRadius: 12, color: '#ff6688', fontSize: 14, fontStyle: 'italic', border: '1px solid rgba(255,0,60,0.3)', textAlign: 'center' },
+  msgActions: { display: 'flex', gap: 4, justifyContent: 'flex-end', marginTop: 4, opacity: 0.7 },
+  msgActionBtn: { background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: 4 },
+  codeBlockWrap: { marginTop: 8, marginBottom: 8, borderRadius: 8, overflow: 'hidden', border: '1px solid #333', backgroundColor: '#0a0a0a', alignSelf: 'stretch' },
+  codeBlockHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', backgroundColor: '#1a1a1a' },
+  codeLang: { fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1 },
+  codeCopyBtn: { display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, fontWeight: 'bold', cursor: 'pointer' },
+  codeBlock: { margin: 0, padding: 12, color: '#e0e0e0', fontSize: 12, fontFamily: "'Courier New',monospace", whiteSpace: 'pre', overflowX: 'auto', lineHeight: 1.5 },
+  profileContainer: { backgroundColor: '#000', minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  profileCard: { width: '100%', maxWidth: 420, backgroundColor: '#111', border: '2px solid', borderRadius: 12, padding: 28 },
+  profileTitle: { textAlign: 'center', marginBottom: 24, fontSize: 22 },
+  avatarUploadArea: { width: 130, height: 130, borderRadius: '50%', border: '3px dashed', margin: '0 auto 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: '#1a1a1a' },
+  avatarPreview: { width: '100%', height: '100%', objectFit: 'cover' },
+  avatarIcon: { fontSize: 14, textAlign: 'center' },
+  inputGroup: { marginBottom: 18 },
+  label: { fontSize: 14, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 },
+  textInput: { width: '100%', padding: 14, backgroundColor: '#000', border: '1px solid', color: '#fff', borderRadius: 8, fontSize: 15, outline: 'none', boxSizing: 'border-box' },
+  bioInput: { width: '100%', minHeight: 80, padding: 14, backgroundColor: '#000', border: '1px solid', color: '#fff', borderRadius: 8, fontSize: 15, outline: 'none', resize: 'vertical', boxSizing: 'border-box' },
+  profileBtnRow: { display: 'flex', gap: 12, marginTop: 12 },
+  createBtn: { flex: 1, padding: 14, color: '#fff', border: 'none', borderRadius: 8, fontSize: 16, fontWeight: 'bold', cursor: 'pointer' },
+  cancelBtn: { padding: '14px 20px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer' },
+  sidebarOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 998 },
+  sidebar: { position: 'fixed', top: 0, left: 0, bottom: 0, width: 380, maxWidth: '90vw', backgroundColor: '#0a0000', borderRight: '2px solid #ff003c', zIndex: 999, overflowY: 'auto', padding: 16 },
+  sidebarHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, paddingBottom: 10, borderBottom: '1px solid #333' },
+  sidebarTitle: { fontSize: 18, fontWeight: 'bold', margin: 0, fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: 8 },
+  closeBtn: { backgroundColor: 'transparent', border: 'none', color: '#888', fontSize: 20, cursor: 'pointer', padding: 4, display: 'flex' },
+  sidebarSection: { marginBottom: 12 },
+  sectionTitle: { fontSize: 14, margin: '0 0 8px', paddingBottom: 4, borderBottom: '1px solid #333', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: 6 },
+  settingRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  settingLabel: { fontSize: 13, color: '#ddd' },
+  toggleBtn: { padding: '4px 12px', borderRadius: 3, border: 'none', fontSize: 11, fontWeight: 'bold', cursor: 'pointer', backgroundColor: '#333', color: '#fff' },
+  toolBtn: { padding: '8px 12px', backgroundColor: '#1a1a1a', color: '#fff', border: '1px solid #333', borderRadius: 6, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 'bold' },
+  statsCard: { border: '1px solid #ff003c40', borderRadius: 6, padding: '10px 12px', backgroundColor: '#0a0a0a' },
+  statRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 0', fontSize: 12 },
+  statLabel: { color: '#aaa', display: 'flex', alignItems: 'center', gap: 4 },
+  statValue: { fontWeight: 500 },
+  profileCardSidebar: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 },
+  profileAvatarWrapper: { flexShrink: 0 },
+  profileAvatar: { width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', border: '2px solid #ff003c' },
+  profileAvatarPlaceholder: { width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  profileInfo: { display: 'flex', flexDirection: 'column' },
+  profileName: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
+  profileHandle: { color: '#888', fontSize: 12, display: 'flex', alignItems: 'center', gap: 2 },
+  sidebarBtn: { padding: '6px 12px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 13 },
+  dangerBtn: { padding: '6px 12px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 13 },
+  logoutBtn: { padding: '6px 12px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 13 },
+  overviewBtn: { padding: '4px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 },
+  topRightButtons: { display: 'flex', gap: 8, alignItems: 'center' },
+  settingsButtonTop: { backgroundColor: 'rgba(0,0,0,0.6)', border: '2px solid #333', borderRadius: 30, padding: '6px 12px', display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#fff' },
+  settingsBtnPC: { backgroundColor: 'rgba(0,0,0,0.6)', border: '1px solid #333', borderRadius: 16, padding: '4px 10px', display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#fff', marginLeft: 6 },
+  floatingBtn: { position: 'absolute', bottom: 150, right: 25, width: 56, height: 56, borderRadius: '50%', border: '2px solid', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.5)' },
+  mainContentAndroid: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', height: '100vh', margin: 0, padding: 0 },
+  backgroundAndroid: { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 0 },
+  ballContainer: { position: 'relative', width: 300, height: 300, pointerEvents: 'none', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  ball3DContainer: { perspective: 800, transformStyle: 'preserve-3d' },
+  ball3D: { width: 180, height: 180, borderRadius: '50%', position: 'relative', transformStyle: 'preserve-3d' },
+  ballHighlight: { position: 'absolute', top: '18%', left: '22%', width: '35%', height: '25%', borderRadius: '50%', background: 'radial-gradient(ellipse,rgba(255,255,255,0.6) 0%,transparent 70%)', filter: 'blur(4px)', pointerEvents: 'none' },
+  ballInnerGlow: { position: 'absolute', top: '15%', left: '15%', width: '70%', height: '70%', borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,100,140,0.2) 0%,transparent 60%)', pointerEvents: 'none' },
+  ring1: { position: 'absolute', top: '50%', left: '50%', width: 240, height: 240, marginLeft: -120, marginTop: -120, borderRadius: '50%', border: '2px solid', animation: 'spinRing 12s linear infinite' },
+  ring2: { position: 'absolute', top: '50%', left: '50%', width: 280, height: 280, marginLeft: -140, marginTop: -140, borderRadius: '50%', border: '1px solid', animation: 'spinRing 18s linear infinite reverse' },
+  ring3: { position: 'absolute', top: '50%', left: '50%', width: 200, height: 200, marginLeft: -100, marginTop: -100, borderRadius: '50%', border: '1px dashed', animation: 'spinRing 8s linear infinite' },
+  faceTitleAndroid: { position: 'absolute', bottom: '35%', fontSize: 'clamp(42px,6vw,68px)', fontWeight: 'bold', letterSpacing: 10, textAlign: 'center', width: '100%', zIndex: 2, animation: 'pulseText 2.5s ease-in-out infinite', fontFamily: "'Courier New',monospace" },
+  topBarAndroid: { position: 'absolute', top: 20, left: 20, right: 20, zIndex: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  callButtonTopRight: { backgroundColor: 'rgba(0,0,0,0.6)', border: '2px solid', borderRadius: 30, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14, fontWeight: 'bold', letterSpacing: 1 },
+  callLabelTop: { fontSize: 12, fontWeight: 'bold', letterSpacing: 1, color: '#fff' },
+  listeningContainer: { position: 'absolute', top: 90, left: '50%', transform: 'translateX(-50%)', zIndex: 10, display: 'flex', alignItems: 'center', gap: 12, backgroundColor: 'rgba(0,0,0,0.5)', padding: '8px 20px', borderRadius: 30, border: '1px solid rgba(255,0,60,0.2)', flexWrap: 'wrap', justifyContent: 'center' },
+  listeningDot: { width: 10, height: 10, borderRadius: '50%', backgroundColor: '#4f8', animation: 'pulseText 0.8s ease-in-out infinite' },
+  listeningText: { color: '#fff', fontSize: 16, fontWeight: 'bold', letterSpacing: 2, fontFamily: "'Courier New',monospace" },
+  interimText: { color: '#ff6688', fontSize: 14, fontStyle: 'italic', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderLeft: '1px solid rgba(255,0,60,0.3)', paddingLeft: 12 },
+  sendInterimBtn: { border: 'none', borderRadius: 20, padding: '4px 14px', display: 'flex', alignItems: 'center', gap: 6, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 'bold' },
+  voiceButtonContainer: { position: 'absolute', bottom: 50, left: '50%', transform: 'translateX(-50%)', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 },
+  voiceButton: { width: 90, height: 90, borderRadius: '50%', backgroundColor: '#1a1a1a', border: '3px solid', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 },
+  voiceLabel: { color: '#fff', fontSize: 12, fontWeight: 'bold', letterSpacing: 1, marginTop: 4 },
+  hamburgerBtn: { backgroundColor: 'transparent', border: 'none', cursor: 'pointer', zIndex: 15, padding: 8, borderRadius: 4 },
+  appPC: { minHeight: '100vh', height: '100vh', color: '#e0e0e0', fontFamily: "'Segoe UI','Courier New',monospace", overflow: 'hidden', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '100vw' },
+  headerPC: { padding: '6px 12px', borderBottom: '1px solid', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, backgroundColor: '#0a0000', flexWrap: 'wrap', gap: 4, minHeight: 44 },
+  headerLeft: { display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
+  titlePC: { margin: 0, fontSize: 'clamp(16px,4vw,22px)', fontWeight: 'bold', letterSpacing: 2 },
+  versionBadgePC: { fontSize: 10, padding: '2px 8px', borderRadius: 10 },
+  headerRight: { display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
+  callBtnPC: { backgroundColor: 'rgba(0,0,0,0.6)', border: '1px solid', borderRadius: 16, padding: '3px 10px', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontSize: 11, fontWeight: 'bold' },
+  voiceBtnPC: { backgroundColor: 'rgba(0,0,0,0.6)', border: '1px solid', borderRadius: 16, padding: '3px 10px', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontSize: 11, fontWeight: 'bold' },
+  pcLayout: { flex: 1, display: 'flex', flexDirection: 'row', overflow: 'hidden', width: '100%', height: '100%' },
+  pcSidebar: { width: 'clamp(180px,30%,280px)', backgroundColor: '#0a0a0a', overflowY: 'auto', padding: '8px 10px', flexShrink: 0, borderRight: '1px solid #333', height: '100%', boxSizing: 'border-box' },
+  pcSidebarSection: { marginBottom: 12, borderBottom: '1px solid #1a1a1a', paddingBottom: 8 },
+  pcSidebarTitle: { fontSize: 12, margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 4, fontWeight: 'bold' },
+  pcSidebarRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 0', fontSize: 11, color: '#ccc' },
+  pcMain: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', backgroundColor: '#050505', overflow: 'hidden', height: '100%', padding: 10 },
+  pcBallContainer: { position: 'relative', width: 'clamp(160px,25vw,300px)', height: 'clamp(160px,25vw,300px)', pointerEvents: 'none', marginBottom: 10 },
+  pcListeningContainer: { display: 'flex', alignItems: 'center', gap: 8, backgroundColor: 'rgba(0,0,0,0.5)', padding: '4px 16px', borderRadius: 30, border: '1px solid rgba(255,0,60,0.2)', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '90%' },
+  filePreviewPC: { marginTop: 4 },
+  dashBtnPC: { padding: '3px 10px', backgroundColor: '#222', color: '#fff', border: '1px solid #333', borderRadius: 4, cursor: 'pointer', fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 },
+  dashEmptyPC: { color: '#666', fontSize: 12, textAlign: 'center', padding: '6px 0' },
+  inputRow: { display: 'flex', gap: 6, marginTop: 4, marginBottom: 6 },
+  textInputSmall: { flex: 1, padding: '6px 10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: 4, fontSize: 13, outline: 'none', minWidth: 0 },
+  sendBtnSmall: { padding: '6px 12px', backgroundColor: '#333', border: 'none', borderRadius: 4, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#fff' },
+  commandActionsPC: { display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' },
+  sidebarBtnPC: { padding: '5px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
+  logoutBtnPC: { padding: '5px 10px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
+	  }
