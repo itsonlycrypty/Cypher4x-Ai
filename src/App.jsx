@@ -780,60 +780,428 @@ public class Cypher4XApp {
 `
   }
 
-  // Default fallback for other languages (C++, C#, SQL, etc.)
-  return `// ${purpose} - Comprehensive Source Code
+  if (L.includes('c#') || L.includes('csharp')) {
+    return `// ${purpose} - Comprehensive C# Application
 // Author: Cypher4X AI
 // Version: 1.0.0
-// Language: ${lang}
-// Description: A fully featured implementation designed for ${purpose}.
-// Features: Modular design, Error handling, Comments, and best practices.
+// Description: A fully featured C# application designed for ${purpose}.
+// Features: OOP design, LINQ, Async/Await, Exception handling.
 
-/*
- * ==================================================
- * SECTION 1: IMPORTS & CONFIGURATION
- * ==================================================
- */
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
-// Add your necessary imports and configuration here based on the language.
-
-/*
- * ==================================================
- * SECTION 2: CORE LOGIC
- * ==================================================
- */
-
-/**
- * Main class or function to handle the core logic of ${purpose}.
- */
-class Cypher4XApp {
-    constructor() {
-        this.data = [];
-        this.init();
+namespace Cypher4XApp
+{
+    public class Program
+    {
+        static async Task Main(string[] args)
+        {
+            Console.WriteLine("Initializing ${purpose}...");
+            var manager = new AppManager();
+            await manager.RunAsync();
+        }
     }
 
-    init() {
-        console.log("Initializing ${purpose}...");
-        // Add setup logic here
+    public class AppManager
+    {
+        private List<string> _items = new List<string>();
+
+        public async Task RunAsync()
+        {
+            while (true)
+            {
+                Console.WriteLine("\\n1. Add Item");
+                Console.WriteLine("2. List Items");
+                Console.WriteLine("3. Exit");
+                Console.Write("Choose an option: ");
+                
+                var choice = Console.ReadLine();
+                switch (choice)
+                {
+                    case "1":
+                        Console.Write("Enter item: ");
+                        var item = Console.ReadLine();
+                        if (!string.IsNullOrEmpty(item))
+                        {
+                            _items.Add(item);
+                            Console.WriteLine("Item added successfully!");
+                        }
+                        break;
+                    case "2":
+                        Console.WriteLine("--- Items ---");
+                        if (!_items.Any()) Console.WriteLine("No items found.");
+                        foreach (var i in _items) Console.WriteLine($"- {i}");
+                        break;
+                    case "3":
+                        return;
+                    default:
+                        Console.WriteLine("Invalid choice.");
+                        break;
+                }
+                await Task.Delay(100);
+            }
+        }
+    }
+}
+`
+  }
+
+  if (L.includes('cpp') || L.includes('c++')) {
+    return `// ${purpose} - Comprehensive C++ Application
+// Author: Cypher4X AI
+// Version: 1.0.0
+// Description: A fully featured C++ application designed for ${purpose}.
+// Features: OOP design, STL containers, Memory management.
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+class AppManager {
+private:
+    std::vector<std::string> items;
+
+public:
+    void addItem(const std::string& item) {
+        items.push_back(item);
+        std::cout << "Added: " << item << std::endl;
     }
 
-    process(input) {
-        // Add processing logic here
-        console.log("Processing: " + input);
+    void listItems() const {
+        if (items.empty()) {
+            std::cout << "No items found." << std::endl;
+            return;
+        }
+        std::cout << "--- Items ---" << std::endl;
+        for (const auto& item : items) {
+            std::cout << "- " << item << std::endl;
+        }
+    }
+};
+
+int main() {
+    std::cout << "Welcome to ${purpose}!" << std::endl;
+    AppManager app;
+    int choice;
+    
+    while (true) {
+        std::cout << "\\n1. Add Item\\n2. List Items\\n3. Exit\\nChoice: ";
+        std::cin >> choice;
+        
+        if (choice == 1) {
+            std::string item;
+            std::cout << "Enter item: ";
+            std::cin >> item;
+            app.addItem(item);
+        } else if (choice == 2) {
+            app.listItems();
+        } else if (choice == 3) {
+            break;
+        } else {
+            std::cout << "Invalid choice." << std::endl;
+        }
+    }
+    return 0;
+}
+`
+  }
+
+  if (L.includes('rust')) {
+    return `// ${purpose} - Comprehensive Rust Application
+// Author: Cypher4X AI
+// Version: 1.0.0
+// Description: A fully featured Rust application designed for ${purpose}.
+// Features: Memory safety, Pattern matching, Error handling.
+
+use std::io;
+
+struct AppManager {
+    items: Vec<String>,
+}
+
+impl AppManager {
+    fn new() -> Self {
+        AppManager { items: Vec::new() }
     }
 
-    render() {
-        // Add rendering or output logic here
+    fn add_item(&mut self, item: String) {
+        self.items.push(item);
+        println!("Added item successfully!");
+    }
+
+    fn list_items(&self) {
+        if self.items.is_empty() {
+            println!("No items found.");
+            return;
+        }
+        println!("--- Items ---");
+        for item in &self.items {
+            println!("- {}", item);
+        }
     }
 }
 
-/*
- * ==================================================
- * SECTION 3: ENTRY POINT
- * ==================================================
- */
+fn main() {
+    println!("Welcome to ${purpose}!");
+    let mut manager = AppManager::new();
 
-// Entry point for the application
-const app = new Cypher4XApp();
+    loop {
+        println!("\\n1. Add Item\\n2. List Items\\n3. Exit");
+        let mut choice = String::new();
+        io::stdin().read_line(&mut choice).unwrap();
+        
+        match choice.trim() {
+            "1" => {
+                println!("Enter item:");
+                let mut item = String::new();
+                io::stdin().read_line(&mut item).unwrap();
+                manager.add_item(item.trim().to_string());
+            }
+            "2" => manager.list_items(),
+            "3" => break,
+            _ => println!("Invalid choice."),
+        }
+    }
+}
+`
+  }
+
+  if (L.includes('go')) {
+    return `// ${purpose} - Comprehensive Go Application
+// Author: Cypher4X AI
+// Version: 1.0.0
+// Description: A fully featured Go application designed for ${purpose}.
+// Features: Concurrency, Interfaces, Error handling.
+
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strings"
+)
+
+type AppManager struct {
+	items []string
+}
+
+func (a *AppManager) AddItem(item string) {
+	a.items = append(a.items, item)
+	fmt.Println("Added item successfully!")
+}
+
+func (a *AppManager) ListItems() {
+	if len(a.items) == 0 {
+		fmt.Println("No items found.")
+		return
+	}
+	fmt.Println("--- Items ---")
+	for _, item := range a.items {
+		fmt.Printf("- %s\\n", item)
+	}
+}
+
+func main() {
+	fmt.Println("Welcome to ${purpose}!")
+	manager := &AppManager{}
+	reader := bufio.NewReader(os.Stdin)
+
+	for {
+		fmt.Println("\\n1. Add Item\\n2. List Items\\n3. Exit")
+		fmt.Print("Choice: ")
+		choice, _ := reader.ReadString('\\n')
+		choice = strings.TrimSpace(choice)
+
+		switch choice {
+		case "1":
+			fmt.Print("Enter item: ")
+			item, _ := reader.ReadString('\\n')
+			manager.AddItem(strings.TrimSpace(item))
+		case "2":
+			manager.ListItems()
+		case "3":
+			return
+		default:
+			fmt.Println("Invalid choice.")
+		}
+	}
+}
+`
+  }
+
+  if (L.includes('swift')) {
+    return `// ${purpose} - Comprehensive Swift Application
+// Author: Cypher4X AI
+// Version: 1.0.0
+// Description: A fully featured Swift application designed for ${purpose}.
+// Features: Optionals, Closures, Protocol-oriented design.
+
+import Foundation
+
+class AppManager {
+    private var items: [String] = []
+    
+    func addItem(_ item: String) {
+        items.append(item)
+        print("Added item successfully!")
+    }
+    
+    func listItems() {
+        if items.isEmpty {
+            print("No items found.")
+            return
+        }
+        print("--- Items ---")
+        for item in items {
+            print("- \\(item)")
+        }
+    }
+}
+
+print("Welcome to ${purpose}!")
+let manager = AppManager()
+
+while true {
+    print("\\n1. Add Item\\n2. List Items\\n3. Exit")
+    print("Choice: ", terminator: "")
+    
+    if let choice = readLine() {
+        switch choice {
+        case "1":
+            print("Enter item: ", terminator: "")
+            if let item = readLine() {
+                manager.addItem(item)
+            }
+        case "2":
+            manager.listItems()
+        case "3":
+            exit(0)
+        default:
+            print("Invalid choice.")
+        }
+    }
+}
+`
+  }
+
+  if (L.includes('kotlin')) {
+    return `// ${purpose} - Comprehensive Kotlin Application
+// Author: Cypher4X AI
+// Version: 1.0.0
+// Description: A fully featured Kotlin application designed for ${purpose}.
+// Features: Coroutines, Data classes, Null safety.
+
+import kotlinx.coroutines.*
+
+data class Item(val id: Int, val title: String)
+
+class AppManager {
+    private val items = mutableListOf<Item>()
+    
+    fun addItem(title: String) {
+        val newItem = Item(items.size + 1, title)
+        items.add(newItem)
+        println("Added: \${newItem.title}")
+    }
+    
+    fun listItems() {
+        if (items.isEmpty()) {
+            println("No items found.")
+            return
+        }
+        println("--- Items ---")
+        items.forEach { println("- \${it.title}") }
+    }
+}
+
+fun main() = runBlocking {
+    println("Welcome to ${purpose}!")
+    val manager = AppManager()
+    
+    while (true) {
+        println("\\n1. Add Item\\n2. List Items\\n3. Exit")
+        print("Choice: ")
+        
+        when (readLine()) {
+            "1" -> {
+                print("Enter item: ")
+                val item = readLine() ?: ""
+                manager.addItem(item)
+            }
+            "2" -> manager.listItems()
+            "3" -> break
+            else -> println("Invalid choice.")
+        }
+    }
+}
+`
+  }
+
+  // Default fallback for other languages (SQL, etc.)
+  return `-- ${purpose} - Comprehensive SQL Implementation
+-- Author: Cypher4X AI
+-- Version: 1.0.0
+-- Description: A fully featured SQL schema and queries designed for ${purpose}.
+
+-- ==================================================
+-- SCHEMA DEFINITION
+-- ==================================================
+
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    status TEXT DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- ==================================================
+-- INDEXES FOR PERFORMANCE
+-- ==================================================
+CREATE INDEX idx_items_user_id ON items(user_id);
+CREATE INDEX idx_items_status ON items(status);
+
+-- ==================================================
+-- SAMPLE DATA INSERTION
+-- ==================================================
+INSERT INTO users (username, email) VALUES ('cypher4x', 'admin@cypher4x.com');
+
+INSERT INTO items (user_id, title, description, status) 
+VALUES (1, 'Sample Item', 'This is a sample item generated by AI.', 'pending');
+
+-- ==================================================
+-- QUERIES
+-- ==================================================
+
+-- 1. Fetch all items for a specific user
+SELECT i.id, i.title, i.status, i.created_at
+FROM items i
+JOIN users u ON i.user_id = u.id
+WHERE u.username = 'cypher4x'
+ORDER BY i.created_at DESC;
+
+-- 2. Update item status
+UPDATE items
+SET status = 'completed'
+WHERE id = 1;
+
+-- 3. Count items by status
+SELECT status, COUNT(*) as count
+FROM items
+GROUP BY status;
 `
 }
 
@@ -1081,7 +1449,9 @@ export default function App() {
   const [practicalInput, setPracticalInput] = useState('')
   const [practicalProcessing, setPracticalProcessing] = useState(false)
   const [practicalActionText, setPracticalActionText] = useState('')
-  const [practicalBuildState, setPracticalBuildState] = useState(null) // 'awaiting_type', 'building', etc.
+  const [practicalBuildState, setPracticalBuildState] = useState(null) // 'awaiting_type', 'awaiting_lang', 'building'
+  const [practicalBuildTimer, setPracticalBuildTimer] = useState(0)
+  const [practicalBuildDetails, setPracticalBuildDetails] = useState({ type: '', lang: '' })
 
   // ----- THEME -----
   const [theme, setTheme] = useState({
@@ -1212,6 +1582,33 @@ export default function App() {
     }, 100)
     return () => clearInterval(interval)
   }, [isEnteringAI])
+
+  // Practical Workspace Build Timer Effect
+  useEffect(() => {
+    if (practicalBuildState === 'building' && practicalBuildTimer > 0) {
+      const interval = setInterval(() => {
+        setPracticalBuildTimer(prev => {
+          if (prev <= 1) {
+            clearInterval(interval)
+            // Finish building
+            const code = generateLongCode(practicalBuildDetails.lang, `${practicalBuildDetails.type} game`, 'Practical Workspace generation')
+            setPracticalLogs(prevLogs => [...prevLogs, { 
+              id: Date.now(), 
+              role: 'ai', 
+              type: 'code', 
+              content: code 
+            }])
+            setPracticalBuildState(null)
+            setPracticalActionText('')
+            speakText(`Your ${practicalBuildDetails.type} game in ${practicalBuildDetails.lang} is ready!`)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+      return () => clearInterval(interval)
+    }
+  }, [practicalBuildState, practicalBuildTimer, practicalBuildDetails])
 
   // Clock — updates every 30s
   useEffect(() => {
@@ -1435,13 +1832,14 @@ export default function App() {
       await new Promise(r => setTimeout(r, 500))
       updateWorkspaceTask(t1, { status: 'done', progress: 100 })
       const t2 = addWorkspaceTask('Writing code...')
-      const code = generateLongCode('javascript', cmdText, 'Simulation generation')
-      setWorkspaceContent({ type: 'code', data: { lang: 'javascript', code } })
+      const lang = detectLanguage(cmdText)
+      const code = generateLongCode(lang, cmdText, 'Simulation generation')
+      setWorkspaceContent({ type: 'code', data: { lang: lang, code } })
       setWorkspaceActiveTab('code')
       await new Promise(r => setTimeout(r, 1000))
       updateWorkspaceTask(t2, { status: 'done', progress: 100 })
-      // FIX: Output code directly to chat instead of asking to check tab
-      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `Here is the code:\n\n\`\`\`javascript\n${code}\n\`\`\`` }])
+      // Output code directly to chat instead of asking to check tab
+      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `Here is the code:\n\n\`\`\`${lang}\n${code}\n\`\`\`` }])
       speakText("I have written the code for your project.")
     }
     else {
@@ -1472,60 +1870,83 @@ export default function App() {
   // ==================================================
   const processPracticalCommand = async (cmdText) => {
     if (!cmdText.trim() || practicalProcessing) return
-    setPracticalProcessing(true)
     
     // Add user message
     setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'user', type: 'text', content: cmdText }])
     setPracticalInput('')
     
     const l = cmdText.toLowerCase()
-    let responseType = 'text'
-    let responseContent = ''
 
-    // 1. Friendly Conversation & General Q&A
-    if (isPureGreeting(cmdText)) {
-      responseContent = `Hello! 👋 I'm doing great. How can I help you today?`
-      await new Promise(r => setTimeout(r, 300)) // Fast response for chat
-    } else if (l.includes('how are you')) {
-      responseContent = `I'm functioning perfectly! Ready to build whatever you need.`
-      await new Promise(r => setTimeout(r, 300))
-    } else if (l.includes('what is your name') || l.includes('who are you')) {
-      responseContent = `I am CYPHER4X, your advanced AI assistant. I'm here to help you build, create, and explore.`
-      await new Promise(r => setTimeout(r, 300))
+    // 1. Handle Ongoing Build State (Asking Questions)
+    if (practicalBuildState === 'awaiting_type') {
+      setPracticalBuildDetails(prev => ({ ...prev, type: cmdText }))
+      setPracticalBuildState('awaiting_lang')
+      const responseContent = `Got it! What language should I use? (e.g., JavaScript, Python, C++, React)`
+      setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
+      speakText("Got it! What language should I use?")
+      return
     }
-    // 2. Image Generation
+
+    if (practicalBuildState === 'awaiting_lang') {
+      const lang = cmdText
+      setPracticalBuildDetails(prev => ({ ...prev, lang }))
+      setPracticalBuildState('building')
+      setPracticalBuildTimer(5) // 5 second countdown
+      const responseContent = `Building your ${practicalBuildDetails.type} game in ${lang}...\n\nEstimated time: 5 seconds...`
+      setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
+      speakText(`Building your game in ${lang}. Please wait.`)
+      return
+    }
+
+    // 2. Friendly Conversation & General Q&A
+    if (isPureGreeting(cmdText)) {
+      const responseContent = `Hello! 👋 I'm doing great. How can I help you today?`
+      setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
+      speakText(responseContent)
+    } else if (l.includes('how are you')) {
+      const responseContent = `I'm functioning perfectly! Ready to build whatever you need.`
+      setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
+      speakText(responseContent)
+    } else if (l.includes('what is your name') || l.includes('who are you')) {
+      const responseContent = `I am CYPHER4X, your advanced AI assistant. I'm here to help you build, create, and explore.`
+      setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
+      speakText(responseContent)
+    }
+    // 3. Image Generation
     else if (l.includes('image') || l.includes('picture') || l.includes('draw') || l.includes('show me')) {
       setPracticalActionText('AI is building your image...')
-      responseType = 'image'
       const keywords = cmdText.replace(/show me|image|picture of|draw/gi, '').trim() || 'abstract'
-      responseContent = `https://source.unsplash.com/800x600/?${encodeURIComponent(keywords)}`
-      await new Promise(r => setTimeout(r, 800)) // Fast build
+      const imageUrl = `https://source.unsplash.com/800x600/?${encodeURIComponent(keywords)}`
+      await new Promise(r => setTimeout(r, 800))
+      setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'image', content: imageUrl }])
+      speakText(`Here is the image for ${keywords}.`)
     }
-    // 3. Code / App / Tool Creation
-    else if (l.includes('code') || l.includes('app') || l.includes('tool') || l.includes('website') || l.includes('game')) {
-      setPracticalActionText('AI is building your code...')
-      responseType = 'code'
-      const lang = detectLanguage(cmdText)
-      responseContent = generateLongCode(lang, cmdText, 'Practical Workspace generation')
-      await new Promise(r => setTimeout(r, 1000)) // Fast build
+    // 4. Code / Game / App / Tool Creation (Start interactive flow)
+    else if (l.includes('create') || l.includes('build') || l.includes('make') || l.includes('generate') || l.includes('game') || l.includes('app') || l.includes('tool')) {
+      // Check if language is already specified
+      const detectedLang = detectLanguage(cmdText)
+      if (detectedLang !== 'javascript') {
+        // Language specified, skip asking
+        setPracticalBuildDetails({ type: cmdText, lang: detectedLang })
+        setPracticalBuildState('building')
+        setPracticalBuildTimer(5)
+        const responseContent = `Building your project in ${detectedLang}...\n\nEstimated time: 5 seconds...`
+        setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
+        speakText(`Building your project in ${detectedLang}. Please wait.`)
+      } else {
+        // Ask for type
+        setPracticalBuildState('awaiting_type')
+        const responseContent = `Sure! What kind of ${l.includes('game') ? 'game' : l.includes('app') ? 'app' : 'tool'} would you like? (e.g., 2D platformer, 3D shooter, puzzle, calculator, etc.)`
+        setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
+        speakText("Sure! What kind of project would you like?")
+      }
     }
-    // 4. Default General Chat / Fallback
+    // 5. Default Fallback
     else {
-      responseContent = `I understand. I can create that for you. What specific details would you like me to include?`
-      await new Promise(r => setTimeout(r, 300))
+      const responseContent = `I understand. I can create that for you. What specific details would you like me to include?`
+      setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
+      speakText(responseContent)
     }
-
-    // Add AI response
-    setPracticalLogs(prev => [...prev, { 
-      id: Date.now() + 1, 
-      role: 'ai', 
-      type: responseType, 
-      content: responseContent 
-    }])
-    
-    speakText(responseType === 'image' ? 'I have generated an image for you.' : responseType === 'code' ? 'I have built the code for you.' : responseContent)
-    setPracticalProcessing(false)
-    setPracticalActionText('')
   }
 
   const handlePracticalSubmit = (e) => {
@@ -2053,11 +2474,19 @@ export default function App() {
             )}
           </div>
         ))}
-        {practicalProcessing && <div style={{color: '#00ff41', fontStyle: 'italic'}}>{practicalActionText || 'AI is building...'}</div>}
+        {practicalBuildState === 'building' && (
+          <div style={{color: '#00ff41', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: 8}}>
+            <Icon name="hourglass" size={18} color="#00ff41" />
+            <span>Building... {practicalBuildTimer}s remaining</span>
+          </div>
+        )}
+        {practicalProcessing && practicalBuildState !== 'building' && (
+          <div style={{color: '#00ff41', fontStyle: 'italic'}}>{practicalActionText || 'AI is processing...'}</div>
+        )}
         <div ref={practicalEndRef} />
       </div>
 
-      {/* INPUT AREA - FIXED TO PREVENT CUT OFF */}
+      {/* INPUT AREA */}
       <form onSubmit={handlePracticalSubmit} style={{...styles.practicalInputRow, backgroundColor: practicalBg === '#ffffff' ? '#fff' : '#0a0a0a', borderTopColor: practicalBg === '#ffffff' ? '#ddd' : '#333'}}>
         <label style={{...styles.practicalAttachBtn, color: practicalBg === '#ffffff' ? '#000' : '#fff'}}>
           <Icon name="image" size={24} color={practicalBg === '#ffffff' ? '#000' : '#fff'} />
@@ -2072,14 +2501,14 @@ export default function App() {
           type="text" 
           value={practicalInput} 
           onChange={(e) => setPracticalInput(e.target.value)} 
-          placeholder="Ask AI to create anything..." 
+          placeholder={practicalBuildState === 'awaiting_type' ? "What kind of game?" : practicalBuildState === 'awaiting_lang' ? "What language?" : "Ask AI to create anything..."}
           style={{...styles.practicalInput, color: practicalBg === '#ffffff' ? '#000' : '#fff', borderColor: practicalBg === '#ffffff' ? '#ccc' : '#444'}}
-          disabled={practicalProcessing}
+          disabled={practicalProcessing || practicalBuildState === 'building'}
         />
         <button type="button" onClick={handlePracticalVoice} style={{...styles.practicalMicBtn, backgroundColor: isRecording ? '#00ff41' : 'transparent', padding: 8}}>
           <Icon name="mic" size={24} color={practicalBg === '#ffffff' ? '#000' : '#fff'} />
         </button>
-        <button type="submit" style={{...styles.practicalSendBtn, backgroundColor: '#00ff41', width: 44, height: 44, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', flexShrink: 0}} disabled={practicalProcessing}>
+        <button type="submit" style={{...styles.practicalSendBtn, backgroundColor: '#00ff41', width: 44, height: 44, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', flexShrink: 0}} disabled={practicalProcessing || practicalBuildState === 'building'}>
           <Icon name="send" size={18} color="#000" />
         </button>
       </form>
@@ -2653,7 +3082,7 @@ const styles = {
   workspaceTabs: { display: 'flex', borderBottom: '1px solid #222', backgroundColor: '#0a0a0a', flexShrink: 0 },
   workspaceTabBtn: { flex: 1, padding: '12px 0', backgroundColor: 'transparent', border: 'none', borderBottom: '2px solid transparent', cursor: 'pointer', fontSize: 12, fontWeight: 'bold', letterSpacing: 1, transition: 'all 0.2s' },
   workspaceCanvasArea: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20, overflow: 'auto', position: 'relative' },
-  workspaceRightPanel: { width: 'clamp(300px, 30%, 400px)', backgroundColor: '#0a0a0a', borderLeft: '1px solid #222', display: 'flex', flexDirection: 'column', padding: 15, overflow: 'hidden' },
+  workspaceRightPanel: { width: 'clamp(350px, 40%, 500px)', backgroundColor: '#0a0a0a', borderLeft: '1px solid #222', display: 'flex', flexDirection: 'column', padding: 15, overflow: 'hidden' },
   workspaceChatArea: { flex: 1, overflowY: 'auto', overflowX: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 5, marginBottom: 10, whiteSpace: 'nowrap' },
   workspaceInputRow: { display: 'flex', gap: 8, alignItems: 'center', backgroundColor: '#111', padding: 8, borderRadius: 8, border: '1px solid #333' },
   workspaceInput: { flex: 1, padding: '10px 12px', backgroundColor: 'transparent', border: 'none', color: '#fff', fontSize: 13, outline: 'none' },
@@ -2838,4 +3267,4 @@ const styles = {
   commandActionsPC: { display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   sidebarBtnPC: { padding: '5px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
   logoutBtnPC: { padding: '5px 10px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
-      }
+    }
