@@ -1,4 +1,4 @@
-'use client' // ✅ FIX #1 — Required for Next.js App Router on Vercel
+'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 
@@ -65,9 +65,7 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
 // ==================================================
 // CONFIG
 // ==================================================
-// ⚠️ SECURITY WARNING: This API key is exposed to the browser.
-// Revoke it at https://app.tavily.com and move searchWeb to a server route.
-// See /api/search/route.js pattern in the chat.
+// ⚠️ SECURITY: Revoke this key at https://app.tavily.com — it's exposed to the browser.
 const TAVILY_API_KEY = "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"
 const TAVILY_URL = "https://api.tavily.com/search"
 const VERSION = "v27"
@@ -114,8 +112,8 @@ const isPureGreeting = (text) => {
 const KNOWLEDGE = [
   { match: /ethical hacking|penetration test|white ?hat|cyber ?security|cybersecurity|learn hacking/i, answer: `**Ethical Hacking — Learning Path**\n\nEthical hacking = finding vulnerabilities **legally and with permission**.\n\n**📚 Roadmap**\n1. Networking — TCP/IP, DNS, HTTP (TryHackMe Pre-Security)\n2. Linux — bash, permissions (OverTheWire Bandit)\n3. Web — HTML/CSS/JS, HTTP, cookies\n4. Programming — Python + Bash\n5. Core security — OWASP Top 10, crypto, auth\n6. Labs — TryHackMe, HackTheBox, PortSwigger\n7. Certs — Security+ → CEH → OSCP\n\n**⚠️ Rules** — Only test systems you OWN or have permission for.\n\n💡 Open **🔒 Cyber Lab** to practice.` },
   { match: /(what is|explain|define) (javascript|js)\b/i, answer: `**JavaScript**\n\nHigh-level, interpreted. Runs in browsers and on servers (Node.js).\n\n\`\`\`javascript\nconst greet = (name) => \`Hello, \${name}!\`\nconsole.log(greet('World'))\n\`\`\`` },
-  { match: /(what is|explain|define) python\b/i, answer: `**Python**\n\nReadable, high-level. #1 for AI/ML, data science, automation.\n\n\`\`\`python\nfrom dataclasses import dataclass\n\n@dataclass\nclass User:\n    id: int\n    name: str\n\nfor u in [User(1, "Alice")]:\n    print(f"Hello, {u.name}!")\n\`\`\`` },
-  { match: /(what is|explain) (react|react\.?js)/i, answer: `**React**\n\nJS library by Meta for UI. Component-based.\n\n\`\`\`jsx\nimport { useState } from 'react'\nexport default function Counter() {\n  const [n, setN] = useState(0)\n  return <button onClick={() => setN(n + 1)}>{n}</button>\n}\n\`\`\`` },
+  { match: /(what is|explain|define) python\b/i, answer: `**Python**\n\nReadable, high-level. #1 for AI/ML, data science, automation.` },
+  { match: /(what is|explain) (react|react\.?js)/i, answer: `**React**\n\nJS library by Meta for UI. Component-based.` },
   { match: /(what is|explain) (ai|artificial intelligence)\b/i, answer: `**AI** — ML, Deep Learning, NLP, CV, RL, Generative AI.\n\nModern: GPT, Claude, Gemini, Llama.` },
   { match: /^(hi|hello|hey|yo|sup|howdy)\b/i, answer: `Hey there! 👋 How can I help?` },
 ]
@@ -144,42 +142,66 @@ const openWhatsAppGroup = (n) => {
 }
 
 // ==================================================
-// DEEPSEEK-LEVEL CODE GENERATION (Universal)
+// CODE GENERATION
 // ==================================================
 const generateLongCode = (lang, purpose, detail) => {
   const L = (lang || '').toLowerCase()
 
+  if (L.includes('javascript') || L.includes('typescript') || (L.includes('js') && !L.includes('json'))) {
+    return `// ${purpose} - JavaScript Implementation
+// Author: Cypher4X AI
+
+'use strict';
+
+class AppManager {
+  constructor() {
+    this.items = [];
+    this.nextId = 1;
+  }
+  add(title, description = '') {
+    const item = { id: this.nextId++, title, description, createdAt: new Date().toISOString() };
+    this.items.push(item);
+    return item;
+  }
+  remove(id) {
+    const i = this.items.findIndex(x => x.id === id);
+    if (i >= 0) return this.items.splice(i, 1)[0];
+    return null;
+  }
+  list() { return [...this.items]; }
+  find(id) { return this.items.find(x => x.id === id) || null; }
+  stats() { return { total: this.items.length, created: new Date().toISOString() }; }
+}
+
+const app = new AppManager();
+console.log('${purpose} initialized');
+const sample = app.add('Sample Item', 'Created by Cypher4X');
+console.log('Added:', sample);
+console.log('All items:', app.list());
+console.log('Stats:', app.stats());
+
+if (typeof module !== 'undefined') module.exports = AppManager;
+`
+  }
+
   if (L.includes('python')) {
-    return `# ${purpose} - Comprehensive Implementation
+    return `# ${purpose} - Python Implementation
 # Author: Cypher4X AI
-# Version: 1.0.0
 
 import os
-import sys
 import json
 import logging
-import argparse
 from datetime import datetime
 from dataclasses import dataclass, asdict, field
 from typing import List, Optional, Dict, Any
 from enum import Enum
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("Cypher4XApp")
-
-class AppConfig:
-    DATA_DIR = os.path.join(os.path.expanduser("~"), ".cypher4x_app")
-    DATA_FILE = os.path.join(DATA_DIR, "data.json")
-    @classmethod
-    def ensure_dirs(cls):
-        if not os.path.exists(cls.DATA_DIR):
-            os.makedirs(cls.DATA_DIR)
 
 class Status(Enum):
     PENDING = "pending"
-    IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
-    FAILED = "failed"
 
 @dataclass
 class Item:
@@ -190,146 +212,88 @@ class Item:
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
 
     def to_dict(self):
-        data = asdict(self); data['status'] = self.status.value; return data
+        d = asdict(self); d['status'] = self.status.value; return d
 
 class AppManager:
-    def __init__(self):
-        AppConfig.ensure_dirs()
+    def __init__(self, data_file="data.json"):
+        self.data_file = data_file
         self.items: List[Item] = []
-        self.load_data()
+        self.load()
 
-    def load_data(self):
+    def load(self):
         try:
-            if os.path.exists(AppConfig.DATA_FILE):
-                with open(AppConfig.DATA_FILE, 'r') as f:
+            if os.path.exists(self.data_file):
+                with open(self.data_file) as f:
                     self.items = [Item(**{**i, 'status': Status(i['status'])}) for i in json.load(f)]
         except Exception as e:
             logger.error(f"Load failed: {e}")
 
-    def save_data(self):
+    def save(self):
         try:
-            with open(AppConfig.DATA_FILE, 'w') as f:
+            with open(self.data_file, 'w') as f:
                 json.dump([i.to_dict() for i in self.items], f, indent=4)
         except Exception as e:
             logger.error(f"Save failed: {e}")
 
-    def add_item(self, title, description=""):
+    def add(self, title: str, description: str = "") -> Item:
         item_id = max([i.id for i in self.items], default=0) + 1
         new_item = Item(id=item_id, title=title, description=description)
         self.items.append(new_item)
-        self.save_data()
+        self.save()
         return new_item
 
-    def list_items(self, status_filter=None):
-        return [i for i in self.items if i.status == status_filter] if status_filter else self.items
-
-def main():
-    parser = argparse.ArgumentParser(description="${purpose}")
-    sub = parser.add_subparsers(dest="command")
-    a = sub.add_parser("add"); a.add_argument("title"); a.add_argument("-d", "--description", default="")
-    sub.add_parser("list")
-    args = parser.parse_args()
-    mgr = AppManager()
-    if args.command == "add":
-        item = mgr.add_item(args.title, args.description)
-        print(f"✅ Added: [{item.id}] {item.title}")
-    elif args.command == "list":
-        for it in mgr.list_items():
-            print(f"{it.id}  {it.status.value}  {it.title}")
-    else:
-        parser.print_help()
+    def list(self, status: Optional[Status] = None) -> List[Item]:
+        return [i for i in self.items if i.status == status] if status else self.items
 
 if __name__ == "__main__":
-    main()
+    mgr = AppManager()
+    mgr.add("Sample Task", "Generated by Cypher4X")
+    for item in mgr.list():
+        print(f"[{item.id}] {item.title} — {item.status.value}")
 `
   }
 
   if (L.includes('react') || L.includes('jsx')) {
     return `// ${purpose} - React Application
-// Author: Cypher4X AI
-
-import React, { useState, useEffect, useReducer, useCallback, useMemo } from 'react';
-
-const apiService = {
-  async fetchItems() {
-    const r = await fetch('/api/items');
-    if (!r.ok) throw new Error('Network error');
-    return r.json();
-  },
-  async createItem(data) {
-    const r = await fetch('/api/items', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-    if (!r.ok) throw new Error('Create failed');
-    return r.json();
-  },
-  async deleteItem(id) {
-    const r = await fetch('/api/items/' + id, { method: 'DELETE' });
-    if (!r.ok) throw new Error('Delete failed');
-    return true;
-  }
-};
-
-const initialState = { items: [], isLoading: false, error: null, filter: 'all' };
-
-function appReducer(state, action) {
-  switch (action.type) {
-    case 'FETCH_START': return { ...state, isLoading: true, error: null };
-    case 'FETCH_SUCCESS': return { ...state, isLoading: false, items: action.payload };
-    case 'FETCH_ERROR': return { ...state, isLoading: false, error: action.payload };
-    case 'ADD_ITEM': return { ...state, items: [...state.items, action.payload] };
-    case 'DELETE_ITEM': return { ...state, items: state.items.filter(i => i.id !== action.payload) };
-    case 'SET_FILTER': return { ...state, filter: action.payload };
-    default: return state;
-  }
-}
-
-function useItems() {
-  const [state, dispatch] = useReducer(appReducer, initialState);
-  const loadItems = useCallback(async () => {
-    dispatch({ type: 'FETCH_START' });
-    try { dispatch({ type: 'FETCH_SUCCESS', payload: await apiService.fetchItems() }); }
-    catch (e) { dispatch({ type: 'FETCH_ERROR', payload: e.message }); }
-  }, []);
-  const addItem = useCallback(async (data) => {
-    try { dispatch({ type: 'ADD_ITEM', payload: await apiService.createItem(data) }); }
-    catch (e) { dispatch({ type: 'FETCH_ERROR', payload: e.message }); }
-  }, []);
-  const deleteItem = useCallback(async (id) => {
-    try { await apiService.deleteItem(id); dispatch({ type: 'DELETE_ITEM', payload: id }); }
-    catch (e) { dispatch({ type: 'FETCH_ERROR', payload: e.message }); }
-  }, []);
-  useEffect(() => { loadItems(); }, [loadItems]);
-  return { ...state, addItem, deleteItem, loadItems };
-}
-
-function ItemCard({ item, onDelete }) {
-  return (
-    <div className="item-card">
-      <h3>{item.title}</h3>
-      <p>{item.description}</p>
-      <button onClick={() => onDelete(item.id)}>Delete</button>
-    </div>
-  );
-}
+import React, { useState, useEffect, useMemo } from 'react';
 
 export default function App() {
-  const { items, isLoading, error, filter, addItem, deleteItem, loadItems } = useItems();
+  const [items, setItems] = useState([]);
   const [title, setTitle] = useState('');
-  const filtered = useMemo(() => filter === 'all' ? items : items.filter(i => i.status === filter), [items, filter]);
+
+  const addItem = () => {
+    if (!title.trim()) return;
+    setItems(prev => [...prev, { id: Date.now(), title, done: false }]);
+    setTitle('');
+  };
+
+  const toggle = (id) => setItems(prev => prev.map(i => i.id === id ? { ...i, done: !i.done } : i));
+  const remove = (id) => setItems(prev => prev.filter(i => i.id !== id));
+
+  const pending = useMemo(() => items.filter(i => !i.done).length, [items]);
+
   return (
-    <div className="app">
+    <div style={{ padding: 24, fontFamily: 'system-ui', maxWidth: 500, margin: '0 auto' }}>
       <h1>${purpose}</h1>
-      <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Item title" />
-      <button onClick={() => { if (title) { addItem({ title }); setTitle(''); } }}>Add</button>
-      <button onClick={loadItems} disabled={isLoading}>{isLoading ? 'Loading...' : 'Refresh'}</button>
-      {error && <p className="error">{error}</p>}
-      {filtered.map(i => <ItemCard key={i.id} item={i} onDelete={deleteItem} />)}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <input value={title} onChange={e => setTitle(e.target.value)} placeholder="New item..." style={{ flex: 1, padding: 10 }} />
+        <button onClick={addItem}>Add</button>
+      </div>
+      <p>{pending} pending / {items.length} total</p>
+      {items.map(i => (
+        <div key={i.id} style={{ display: 'flex', gap: 8, padding: 8, borderBottom: '1px solid #eee' }}>
+          <input type="checkbox" checked={i.done} onChange={() => toggle(i.id)} />
+          <span style={{ flex: 1, textDecoration: i.done ? 'line-through' : 'none' }}>{i.title}</span>
+          <button onClick={() => remove(i.id)}>✕</button>
+        </div>
+      ))}
     </div>
   );
 }
 `
   }
 
-  if (L.includes('html') || L.includes('css')) {
+  if (L.includes('html') || L.includes('css') || L.includes('web')) {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -337,33 +301,26 @@ export default function App() {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${purpose}</title>
 <style>
-  :root { --primary: #ff003c; --bg: #000; --text: #fff; --font: 'Segoe UI', sans-serif; }
+  :root { --primary: #ff003c; --bg: #0a0a0a; --text: #fff; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--font); background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-  .container { width: 100%; max-width: 800px; background: #1a1a1a; border-radius: 12px; padding: 30px; border: 1px solid #333; }
-  h1 { color: var(--primary); text-align: center; margin-bottom: 20px; }
-  .btn { display: inline-block; padding: 10px 20px; background: var(--primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-  .btn:hover { background: #cc0033; }
-  .dynamic-content { margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-left: 4px solid var(--primary); border-radius: 4px; }
+  body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+  .card { width: 100%; max-width: 720px; background: #151515; border: 1px solid #2a2a2a; border-radius: 16px; padding: 32px; }
+  h1 { color: var(--primary); margin-bottom: 16px; }
+  .btn { padding: 12px 24px; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+  #out { margin-top: 20px; padding: 16px; background: #000; border-left: 4px solid var(--primary); border-radius: 4px; font-family: monospace; }
 </style>
 </head>
 <body>
-<div class="container">
+<div class="card">
   <h1>${purpose}</h1>
   <p>Generated by Cypher4X AI.</p>
-  <button class="btn" onclick="performAction()">Click Me</button>
-  <div id="output" class="dynamic-content">Awaiting interaction...</div>
+  <button class="btn" onclick="run()">Run</button>
+  <div id="out">Awaiting input...</div>
 </div>
 <script>
-  'use strict';
-  const App = {
-    init: () => { document.getElementById('output').textContent = 'System ready.'; },
-    performAction: () => {
-      const o = document.getElementById('output');
-      o.textContent = 'Performed at ' + new Date().toLocaleTimeString();
-    }
-  };
-  document.addEventListener('DOMContentLoaded', App.init);
+  function run() {
+    document.getElementById('out').textContent = 'Ran at ' + new Date().toLocaleTimeString();
+  }
 </script>
 </body>
 </html>
@@ -371,33 +328,20 @@ export default function App() {
   }
 
   if (L.includes('java') && !L.includes('javascript')) {
-    return `// ${purpose} - Java Application
+    return `// ${purpose} - Java
 import java.util.*;
 
-public class Cypher4XApp {
-    private List<String> items = new ArrayList<>();
-
-    public void addItem(String item) {
-        if (item == null || item.trim().isEmpty()) throw new IllegalArgumentException("Empty");
-        items.add(item);
-        System.out.println("Added: " + item);
-    }
-
-    public void displayItems() {
-        if (items.isEmpty()) { System.out.println("No items."); return; }
-        for (int i = 0; i < items.size(); i++) System.out.println((i+1) + ". " + items.get(i));
-    }
-
+public class Main {
     public static void main(String[] args) {
-        Cypher4XApp app = new Cypher4XApp();
+        List<String> items = new ArrayList<>();
         Scanner sc = new Scanner(System.in);
-        System.out.println("Welcome to ${purpose}!");
+        System.out.println("${purpose}");
         while (true) {
-            System.out.println("\\n1.Add 2.List 3.Exit");
+            System.out.println("1.Add 2.List 3.Exit");
             String c = sc.nextLine();
-            if ("1".equals(c)) { System.out.print("Item: "); app.addItem(sc.nextLine()); }
-            else if ("2".equals(c)) app.displayItems();
-            else if ("3".equals(c)) { sc.close(); return; }
+            if ("1".equals(c)) { System.out.print("Item: "); items.add(sc.nextLine()); }
+            else if ("2".equals(c)) items.forEach(i -> System.out.println("- " + i));
+            else if ("3".equals(c)) return;
         }
     }
 }
@@ -405,24 +349,20 @@ public class Cypher4XApp {
   }
 
   if (L.includes('c#') || L.includes('csharp')) {
-    return `// ${purpose} - C# Application
+    return `// ${purpose} - C#
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace Cypher4XApp {
-    public class Program {
-        static async Task Main() {
-            Console.WriteLine("Welcome to ${purpose}!");
-            var items = new List<string>();
-            while (true) {
-                Console.WriteLine("\\n1.Add 2.List 3.Exit");
-                var c = Console.ReadLine();
-                if (c == "1") { Console.Write("Item: "); items.Add(Console.ReadLine()); }
-                else if (c == "2") { foreach (var i in items) Console.WriteLine("- " + i); }
-                else if (c == "3") return;
-                await Task.Delay(50);
-            }
+class Program {
+    static void Main() {
+        var items = new List<string>();
+        Console.WriteLine("${purpose}");
+        while (true) {
+            Console.WriteLine("1.Add 2.List 3.Exit");
+            var c = Console.ReadLine();
+            if (c == "1") { Console.Write("Item: "); items.Add(Console.ReadLine()); }
+            else if (c == "2") items.ForEach(i => Console.WriteLine("- " + i));
+            else if (c == "3") return;
         }
     }
 }
@@ -430,21 +370,21 @@ namespace Cypher4XApp {
   }
 
   if (L.includes('cpp') || L.includes('c++')) {
-    return `// ${purpose} - C++ Application
+    return `// ${purpose} - C++
 #include <iostream>
 #include <vector>
 #include <string>
 
 int main() {
-    std::cout << "Welcome to ${purpose}!" << std::endl;
     std::vector<std::string> items;
-    int choice;
+    int c;
+    std::cout << "${purpose}" << std::endl;
     while (true) {
-        std::cout << "\\n1.Add 2.List 3.Exit\\nChoice: ";
-        std::cin >> choice;
-        if (choice == 1) { std::string i; std::cout << "Item: "; std::cin >> i; items.push_back(i); }
-        else if (choice == 2) { for (auto& i : items) std::cout << "- " << i << std::endl; }
-        else if (choice == 3) break;
+        std::cout << "1.Add 2.List 3.Exit: ";
+        std::cin >> c;
+        if (c == 1) { std::string i; std::cin >> i; items.push_back(i); }
+        else if (c == 2) for (auto& i : items) std::cout << "- " << i << std::endl;
+        else if (c == 3) break;
     }
     return 0;
 }
@@ -452,25 +392,20 @@ int main() {
   }
 
   if (L.includes('rust')) {
-    return `// ${purpose} - Rust Application
+    return `// ${purpose} - Rust
 use std::io;
-
 fn main() {
-    println!("Welcome to ${purpose}!");
     let mut items: Vec<String> = Vec::new();
+    println!("${purpose}");
     loop {
-        println!("\\n1.Add 2.List 3.Exit");
+        println!("1.Add 2.List 3.Exit");
         let mut c = String::new();
         io::stdin().read_line(&mut c).unwrap();
         match c.trim() {
-            "1" => {
-                let mut i = String::new();
-                io::stdin().read_line(&mut i).unwrap();
-                items.push(i.trim().to_string());
-            }
-            "2" => for i in &items { println!("- {}", i); },
+            "1" => { let mut i = String::new(); io::stdin().read_line(&mut i).unwrap(); items.push(i.trim().into()); }
+            "2" => items.iter().for_each(|i| println!("- {}", i)),
             "3" => break,
-            _ => println!("Invalid"),
+            _ => {}
         }
     }
 }
@@ -478,47 +413,38 @@ fn main() {
   }
 
   if (L.includes('go')) {
-    return `// ${purpose} - Go Application
+    return `// ${purpose} - Go
 package main
-
 import ("bufio"; "fmt"; "os"; "strings")
-
 func main() {
-	fmt.Println("Welcome to ${purpose}!")
-	reader := bufio.NewReader(os.Stdin)
-	items := []string{}
-	for {
-		fmt.Println("\\n1.Add 2.List 3.Exit")
-		c, _ := reader.ReadString('\\n')
-		switch strings.TrimSpace(c) {
-		case "1":
-			fmt.Print("Item: ")
-			i, _ := reader.ReadString('\\n')
-			items = append(items, strings.TrimSpace(i))
-		case "2":
-			for _, i := range items { fmt.Println("-", i) }
-		case "3":
-			return
-		}
-	}
+    items := []string{}
+    r := bufio.NewReader(os.Stdin)
+    for {
+        fmt.Println("1.Add 2.List 3.Exit")
+        c, _ := r.ReadString('\\n')
+        switch strings.TrimSpace(c) {
+        case "1": fmt.Print("Item: "); i, _ := r.ReadString('\\n'); items = append(items, strings.TrimSpace(i))
+        case "2": for _, i := range items { fmt.Println("-", i) }
+        case "3": return
+        }
+    }
 }
 `
   }
 
   if (L.includes('swift')) {
-    return `// ${purpose} - Swift Application
+    return `// ${purpose} - Swift
 import Foundation
-
 var items: [String] = []
-print("Welcome to ${purpose}!")
+print("${purpose}")
 while true {
-    print("\\n1.Add 2.List 3.Exit")
+    print("1.Add 2.List 3.Exit")
     if let c = readLine() {
         switch c {
-        case "1": print("Item: ", terminator: ""); if let i = readLine() { items.append(i) }
+        case "1": if let i = readLine() { items.append(i) }
         case "2": for i in items { print("- \\(i)") }
         case "3": exit(0)
-        default: print("Invalid")
+        default: break
         }
     }
 }
@@ -526,19 +452,16 @@ while true {
   }
 
   if (L.includes('kotlin')) {
-    return `// ${purpose} - Kotlin Application
-import kotlinx.coroutines.*
-
-fun main() = runBlocking {
-    println("Welcome to ${purpose}!")
+    return `// ${purpose} - Kotlin
+fun main() {
     val items = mutableListOf<String>()
+    println("${purpose}")
     while (true) {
-        println("\\n1.Add 2.List 3.Exit")
+        println("1.Add 2.List 3.Exit")
         when (readLine()) {
-            "1" -> { print("Item: "); items.add(readLine() ?: "") }
+            "1" -> items.add(readLine() ?: "")
             "2" -> items.forEach { println("- \$it") }
-            "3" -> break
-            else -> println("Invalid")
+            "3" -> return
         }
     }
 }
@@ -546,35 +469,19 @@ fun main() = runBlocking {
   }
 
   return `-- ${purpose} - SQL Schema
--- Author: Cypher4X AI
-
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT NOT NULL UNIQUE,
-    email TEXT NOT NULL UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE IF NOT EXISTS items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
     title TEXT NOT NULL,
     description TEXT,
     status TEXT DEFAULT 'pending',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-CREATE INDEX idx_items_user_id ON items(user_id);
-CREATE INDEX idx_items_status ON items(status);
-
-INSERT INTO users (username, email) VALUES ('cypher4x', 'admin@cypher4x.com');
-INSERT INTO items (user_id, title, status) VALUES (1, 'Sample Item', 'pending');
+INSERT INTO items (title, status) VALUES ('Sample', 'pending');
 `
 }
 
 // ==================================================
-// ✅ FIX #2 — LANGUAGE DETECTION (was missing → crashed app)
+// LANGUAGE DETECTION
 // ==================================================
 const detectLanguage = (q) => {
   const x = (q || '').toLowerCase()
@@ -587,17 +494,208 @@ const detectLanguage = (q) => {
   if (/\b(c\+\+|cpp)\b/.test(x)) return 'cpp'
   if (/\bc#|\bcsharp\b/.test(x)) return 'csharp'
   if (/\brust\b/.test(x)) return 'rust'
-  if (/\bgolang\b/.test(x) || /\bgo\b/.test(x)) return 'go'
+  if (/\bgolang\b/.test(x)) return 'go'
   if (/\bswift\b/.test(x)) return 'swift'
   if (/\bkotlin\b/.test(x)) return 'kotlin'
   if (/\b(sql|database|query|schema)\b/.test(x)) return 'sql'
   return 'javascript'
 }
 
-const isCodeRequest = (q) => {
-  const x = q.toLowerCase()
-  return ['generate code','write code','create code','make code','build code','code for','code to','function in','write me a'].some(k => x.includes(k))
+// ==================================================
+// PRACTICAL WORKSPACE — INTENT DETECTION & BUILDERS
+// ==================================================
+const detectIntent = (text) => {
+  const l = (text || '').toLowerCase()
+  if (/\b(image|picture|photo|draw|render)\b/.test(l) || /\bshow me a (pic|photo|image)\b/.test(l)) return 'image'
+  if (/\b(hack|security|password|hash|encrypt|decrypt|port ?scan|exploit|pentest|ctf|crypto|base64|rot13|caesar|sniff|brute|firewall)\b/.test(l)) return 'tool'
+  if (/\b(game|snake|pong|tetris|breakout|brick|platformer|shooter|rpg|arcade|2048|flappy|invader|asteroid|maze)\b/.test(l)) return 'game'
+  if (/\b(source ?code|show code|only code|raw code)\b/.test(l)) return 'code'
+  return 'app'
 }
+
+const buildAppArtifact = (desc) => {
+  const l = desc.toLowerCase()
+  if (/todo|task|checklist/.test(l)) return { title:'Todo App', type:'app', lang:'html', html: APP_TODO }
+  return { title:'Calculator', type:'app', lang:'html', html: APP_CALC }
+}
+const buildGameArtifact = (desc) => {
+  const l = desc.toLowerCase()
+  if (/pong/.test(l)) return { title:'Pong Game', type:'game', lang:'html', html: GAME_PONG }
+  return { title:'Snake Game', type:'game', lang:'html', html: GAME_SNAKE }
+}
+const buildToolArtifact = (desc) => {
+  const l = desc.toLowerCase()
+  if (/hash|sha|md5/.test(l)) return { title:'Hash Generator', type:'tool', lang:'html', html: TOOL_HASH }
+  return { title:'Password Strength Tool', type:'tool', lang:'html', html: TOOL_PASS }
+}
+const buildPracticalArtifact = (desc, forcedLang) => {
+  const intent = detectIntent(desc)
+  if (intent === 'image') {
+    const kw = desc.replace(/show me|image|picture|photo|of|draw|generate|create|make|a |an /gi,'').trim() || 'abstract'
+    return { title: kw, type:'image', lang:'image', url: `https://source.unsplash.com/900x600/?${encodeURIComponent(kw)}` }
+  }
+  if (intent === 'code') {
+    const lang = forcedLang || detectLanguage(desc)
+    return { title: 'Source Code', type:'code', lang, code: generateLongCode(lang, desc, '') }
+  }
+  if (intent === 'game') return buildGameArtifact(desc)
+  if (intent === 'tool') return buildToolArtifact(desc)
+  return buildAppArtifact(desc)
+}
+
+// ==================================================
+// HTML TEMPLATES (for inline previews)
+// ==================================================
+const APP_CALC = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Calculator</title><style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui;background:#1a1a1a;color:#fff;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:16px}
+#c{width:100%;max-width:340px;background:#222;border-radius:16px;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,0.5)}
+#d{background:#000;color:#fff;font-size:32px;text-align:right;padding:20px;border-radius:8px;margin-bottom:12px;word-break:break-all;min-height:60px;overflow:hidden}
+.g{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+button{padding:18px;font-size:20px;border:none;border-radius:8px;background:#333;color:#fff;cursor:pointer;transition:background .15s}
+button:hover{background:#444}button.op{background:#ff003c}button.op:hover{background:#cc0033}
+button.eq{background:#00c853;grid-column:span 2}button.eq:hover{background:#00a844}
+</style></head><body><div id="c"><div id="d">0</div><div class="g">
+<button class="op" onclick="k('C')">C</button><button class="op" onclick="k('←')">←</button><button class="op" onclick="k('%')">%</button><button class="op" onclick="k('/')">÷</button>
+<button onclick="k('7')">7</button><button onclick="k('8')">8</button><button onclick="k('9')">9</button><button class="op" onclick="k('*')">×</button>
+<button onclick="k('4')">4</button><button onclick="k('5')">5</button><button onclick="k('6')">6</button><button class="op" onclick="k('-')">−</button>
+<button onclick="k('1')">1</button><button onclick="k('2')">2</button><button onclick="k('3')">3</button><button class="op" onclick="k('+')">+</button>
+<button onclick="k('0')" style="grid-column:span 2">0</button><button onclick="k('.')">.</button><button class="eq" onclick="k('=')">=</button>
+</div></div><script>
+let d=document.getElementById('d'),v='0';
+function k(x){if(x==='C'){v='0'}else if(x==='←'){v=v.slice(0,-1)||'0'}else if(x==='='){try{v=String(eval(v.replace(/%/g,'/100*')))}catch{v='Error'}}else if(x==='%'){try{v=String(eval(v)/100)}catch{}}else{v=v==='0'?x:v+x}d.textContent=v}
+document.addEventListener('keydown',e=>{if(/[0-9+\\-*/.%]/.test(e.key))k(e.key);else if(e.key==='Enter')k('=');else if(e.key==='Backspace')k('←');else if(e.key==='Escape')k('C')});
+<\/script></body></html>`
+
+const APP_TODO = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Todo</title><style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui;background:#0a0a0a;color:#eee;display:flex;justify-content:center;padding:20px;min-height:100vh}
+#w{width:100%;max-width:500px;background:#151515;border-radius:16px;padding:24px;border:1px solid #222}
+h1{color:#00ff41;font-family:monospace;margin:0 0 20px;font-size:22px}
+.r{display:flex;gap:8px;margin-bottom:16px}
+input{flex:1;padding:12px;background:#000;border:1px solid #333;color:#fff;border-radius:8px;font-size:15px;outline:none}
+input:focus{border-color:#00ff41}
+#add{padding:12px 20px;background:#00ff41;color:#000;border:none;border-radius:8px;font-weight:bold;cursor:pointer}
+.t{display:flex;align-items:center;gap:10px;padding:12px;background:#1a1a1a;border-radius:8px;margin-bottom:6px}
+.t.done span{text-decoration:line-through;color:#666}
+.t span{flex:1;cursor:pointer}
+.t button{background:none;border:none;color:#ff003c;font-size:18px;cursor:pointer;padding:4px 8px}
+.e{color:#666;text-align:center;padding:20px;font-style:italic}
+</style></head><body><div id="w"><h1>✅ TODO APP</h1>
+<div class="r"><input id="i" placeholder="What needs doing?" /><button id="add">ADD</button></div>
+<div id="l"></div></div><script>
+let items=JSON.parse(localStorage.getItem('todo')||'[]');
+const L=document.getElementById('l'),I=document.getElementById('i');
+function render(){if(!items.length){L.innerHTML='<div class="e">No tasks yet.</div>';return}L.innerHTML='';items.forEach((it,i)=>{const d=document.createElement('div');d.className='t'+(it.done?' done':'');d.innerHTML='<span>'+it.text+'</span><button>✕</button>';d.querySelector('span').onclick=()=>{it.done=!it.done;save()};d.querySelector('button').onclick=()=>{items.splice(i,1);save()};L.appendChild(d)})}
+function save(){localStorage.setItem('todo',JSON.stringify(items));render()}
+document.getElementById('add').onclick=()=>{if(!I.value.trim())return;items.push({text:I.value.trim(),done:false});I.value='';save()};
+I.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('add').click()});
+render();
+<\/script></body></html>`
+
+const GAME_SNAKE = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Snake</title><style>
+*{box-sizing:border-box}body{margin:0;background:#0a0a0a;color:#fff;font-family:monospace;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:100vh;padding:10px;user-select:none}
+#h{font-size:18px;margin:8px;color:#00ff41}
+canvas{border:2px solid #00ff41;border-radius:8px;box-shadow:0 0 30px rgba(0,255,65,0.3);max-width:100%;touch-action:none}
+#ctrl{display:grid;grid-template-columns:repeat(3,60px);gap:6px;margin:15px}
+#ctrl button{padding:18px;font-size:18px;background:#1a1a1a;color:#00ff41;border:1px solid #00ff41;border-radius:8px;cursor:pointer}
+#ctrl .sp{visibility:hidden}
+</style></head><body>
+<div id="h">SCORE: <span id="s">0</span></div>
+<canvas id="c" width="360" height="360"></canvas>
+<div id="ctrl">
+<button class="sp"></button><button onclick="d(0,-1)">▲</button><button class="sp"></button>
+<button onclick="d(-1,0)">◀</button><button class="sp"></button><button onclick="d(1,0)">▶</button>
+<button class="sp"></button><button onclick="d(0,1)">▼</button><button class="sp"></button>
+</div><script>
+const cv=document.getElementById('c'),x=cv.getContext('2d'),S=20,N=18;
+let sn=[{x:9,y:9}],dir={x:1,y:0},nd={x:1,y:0},fd={x:5,y:5},sc=0,tick=0,spd=8,gm=false;
+function d(a,b){if(gm)return;if(a===-dir.x&&b===-dir.y)return;nd={x:a,y:b}}
+function spawn(){fd={x:Math.floor(Math.random()*N),y:Math.floor(Math.random()*N)};if(sn.some(s=>s.x===fd.x&&s.y===fd.y))spawn()}
+function loop(){if(gm)return;tick++;if(tick<spd){draw();requestAnimationFrame(loop);return}tick=0;dir=nd;const h={x:sn[0].x+dir.x,y:sn[0].y+dir.y};
+if(h.x<0||h.x>=N||h.y<0||h.y>=N||sn.some(s=>s.x===h.x&&s.y===h.y)){gm=true;draw();return}
+sn.unshift(h);if(h.x===fd.x&&h.y===fd.y){sc++;document.getElementById('s').textContent=sc;spawn()}else sn.pop();draw();requestAnimationFrame(loop)}
+function draw(){x.fillStyle='#0a0a0a';x.fillRect(0,0,360,360);x.fillStyle='#ff003c';x.fillRect(fd.x*S+2,fd.y*S+2,S-4,S-4);sn.forEach((s,i)=>{x.fillStyle=i===0?'#00ff41':'#008f11';x.fillRect(s.x*S+1,s.y*S+1,S-2,S-2)});
+if(gm){x.fillStyle='rgba(0,0,0,0.75)';x.fillRect(0,0,360,360);x.fillStyle='#00ff41';x.font='bold 28px monospace';x.textAlign='center';x.fillText('GAME OVER',180,155);x.font='16px monospace';x.fillText('Score: '+sc,180,185);x.fillText('Tap to restart',180,215)}}
+cv.addEventListener('click',()=>{if(gm){sn=[{x:9,y:9}];dir={x:1,y:0};nd={x:1,y:0};sc=0;gm=false;document.getElementById('s').textContent=0;spawn();loop()}});
+document.addEventListener('keydown',e=>{const k={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]};if(k[e.key]){e.preventDefault();d(...k[e.key])}});
+spawn();loop();
+<\/script></body></html>`
+
+const GAME_PONG = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pong</title><style>
+*{box-sizing:border-box}body{margin:0;background:#0a0a0a;color:#fff;font-family:monospace;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:100vh;touch-action:none;user-select:none}
+#s{font-size:22px;color:#00ff41;margin:10px;font-weight:bold}
+canvas{border:2px solid #00ff41;border-radius:8px;box-shadow:0 0 30px rgba(0,255,65,0.3);max-width:95vw;touch-action:none}
+</style></head><body><div id="s">0 - 0</div><canvas id="c" width="480" height="320"></canvas><script>
+const cv=document.getElementById('c'),x=cv.getContext('2d'),W=480,H=320,PH=60,PW=10;
+let p1=H/2-PH/2,p2=H/2-PH/2,by=H/2,vy=3,vx=3,ps=0,cs=0,gm=false,bx=W/2;
+function reset(){by=H/2;vx=Math.random()>.5?3:-3;vy=(Math.random()*4-2);bx=W/2}
+cv.addEventListener('mousemove',e=>{const r=cv.getBoundingClientRect();p1=Math.max(0,Math.min(H-PH,(e.clientY-r.top)*(H/r.height)-PH/2))});
+cv.addEventListener('touchmove',e=>{e.preventDefault();const r=cv.getBoundingClientRect();p1=Math.max(0,Math.min(H-PH,(e.touches[0].clientY-r.top)*(H/r.height)-PH/2))},{passive:false});
+function loop(){
+  if(!gm){
+    by+=vy;if(by<5||by>H-5)vy*=-1;by=Math.max(5,Math.min(H-5,by));
+    const ai=by-PH/2;if(ai>p2+2)p2+=2.6;else if(ai<p2-2)p2-=2.6;p2=Math.max(0,Math.min(H-PH,p2));
+    bx+=vx;
+    if(bx<25&&bx>10&&by>p1&&by<p1+PH&&vx<0){vx=Math.abs(vx)*1.02;vy+=(by-p1-PH/2)*0.08}
+    if(bx>W-25&&bx<W-10&&by>p2&&by<p2+PH&&vx>0){vx=-Math.abs(vx)*1.02;vy+=(by-p2-PH/2)*0.08}
+    if(bx<0){cs++;document.getElementById('s').textContent=cs+' - '+ps;reset()}
+    if(bx>W){ps++;document.getElementById('s').textContent=cs+' - '+ps;reset()}
+  }
+  x.fillStyle='#0a0a0a';x.fillRect(0,0,W,H);
+  x.setLineDash([6,8]);x.strokeStyle='#222';x.beginPath();x.moveTo(W/2,0);x.lineTo(W/2,H);x.stroke();x.setLineDash([]);
+  x.fillStyle='#00ff41';x.fillRect(15,p1,PW,PH);x.fillRect(W-15-PW,p2,PW,PH);
+  x.fillStyle='#ff003c';x.beginPath();x.arc(bx,by,6,0,Math.PI*2);x.fill();
+  requestAnimationFrame(loop)
+}
+loop();
+<\/script></body></html>`
+
+const TOOL_PASS = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Password Tool</title><style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui;background:#0a0a0a;color:#eee;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
+#w{width:100%;max-width:520px;background:#151515;border:1px solid #2a2a2a;border-radius:16px;padding:28px}
+h1{color:#00ff41;font-family:monospace;margin:0 0 20px;font-size:20px}
+input{width:100%;padding:14px;border-radius:8px;border:1px solid #333;background:#000;color:#fff;font-size:16px;outline:none;box-sizing:border-box}
+input:focus{border-color:#00ff41}
+#bar{height:8px;background:#222;border-radius:4px;margin:16px 0;overflow:hidden}
+#fill{height:100%;width:0;transition:all .3s}
+ul{list-style:none;padding:0;margin:16px 0 0}li{padding:8px 0;color:#888;font-size:14px}li.ok{color:#00ff41}
+#s{font-size:14px;color:#888;margin-top:4px}
+</style></head><body><div id="w"><h1>🔒 PASSWORD STRENGTH ANALYZER</h1>
+<input id="i" type="text" placeholder="Type a password..." autofocus/>
+<div id="bar"><div id="fill"></div></div><div id="s">Start typing to analyze</div>
+<ul><li id="c1">• At least 12 characters</li><li id="c2">• Contains lowercase</li><li id="c3">• Contains uppercase</li><li id="c4">• Contains digit</li><li id="c5">• Contains symbol</li><li id="c6">• Not a common password</li></ul>
+</div><script>
+const i=document.getElementById('i'),f=document.getElementById('fill'),s=document.getElementById('s');
+i.oninput=()=>{const p=i.value;const c={c1:p.length>=12,c2:/[a-z]/.test(p),c3:/[A-Z]/.test(p),c4:/\\d/.test(p),c5:/[^A-Za-z0-9]/.test(p),c6:!/^(password|123456|qwerty|admin|letmein)/i.test(p)};
+let sc=Object.values(c).filter(Boolean).length;
+Object.keys(c).forEach(k=>document.getElementById(k).classList.toggle('ok',c[k]));
+const colors=['#ff003c','#ff003c','#ffcc00','#ffcc00','#00c8ff','#00ff41','#00ff41'];
+const labels=['','Very Weak','Weak','Fair','Good','Strong','Excellent'];
+f.style.width=(sc/6*100)+'%';f.style.background=colors[sc];
+s.textContent=p?labels[sc]+' — '+sc+'/6':'Start typing to analyze';s.style.color=colors[sc]||'#888'}
+<\/script></body></html>`
+
+const TOOL_HASH = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hash</title><style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui;background:#0a0a0a;color:#eee;display:flex;justify-content:center;padding:20px;min-height:100vh}
+#w{width:100%;max-width:560px;background:#151515;border:1px solid #2a2a2a;border-radius:16px;padding:24px}
+h1{color:#00ff41;font-family:monospace;margin:0 0 16px;font-size:20px}
+textarea{width:100%;min-height:80px;padding:12px;border-radius:8px;border:1px solid #333;background:#000;color:#fff;font-size:14px;outline:none;font-family:monospace;resize:vertical;box-sizing:border-box}
+textarea:focus{border-color:#00ff41}
+.lbl{color:#888;font-size:11px;margin:14px 0 6px;text-transform:uppercase;letter-spacing:1px}
+.out{background:#000;border:1px solid #333;border-radius:8px;padding:12px;font-family:monospace;font-size:12px;word-break:break-all;color:#00ff41;cursor:pointer}
+</style></head><body><div id="w"><h1>🔐 HASH GENERATOR</h1>
+<textarea id="t" placeholder="Enter text..."></textarea>
+<div class="lbl">SHA-256</div><div class="out" id="o1">-</div>
+<div class="lbl">SHA-1</div><div class="out" id="o2">-</div>
+<div class="lbl">Base64</div><div class="out" id="o3">-</div>
+</div><script>
+const t=document.getElementById('t');
+async function h(a,d){const b=await crypto.subtle.digest(a,new TextEncoder().encode(d));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')}
+t.oninput=async()=>{const v=t.value;if(!v){['o1','o2','o3'].forEach(i=>document.getElementById(i).textContent='-');return}
+document.getElementById('o1').textContent=await h('SHA-256',v);
+document.getElementById('o2').textContent=await h('SHA-1',v);
+document.getElementById('o3').textContent=btoa(unescape(encodeURIComponent(v)))}
+document.querySelectorAll('.out').forEach(o=>o.onclick=()=>{navigator.clipboard.writeText(o.textContent).then(()=>{const s=o.textContent;o.textContent='✓ Copied!';setTimeout(()=>o.textContent=s,800)})});
+<\/script></body></html>`
 
 // ==================================================
 // WEB SEARCH
@@ -615,7 +713,7 @@ const searchWeb = async (query) => {
 const openAnonymous = (q) => window.open(`https://duckduckgo.com/?q=${encodeURIComponent(q)}&kae=d`, '_blank', 'noopener,noreferrer')
 
 // ==================================================
-// WEATHER (Open-Meteo, free no key)
+// WEATHER
 // ==================================================
 const fetchWeather = async (lat, lon) => {
   try {
@@ -626,16 +724,13 @@ const fetchWeather = async (lat, lon) => {
 }
 
 // ==================================================
-// LOCAL MUSIC SYNTH
+// MUSIC SYNTH
 // ==================================================
 const MUSIC_STYLES = {
-  love: { scale: 'major', bpm: 78, root: 60, prog: [[0,4,7],[5,9,12],[7,11,14],[5,9,12]] },
-  pink: { scale: 'major', bpm: 100, root: 62, prog: [[0,4,7],[9,12,16],[5,9,12],[7,11,14]] },
-  sad: { scale: 'minor', bpm: 68, root: 57, prog: [[0,3,7],[5,8,12],[7,10,14],[3,7,10]] },
-  happy: { scale: 'major', bpm: 128, root: 60, prog: [[0,4,7],[7,11,14],[9,12,16],[5,9,12]] },
-  chill: { scale: 'pentatonic', bpm: 88, root: 60, prog: [[0,4,7],[5,9,12],[7,11,14],[5,9,12]] },
-  epic: { scale: 'minor', bpm: 140, root: 55, prog: [[0,3,7],[5,8,12],[8,12,15],[7,10,14]] },
-  default: { scale: 'major', bpm: 118, root: 60, prog: [[0,4,7],[5,9,12],[7,11,14],[5,9,12]] },
+  love: { scale: 'major', bpm: 78 }, pink: { scale: 'major', bpm: 100 },
+  sad: { scale: 'minor', bpm: 68 }, happy: { scale: 'major', bpm: 128 },
+  chill: { scale: 'pentatonic', bpm: 88 }, epic: { scale: 'minor', bpm: 140 },
+  default: { scale: 'major', bpm: 118 },
 }
 const guessMusicStyle = (d) => {
   const x = (d || '').toLowerCase()
@@ -689,7 +784,7 @@ function playRichMelody(notes, quality = 'medium', bpm = 120) {
 }
 
 // ==================================================
-// LOCAL VIDEO ENGINE
+// VIDEO ENGINE
 // ==================================================
 const VIDEO_STYLES = {
   anime: { palette: ['#ffb6d5','#ff4f9a','#ffffff','#ffd1e8'], label: 'Anime', scene: 'sakura' },
@@ -720,11 +815,8 @@ function startCanvasVideo(canvas, style, userDesc, wm, onProgress) {
     t += 0.03
     if (scene === 'matrix') { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); ctx.font = '14px monospace'; for (let i = 0; i < 40; i++) { const x = i * W / 40, y = ((t * 60 + i * 30) % H); ctx.fillStyle = `rgba(0,255,65,${0.3 + Math.random() * 0.6})`; ctx.fillText(String.fromCharCode(0x30A0 + Math.floor(Math.random() * 96)), x, y) } }
     else if (scene === 'space') { const g = ctx.createRadialGradient(W/2,H/2,20,W/2,H/2,W); g.addColorStop(0,'#1a0033'); g.addColorStop(1,'#000'); ctx.fillStyle = g; ctx.fillRect(0,0,W,H); stars.forEach(s => { ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fillStyle = `rgba(255,255,255,${0.3+Math.random()*0.7})`; ctx.fill(); s.x -= 0.15; if (s.x < 0) s.x = W }); const px = W/2 + Math.sin(t)*30, py = H/2; const pg = ctx.createRadialGradient(px-15,py-15,5,px,py,60); pg.addColorStop(0,'#ff00ff'); pg.addColorStop(1,'#330033'); ctx.beginPath(); ctx.arc(px,py,55,0,Math.PI*2); ctx.fillStyle = pg; ctx.fill() }
-    else if (scene === 'movie') { ctx.fillStyle = '#0b0b0b'; ctx.fillRect(0,0,W,H); ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H*0.12); ctx.fillRect(0,H*0.88,W,H*0.12); const creds = ['CYPHER4X PRODUCTIONS','directed by You','cinematography · AI','starring · Characters','music · Synth Engine','A CYPHER4X FILM']; ctx.font = '14px monospace'; ctx.textAlign = 'center'; creds.forEach((l, i) => { const y = (t*40+i*40)%H; if (y > H*0.15 && y < H*0.85) { ctx.fillStyle = i === 0 ? '#ffcc00' : 'rgba(255,255,255,0.8)'; ctx.fillText(l, W/2, y) } }) }
-    else if (scene === 'sakura') { const g = ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#ffb6d5'); g.addColorStop(1,'#ff4f9a'); ctx.fillStyle = g; ctx.fillRect(0,0,W,H); ctx.beginPath(); ctx.arc(W*0.78,H*0.22,40,0,Math.PI*2); ctx.fillStyle = '#fff8d6'; ctx.fill(); parts.forEach(p => { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.beginPath(); ctx.ellipse(0,0,p.r*2.5,p.r,0,0,Math.PI*2); ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fill(); ctx.restore(); p.y += 1.2; p.x += Math.sin(t + p.y * 0.05) * 0.8; p.rot += 0.02; if (p.y > H) { p.y = -10; p.x = Math.random() * W } }) }
-    else if (scene === 'nature') { const g = ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#87ceeb'); g.addColorStop(1,'#2ecc71'); ctx.fillStyle = g; ctx.fillRect(0,0,W,H); ctx.beginPath(); ctx.arc(W*0.2,H*0.18,30,0,Math.PI*2); ctx.fillStyle = '#f39c12'; ctx.fill(); ctx.beginPath(); ctx.moveTo(0,H*0.7); for (let x = 0; x <= W; x += 20) ctx.lineTo(x, H*0.7 + Math.sin(x*0.02+t)*20); ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath(); ctx.fillStyle = '#27ae60'; ctx.fill() }
-    else if (scene === 'cartoon') { const g = ctx.createLinearGradient(0,0,W,H); g.addColorStop(0,'#ffe066'); g.addColorStop(1,'#ff6b6b'); ctx.fillStyle = g; ctx.fillRect(0,0,W,H); parts.slice(0,20).forEach((p, i) => { const x = (i*W/20 + t*20)%W; const y = H*0.5 + Math.sin(t*3+i)*60; ctx.beginPath(); if (i%3===0) ctx.arc(x,y,20,0,Math.PI*2); else if (i%3===1) ctx.rect(x-15,y-15,30,30); else { ctx.moveTo(x,y-20); ctx.lineTo(x+20,y+15); ctx.lineTo(x-20,y+15); ctx.closePath() } ctx.fillStyle = ['#4ecdc4','#a8e6cf','#ffffff'][i%3]; ctx.fill() }) }
-    else if (scene === 'blobs') { ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H); parts.forEach(p => { ctx.beginPath(); ctx.arc(p.x,p.y,p.r*5,0,Math.PI*2); const g = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*5); g.addColorStop(0, p.c + 'cc'); g.addColorStop(1, p.c + '00'); ctx.fillStyle = g; ctx.fill(); p.x += p.vx; p.y += p.vy; if (p.x < 0 || p.x > W) p.vx *= -1; if (p.y < 0 || p.y > H) p.vy *= -1 }) }
+    else if (scene === 'movie') { ctx.fillStyle = '#0b0b0b'; ctx.fillRect(0,0,W,H); ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H*0.12); ctx.fillRect(0,H*0.88,W,H*0.12); const creds = ['CYPHER4X PRODUCTIONS','directed by You','cinematography · AI','A CYPHER4X FILM']; ctx.font = '14px monospace'; ctx.textAlign = 'center'; creds.forEach((l, i) => { const y = (t*40+i*40)%H; if (y > H*0.15 && y < H*0.85) { ctx.fillStyle = i === 0 ? '#ffcc00' : 'rgba(255,255,255,0.8)'; ctx.fillText(l, W/2, y) } }) }
+    else if (scene === 'sakura') { const g = ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#ffb6d5'); g.addColorStop(1,'#ff4f9a'); ctx.fillStyle = g; ctx.fillRect(0,0,W,H); parts.forEach(p => { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.beginPath(); ctx.ellipse(0,0,p.r*2.5,p.r,0,0,Math.PI*2); ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fill(); ctx.restore(); p.y += 1.2; p.x += Math.sin(t + p.y * 0.05) * 0.8; p.rot += 0.02; if (p.y > H) { p.y = -10; p.x = Math.random() * W } }) }
     else { const g = ctx.createLinearGradient(0,0,W,H); g.addColorStop(0, pal[0]); g.addColorStop(1, pal[1] || pal[0]); ctx.fillStyle = g; ctx.fillRect(0,0,W,H); parts.forEach(p => { ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle = p.c; ctx.fill(); p.x += p.vx; p.y += p.vy; if (p.x < 0 || p.x > W) p.vx *= -1; if (p.y < 0 || p.y > H) p.vy *= -1 }) }
     ctx.save(); ctx.textAlign = 'center'; ctx.font = 'bold 42px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.95)'; ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 12; ctx.fillText('CYPHER4X', W/2, H/2 - 8); ctx.font = '16px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fillText(style.label + ' Style', W/2, H/2 + 22); ctx.restore()
     drawWatermark(ctx, W, H, wm || 'CYPHER4X')
@@ -737,6 +829,29 @@ function startCanvasVideo(canvas, style, userDesc, wm, onProgress) {
   recorder.ondataavailable = e => e.data.size > 0 && chunks.push(e.data)
   recorder.start()
   return { stop: () => new Promise(res => { recorder.onstop = () => res(new Blob(chunks, { type: 'video/webm' })); cancelAnimationFrame(raf); recorder.stop() }) }
+}
+
+// ==================================================
+// COLOR HELPERS
+// ==================================================
+function hexA(hex, a) {
+  if (!hex || !hex.startsWith('#')) return hex
+  const r = parseInt(hex.slice(1,3), 16), g = parseInt(hex.slice(3,5), 16), b = parseInt(hex.slice(5,7), 16)
+  return `rgba(${r},${g},${b},${a})`
+}
+function lightenColor(hex) {
+  if (!hex || !hex.startsWith('#')) return hex
+  const r = Math.min(255, parseInt(hex.slice(1,3),16) + 70)
+  const g = Math.min(255, parseInt(hex.slice(3,5),16) + 70)
+  const b = Math.min(255, parseInt(hex.slice(5,7),16) + 70)
+  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`
+}
+function darkenColor(hex) {
+  if (!hex || !hex.startsWith('#')) return hex
+  const r = Math.max(0, parseInt(hex.slice(1,3),16) - 60)
+  const g = Math.max(0, parseInt(hex.slice(3,5),16) - 60)
+  const b = Math.max(0, parseInt(hex.slice(5,7),16) - 60)
+  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`
 }
 
 // ==================================================
@@ -757,7 +872,7 @@ const RedBall = ({ isSpeaking = false, theme = {}, size = 180 }) => {
           ...styles.ball3D,
           width: size, height: size,
           background: `radial-gradient(circle at 30% 25%, ${hexA(c2, 0.9)} 0%, transparent 45%), radial-gradient(circle at 40% 35%, ${c2} 0%, ${c} 25%, ${c} 50%, ${c3} 75%, ${darkenColor(c3)} 100%)`,
-          boxShadow: `inset -20px -20px 40px ${hexA(c3, 0.8)}, inset 15px 15px 30px ${hexA(c2, 0.4)}, 0 0 50px ${hexA(c, 0.5)}, 0 0 100px ${hexA(c, 0.3)}, 0 0 150px ${hexA(c, 0.15)}`,
+          boxShadow: `inset -20px -20px 40px ${hexA(c3, 0.8)}, inset 15px 15px 30px ${hexA(c2, 0.4)}, 0 0 50px ${hexA(c, 0.5)}, 0 0 100px ${hexA(c, 0.3)}`,
           ...(isSpeaking ? { animation: 'ballShake 0.35s ease-in-out infinite' } : {})
         }}>
           <div style={styles.ballHighlight} />
@@ -766,26 +881,6 @@ const RedBall = ({ isSpeaking = false, theme = {}, size = 180 }) => {
       </div>
     </div>
   )
-}
-
-function hexA(hex, a) {
-  if (!hex || !hex.startsWith('#')) return hex
-  const r = parseInt(hex.slice(1,3), 16), g = parseInt(hex.slice(3,5), 16), b = parseInt(hex.slice(5,7), 16)
-  return `rgba(${r},${g},${b},${a})`
-}
-function lightenColor(hex) {
-  if (!hex || !hex.startsWith('#')) return hex
-  const r = Math.min(255, parseInt(hex.slice(1,3),16) + 70)
-  const g = Math.min(255, parseInt(hex.slice(3,5),16) + 70)
-  const b = Math.min(255, parseInt(hex.slice(5,7),16) + 70)
-  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`
-}
-function darkenColor(hex) {
-  if (!hex || !hex.startsWith('#')) return hex
-  const r = Math.max(0, parseInt(hex.slice(1,3),16) - 60)
-  const g = Math.max(0, parseInt(hex.slice(3,5),16) - 60)
-  const b = Math.max(0, parseInt(hex.slice(5,7),16) - 60)
-  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`
 }
 
 // ==================================================
@@ -825,7 +920,7 @@ export default function App() {
   const [showPracticalWorkspace, setShowPracticalWorkspace] = useState(false)
   const [practicalBg, setPracticalBg] = useState('#ffffff')
   const [practicalLogs, setPracticalLogs] = useState([
-    { id: 1, role: 'ai', type: 'text', content: 'Hello! I am your Practical Workspace AI. I can create tools, apps, images, or write code for you. What would you like to build today?' }
+    { id: 1, role: 'ai', type: 'text', content: 'Hello! I am your Practical Workspace AI. I can create apps, games, tools, images — all built and ready to use. Just tell me what you want.' }
   ])
   const [practicalInput, setPracticalInput] = useState('')
   const [practicalProcessing, setPracticalProcessing] = useState(false)
@@ -930,25 +1025,26 @@ export default function App() {
   }, [settings.soundFx])
   const vibrate = useCallback((p = 10) => { if (!settings.haptic) return; try { navigator.vibrate && navigator.vibrate(p) } catch {} }, [settings.haptic])
 
-  // ✅ FIX #3 — speakText moved UP so effects below can reference it safely
+  // speakText moved above effects that reference it
   const speakText = useCallback((text, onEnd = null) => {
     if (!text || !synthRef.current) return
     try {
       synthRef.current.cancel()
       const u = new SpeechSynthesisUtterance(text.replace(/[*_`#]/g, ''))
-      u.rate = 0.95; u.pitch = 0.9
+      u.rate = settings.voiceSpeed || 0.95
+      u.pitch = voiceGender === 'male' ? 0.7 : 1.0
       const voices = synthRef.current.getVoices()
-      const preferredVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Microsoft David')) || voices.find(v => v.lang === 'en-US')
-      if (preferredVoice) u.voice = preferredVoice
+      const preferred = voices.find(v => v.name.includes('Google US English') || (voiceGender === 'male' && v.name.includes('David'))) || voices.find(v => v.lang === 'en-US')
+      if (preferred) u.voice = preferred
       u.onstart = () => setIsAISpeaking(true)
       u.onend = () => { setIsAISpeaking(false); if (onEnd) onEnd() }
       u.onerror = () => { setIsAISpeaking(false); if (onEnd) onEnd() }
       synthRef.current.speak(u)
     } catch { setIsAISpeaking(false); if (onEnd) onEnd() }
-  }, [])
+  }, [settings.voiceSpeed, voiceGender])
 
   // ==================================================
-  // INTRO & BOOT SEQUENCE
+  // INTRO / BOOT
   // ==================================================
   useEffect(() => {
     if (!showIntro) return
@@ -967,8 +1063,7 @@ export default function App() {
     ]
     const start = Date.now(), duration = 12000
     const interval = setInterval(() => {
-      const elapsed = Date.now() - start
-      const pct = Math.min((elapsed / duration) * 100, 100)
+      const pct = Math.min(((Date.now() - start) / duration) * 100, 100)
       setEnterProgress(pct)
       let cur = messages[0].text
       for (const m of messages) { if (pct >= m.at) cur = m.text }
@@ -979,40 +1074,15 @@ export default function App() {
   }, [isEnteringAI])
 
   useEffect(() => {
-    if (practicalBuildState === 'building' && practicalBuildTimer > 0) {
-      const interval = setInterval(() => {
-        setPracticalBuildTimer(prev => {
-          if (prev <= 1) {
-            clearInterval(interval)
-            const code = generateLongCode(practicalBuildDetails.lang, `${practicalBuildDetails.type} game`, 'Practical Workspace generation')
-            setPracticalLogs(prevLogs => [...prevLogs, { id: Date.now(), role: 'ai', type: 'code', content: code }])
-            setPracticalBuildState(null)
-            setPracticalActionText('')
-            speakText(`Your ${practicalBuildDetails.type} game in ${practicalBuildDetails.lang} is ready!`)
-            return 0
-          }
-          return prev - 1
-        })
-      }, 1000)
-      return () => clearInterval(interval)
-    }
-  }, [practicalBuildState, practicalBuildTimer, practicalBuildDetails, speakText])
-
-  useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 30000)
     return () => clearInterval(t)
   }, [])
 
   useEffect(() => {
-    if (!settings.locationEnabled) return
-    if (!navigator.geolocation) return
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => { const w = await fetchWeather(pos.coords.latitude, pos.coords.longitude); if (w) setWeather(w) },
-      () => {}, { timeout: 5000 }
-    )
-    const refresh = setInterval(() => {
-      navigator.geolocation.getCurrentPosition(async (pos) => { const w = await fetchWeather(pos.coords.latitude, pos.coords.longitude); if (w) setWeather(w) }, () => {}, { timeout: 5000 })
-    }, 600000)
+    if (!settings.locationEnabled || !navigator.geolocation) return
+    const grab = () => navigator.geolocation.getCurrentPosition(async (pos) => { const w = await fetchWeather(pos.coords.latitude, pos.coords.longitude); if (w) setWeather(w) }, () => {}, { timeout: 5000 })
+    grab()
+    const refresh = setInterval(grab, 600000)
     return () => clearInterval(refresh)
   }, [settings.locationEnabled])
 
@@ -1024,7 +1094,16 @@ export default function App() {
   useEffect(() => { workspaceEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [workspaceLogs, workspaceTasks])
   useEffect(() => { practicalEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [practicalLogs])
 
+  useEffect(() => {
+    const t = setInterval(() => {
+      setStats(p => ({ ...p, uptime: Math.floor((Date.now() - APP_START_TIME)/1000), cpuUsage: Math.floor(Math.random()*30)+10, cpuTemp: Math.floor(Math.random()*20)+55, ramUsage: Math.floor(Math.random()*4)+3.5, storageUsed: Math.floor(Math.random()*50)+120, networkSpeed: (Math.random()*5+0.5).toFixed(2) }))
+    }, 3000)
+    return () => clearInterval(t)
+  }, [])
+
+  // ==================================================
   // AUTH
+  // ==================================================
   const handleAuthSubmit = () => {
     if (!email || !pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) { setAuthError('Valid email + 4-digit PIN required.'); return }
     if (showLogin) { if (userExists(email, pin)) { loginUser(email, pin); setShowAuthModal(false) } else setAuthError('No account found.') }
@@ -1062,25 +1141,23 @@ export default function App() {
 
   const requireLogin = (featureName) => {
     if (!TOOLS_ENABLED) { alert(`🔒 ${featureName} is not yet available.`); return false }
-    if (settings.restrictTools && userMode !== 'loggedin') { alert(`🔒 ${featureName} is restricted.\n\nPlease login or sign up to access this feature.`); return false }
+    if (settings.restrictTools && userMode !== 'loggedin') { alert(`🔒 ${featureName} is restricted.\n\nPlease login or sign up.`); return false }
     return true
   }
 
-  // AI GREETING
   useEffect(() => {
     if (!isBooting && !isEnteringAI && !hasGreeted.current && activeChatId && !showIntro) {
       hasGreeted.current = true
       const name = profile?.name || (userMode === 'guest' ? 'Guest' : 'there')
-      const greeting = `Hello ${name}! 👋 I am CYPHER4X, your advanced AI assistant. How can I help you today?`
-      setConversation(prev => {
-        if (prev.length === 0) return [{ id: ++msgCounter.current, role: 'assistant', content: greeting, time: Date.now() }]
-        return prev
-      })
+      const greeting = `Hello ${name}! 👋 I am CYPHER4X. How can I help?`
+      setConversation(prev => prev.length === 0 ? [{ id: ++msgCounter.current, role: 'assistant', content: greeting, time: Date.now() }] : prev)
       if (settings.readAloud || settings.autoStartVoice) speakText(greeting)
     }
   }, [isBooting, isEnteringAI, activeChatId, showIntro])
 
-  // CHAT MANAGEMENT
+  // ==================================================
+  // CHAT MGMT
+  // ==================================================
   const createNewChat = () => {
     const newChat = { id: 'chat-' + Date.now(), title: 'Chat ' + (chats.length + 1), messages: [], createdAt: Date.now() }
     setChats(prev => [newChat, ...prev]); setActiveChatId(newChat.id)
@@ -1088,14 +1165,13 @@ export default function App() {
   }
   const switchChat = (chatId) => { setActiveChatId(chatId); setChatOverviewInput(''); setReplyingTo(null); setShowChatMenu(false) }
   const renameChat = (chatId) => {
-    const chat = chats.find(c => c.id === chatId)
-    if (!chat) return
+    const chat = chats.find(c => c.id === chatId); if (!chat) return
     const newTitle = prompt('Rename chat:', chat.title)
     if (newTitle && newTitle.trim()) setChats(prev => prev.map(c => c.id === chatId ? { ...c, title: newTitle.trim() } : c))
     setShowChatMenu(false)
   }
   const deleteChat = (chatId) => {
-    if (chats.length <= 1) { alert('You need at least one chat.'); return }
+    if (chats.length <= 1) { alert('Need at least one chat.'); return }
     if (!confirm('Delete this chat?')) return
     const remaining = chats.filter(c => c.id !== chatId)
     setChats(remaining)
@@ -1103,9 +1179,10 @@ export default function App() {
     setShowChatMenu(false)
   }
   const clearConversation = useCallback(() => setConversation([]), [activeChatId])
-  const clearCommands = useCallback(() => setCommandHistory([]), [])
 
+  // ==================================================
   // SPEECH RECOGNITION
+  // ==================================================
   const setupSpeechRecognition = useCallback((isOneOff = false, onFinal = null) => {
     if (typeof window === 'undefined') return null
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) { alert('Speech not supported.'); return null }
@@ -1135,60 +1212,41 @@ export default function App() {
   }
 
   // ==================================================
-  // WORKSPACE LOGIC
+  // WORKSPACE (legacy)
   // ==================================================
   const addWorkspaceTask = (text) => {
     const id = Date.now() + Math.random()
     setWorkspaceTasks(prev => [...prev, { id, text, status: 'pending', progress: 0 }])
     return id
   }
-  const updateWorkspaceTask = (id, updates) => { setWorkspaceTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t)) }
-  const removeWorkspaceTask = (id) => { setTimeout(() => setWorkspaceTasks(prev => prev.filter(t => t.id !== id)), 2000) }
+  const updateWorkspaceTask = (id, updates) => setWorkspaceTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t))
+  const removeWorkspaceTask = (id) => setTimeout(() => setWorkspaceTasks(prev => prev.filter(t => t.id !== id)), 2000)
   const processWorkspaceCommand = async (cmdText) => {
     if (!cmdText.trim() || workspaceProcessing) return
     setWorkspaceProcessing(true)
     setWorkspaceLogs(prev => [...prev, { type: 'user', text: cmdText }])
     setWorkspaceCommand('')
     const l = cmdText.toLowerCase()
-
-    if (l.includes('3d') || l.includes('rocket') || l.includes('draw') || l.includes('model') || l.includes('image') || l.includes('picture')) {
-      const t1 = addWorkspaceTask('Analyzing visual request...')
-      await new Promise(r => setTimeout(r, 500))
-      updateWorkspaceTask(t1, { status: 'done', progress: 100 })
-      const t2 = addWorkspaceTask('Fetching reference assets...')
-      await new Promise(r => setTimeout(r, 1000))
-      updateWorkspaceTask(t2, { status: 'done', progress: 100 })
-      const t3 = addWorkspaceTask('Generating 3D mesh...')
-      setWorkspaceActiveTab('canvas')
-      const imageUrl = 'https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&w=600&q=80'
-      setWorkspaceContent({ type: '3d', data: { title: '3D Render: ' + cmdText.slice(0, 30), image: imageUrl, colors: ['#ff003c', '#00ffff', '#ffffff'] } })
-      await new Promise(r => setTimeout(r, 1500))
-      updateWorkspaceTask(t3, { status: 'done', progress: 100 })
-      removeWorkspaceTask(t3)
-      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `I've generated the 3D render. View it on the Canvas tab.` }])
-      speakText("Task completed. The 3D render is ready on your workspace canvas.")
-    }
-    else if (l.includes('game') || l.includes('code') || l.includes('script') || l.includes('program')) {
-      const t1 = addWorkspaceTask('Initializing development environment...')
-      await new Promise(r => setTimeout(r, 500))
-      updateWorkspaceTask(t1, { status: 'done', progress: 100 })
-      const t2 = addWorkspaceTask('Writing code...')
-      const lang = detectLanguage(cmdText) // ✅ now defined
-      const code = generateLongCode(lang, cmdText, 'Simulation generation')
+    if (l.includes('image') || l.includes('picture') || l.includes('3d') || l.includes('draw')) {
+      const t1 = addWorkspaceTask('Analyzing visual request...'); await new Promise(r => setTimeout(r, 500)); updateWorkspaceTask(t1, { status: 'done', progress: 100 })
+      const t2 = addWorkspaceTask('Generating image...'); setWorkspaceActiveTab('canvas')
+      const imageUrl = 'https://source.unsplash.com/600x400/?abstract'
+      setWorkspaceContent({ type: '3d', data: { title: 'Generated: ' + cmdText.slice(0, 30), image: imageUrl } })
+      await new Promise(r => setTimeout(r, 1500)); updateWorkspaceTask(t2, { status: 'done', progress: 100 }); removeWorkspaceTask(t2)
+      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `Generated image on Canvas tab.` }])
+      speakText("Image ready on the workspace canvas.")
+    } else if (l.includes('game') || l.includes('code') || l.includes('script') || l.includes('program')) {
+      const t1 = addWorkspaceTask('Writing code...')
+      const lang = detectLanguage(cmdText)
+      const code = generateLongCode(lang, cmdText, '')
       setWorkspaceContent({ type: 'code', data: { lang, code } })
       setWorkspaceActiveTab('code')
-      await new Promise(r => setTimeout(r, 1000))
-      updateWorkspaceTask(t2, { status: 'done', progress: 100 })
-      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `Here is the code:\n\n\`\`\`${lang}\n${code}\n\`\`\`` }])
-      speakText("I have written the code for your project.")
-    }
-    else {
-      const t1 = addWorkspaceTask('Processing command...')
+      await new Promise(r => setTimeout(r, 1000)); updateWorkspaceTask(t1, { status: 'done', progress: 100 })
+      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `Code ready:\n\n\`\`\`${lang}\n${code}\n\`\`\`` }])
+      speakText("I have written the code.")
+    } else {
       await new Promise(r => setTimeout(r, 500))
-      updateWorkspaceTask(t1, { status: 'done', progress: 100 })
-      removeWorkspaceTask(t1)
-      const reply = `I received your command: "${cmdText}". I am ready to execute it in the workspace.`
-      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: reply }])
+      setWorkspaceLogs(prev => [...prev, { type: 'ai', text: `Received: "${cmdText}".` }])
       speakText("Command received.")
     }
     setWorkspaceProcessing(false)
@@ -1206,76 +1264,97 @@ export default function App() {
   }
 
   // ==================================================
-  // PRACTICAL WORKSPACE LOGIC
+  // PRACTICAL WORKSPACE
   // ==================================================
   const processPracticalCommand = async (cmdText) => {
     if (!cmdText.trim() || practicalProcessing) return
-    setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'user', type: 'text', content: cmdText }])
+    setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'user', type: 'text', content: cmdText, time: Date.now() }])
     setPracticalInput('')
     const l = cmdText.toLowerCase()
 
-    if (practicalBuildState === 'awaiting_type') {
-      setPracticalBuildDetails(prev => ({ ...prev, type: cmdText }))
-      setPracticalBuildState('awaiting_lang')
-      const responseContent = `Got it! What language should I use? (e.g., JavaScript, Python, C++, React)`
-      setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
-      speakText("Got it! What language should I use?")
-      return
-    }
-
     if (practicalBuildState === 'awaiting_lang') {
-      const lang = cmdText
-      setPracticalBuildDetails(prev => ({ ...prev, lang }))
-      setPracticalBuildState('building')
-      setPracticalBuildTimer(5)
-      const responseContent = `Building your ${practicalBuildDetails.type} game in ${lang}...\n\nEstimated time: 5 seconds...`
-      setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
-      speakText(`Building your game in ${lang}. Please wait.`)
-      return
+      setPracticalBuildState(null)
+      return runDirectBuild(practicalBuildDetails.type + ' in ' + cmdText, cmdText)
     }
 
     if (isPureGreeting(cmdText)) {
-      const responseContent = `Hello! 👋 I'm doing great. How can I help you today?`
-      setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
-      speakText(responseContent)
-    } else if (l.includes('how are you')) {
-      const responseContent = `I'm functioning perfectly! Ready to build whatever you need.`
-      setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
-      speakText(responseContent)
-    } else if (l.includes('what is your name') || l.includes('who are you')) {
-      const responseContent = `I am CYPHER4X, your advanced AI assistant. I'm here to help you build, create, and explore.`
-      setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
-      speakText(responseContent)
+      const r = "Hello! 👋 Ready to build. What do you want to make?"
+      setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: r }])
+      speakText(r); return
     }
-    else if (l.includes('image') || l.includes('picture') || l.includes('draw') || l.includes('show me')) {
-      setPracticalActionText('AI is building your image...')
-      const keywords = cmdText.replace(/show me|image|picture of|draw/gi, '').trim() || 'abstract'
-      const imageUrl = `https://source.unsplash.com/800x600/?${encodeURIComponent(keywords)}`
-      await new Promise(r => setTimeout(r, 800))
-      setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'image', content: imageUrl }])
-      speakText(`Here is the image for ${keywords}.`)
+    if (/how are you/.test(l)) {
+      const r = "I'm running perfectly. What shall we create today?"
+      setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: r }])
+      speakText(r); return
     }
-    else if (l.includes('create') || l.includes('build') || l.includes('make') || l.includes('generate') || l.includes('game') || l.includes('app') || l.includes('tool')) {
-      const detectedLang = detectLanguage(cmdText) // ✅ now defined
-      if (detectedLang !== 'javascript') {
-        setPracticalBuildDetails({ type: cmdText, lang: detectedLang })
-        setPracticalBuildState('building')
-        setPracticalBuildTimer(5)
-        const responseContent = `Building your project in ${detectedLang}...\n\nEstimated time: 5 seconds...`
-        setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
-        speakText(`Building your project in ${detectedLang}. Please wait.`)
-      } else {
-        setPracticalBuildState('awaiting_type')
-        const responseContent = `Sure! What kind of ${l.includes('game') ? 'game' : l.includes('app') ? 'app' : 'tool'} would you like? (e.g., 2D platformer, 3D shooter, puzzle, calculator, etc.)`
-        setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
-        speakText("Sure! What kind of project would you like?")
-      }
+    if (/your name|who are you/.test(l)) {
+      const r = "I'm CYPHER4X — your AI builder. I make apps, games, tools, and images."
+      setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: r }])
+      speakText(r); return
     }
-    else {
-      const responseContent = `I understand. I can create that for you. What specific details would you like me to include?`
-      setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: responseContent }])
-      speakText(responseContent)
+
+    await runDirectBuild(cmdText, null)
+  }
+
+  const runDirectBuild = async (desc, forcedLang) => {
+    setPracticalProcessing(true)
+    const intent = detectIntent(desc)
+    const labelMap = { app: 'app', game: 'game', tool: 'tool', image: 'image', code: 'source code' }
+    const label = labelMap[intent] || 'app'
+    setPracticalActionText(`Building your ${label}...`)
+    setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'text', content: `⚙️ Building your ${label}...\n\nAlmost ready...` }])
+
+    await new Promise(r => setTimeout(r, 1200))
+
+    let artifact
+    try {
+      artifact = buildPracticalArtifact(desc, forcedLang)
+    } catch (e) {
+      artifact = { title: 'Build error', type: 'text', content: 'Build failed: ' + e.message }
     }
+
+    setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'ai', type: 'artifact', content: artifact, time: Date.now() }])
+    speakText(`Your ${label} is ready. You can download it or open in a new tab.`)
+    setPracticalProcessing(false)
+    setPracticalActionText('')
+  }
+
+  const handlePracticalDelete = (id) => {
+    if (!confirm('Delete this message?')) return
+    setPracticalLogs(prev => prev.filter(l => l.id !== id))
+  }
+
+  const handlePracticalEdit = (log) => {
+    const nc = prompt('Edit message:', log.content)
+    if (nc === null || !nc.trim() || nc === log.content) return
+    setPracticalLogs(prev => prev.map(l => l.id === log.id ? { ...l, content: nc.trim() } : l))
+  }
+
+  const downloadBlob = (blob, name) => {
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url; a.download = name; a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
+
+  const handleArtifactDownload = (artifact) => {
+    if (artifact.type === 'image') { window.open(artifact.url, '_blank'); return }
+    if (artifact.type === 'code') {
+      const ext = { javascript: 'js', typescript: 'ts', python: 'py', java: 'java', csharp: 'cs', cpp: 'cpp', rust: 'rs', go: 'go', swift: 'swift', kotlin: 'kt', react: 'jsx', html: 'html', sql: 'sql' }[artifact.lang] || 'txt'
+      downloadBlob(new Blob([artifact.code], { type: 'text/plain' }), `${artifact.title.toLowerCase().replace(/\s+/g,'_')}.${ext}`)
+      return
+    }
+    if (artifact.html) {
+      downloadBlob(new Blob([artifact.html], { type: 'text/html' }), `${artifact.title.toLowerCase().replace(/\s+/g,'_')}.html`)
+    }
+  }
+
+  const openArtifactInTab = (artifact) => {
+    if (artifact.type === 'image') { window.open(artifact.url, '_blank'); return }
+    if (!artifact.html) return
+    const blob = new Blob([artifact.html], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank')
+    setTimeout(() => URL.revokeObjectURL(url), 60000)
   }
 
   const handlePracticalSubmit = (e) => { if (e) e.preventDefault(); processPracticalCommand(practicalInput) }
@@ -1289,19 +1368,9 @@ export default function App() {
     r.onresult = (e) => processPracticalCommand(e.results[0][0].transcript)
     r.start()
   }
-  const handlePracticalDownload = (log) => {
-    if (log.type === 'code') {
-      const blob = new Blob([log.content], { type: 'text/plain' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a'); a.href = url; a.download = `cypher4x_practical_code_${Date.now()}.txt`; a.click()
-      URL.revokeObjectURL(url)
-    } else if (log.type === 'image') {
-      window.open(log.content, '_blank')
-    }
-  }
 
   // ==================================================
-  // MAIN CHAT LOGIC
+  // MAIN CHAT
   // ==================================================
   const executeCommand = (q) => {
     const l = q.toLowerCase().trim()
@@ -1312,17 +1381,15 @@ export default function App() {
     if ((l.startsWith('secret ') || l.startsWith('anonymous ')) && settings.secretMode) { const t = q.replace(/^(secret|anonymous)\s+/i, ''); openAnonymous(t); return { response: `Anonymous search: "${t}" 🔒` } }
     if (l.startsWith('web ') || l.startsWith('search web ')) { const t = q.replace(/^(web|search web)\s+/i, ''); openAnonymous(t); return { response: `Searching "${t}"...` } }
     if (l.startsWith('play ')) { const s = l.replace('play ', '').trim(); window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(s)}`, '_blank'); return { response: `Playing "${s}"! 🎵` } }
-
     const dash = getDashboardInfo()
     if (l === 'time' || l.includes('what time') || l.includes('current time')) return { response: `🕒 Current time: **${dash.time}**\n📅 ${dash.day}, ${dash.date}` }
     if (l === 'date' || l.includes('what date') || l === 'today') return { response: `📅 Today is **${dash.day}**, ${dash.date}\n🕒 Time: ${dash.time}` }
     if (l.includes('what day') || l === 'day') return { response: `📆 Today is **${dash.day}**` }
     if (l.includes('temperature') || l.includes('how hot') || l.includes('how cold') || l.includes('weather')) {
-      if (!settings.locationEnabled) return { response: `⚠️ Location is disabled. Enable it in Settings to get weather.` }
+      if (!settings.locationEnabled) return { response: `⚠️ Location disabled. Enable it in Settings.` }
       if (!weather) return { response: `⏳ Fetching weather...` }
-      return { response: `🌡️ Current temperature: **${dash.temp}**` }
+      return { response: `🌡️ Temp: **${dash.temp}**` }
     }
-
     if (l.startsWith('calc ') || l.includes('calculate')) { try { const e = l.replace('calculate','').replace('calc','').trim(); const r = Function(`"use strict"; return (${e})`)(); if (typeof r === 'number') return { response: `Answer: ${r} 🧮` } } catch {} }
     return null
   }
@@ -1354,14 +1421,6 @@ export default function App() {
         setConversation(prev => [...prev, { id: ++msgCounter.current, role: 'assistant', content: q, time: Date.now() }])
         if (settings.readAloud || settings.autoStartVoice) speakText(q)
       }
-      setIsProcessing(false); return
-    }
-
-    if (isCodeRequest(query)) {
-      const lang = detectLanguage(query) // ✅ now defined
-      setConversation(prev => [...prev, { id: ++msgCounter.current, role: 'assistant', content: `I'll write code for you! 🎨\n\n**Q1 — What programming language?**\n\n_Detected: **${lang}**_`, time: Date.now() }])
-      setPendingCode({ step: 'language', answers: { language: null }, detected: { language: lang } })
-      if (settings.readAloud || settings.autoStartVoice) speakText('I will ask three questions to generate your code.')
       setIsProcessing(false); return
     }
 
@@ -1418,7 +1477,6 @@ export default function App() {
   useEffect(() => { if (voiceTranscript && !chatOverviewListening) setChatOverviewInput(voiceTranscript) }, [voiceTranscript, chatOverviewListening])
   const sendOverviewText = useCallback(() => { const t = chatOverviewInput.trim(); if (!t || isProcessing) return; setChatOverviewInput(''); processUserQuery(t) }, [chatOverviewInput, isProcessing, processUserQuery])
 
-  // FILES & MESSAGES
   const handleOverviewFileShare = useCallback((e) => {
     const files = e.target.files; if (!files || !files[0]) return
     const f = files[0]; if (f.size > 20 * 1024 * 1024) { alert('Max 20MB'); return }
@@ -1483,10 +1541,9 @@ export default function App() {
     try { r.start() } catch (e) { alert('Failed: ' + e.message); setRecordingMode(false) }
   }, [isRecording, isProcessing, isFullscreenCall, processUserQuery, vibrate])
   const sendInterim = useCallback(() => { if (!interimTranscript.trim() || isProcessing) return; const t = interimTranscript.trim(); setInterimTranscript(''); setRecordingMode(false); if (recognitionRef.current) try { recognitionRef.current.stop() } catch {}; processUserQuery(t) }, [interimTranscript, isProcessing, processUserQuery])
-  const cancelRecording = useCallback(() => { setInterimTranscript(''); setRecordingMode(false); setIsRecording(false); setIsListening(false); if (recognitionRef.current) try { recognitionRef.current.stop() } catch {} }, [])
   const sendTextMessage = useCallback(() => { const t = inputText.trim(); if (!t || isProcessing) return; setInputText(''); processUserQuery(t) }, [inputText, isProcessing, processUserQuery])
 
-  // SETTINGS / PROFILE
+  // SETTINGS
   const handleBackgroundChange = (e) => {
     const f = e.target.files[0]; if (!f) return
     if (!f.type.startsWith('image/')) { alert('Image only'); return }
@@ -1513,23 +1570,16 @@ export default function App() {
     } else { try { overlayRecognitionRef.current?.stop() } catch {}; setOverlayListening(false) }
   }
 
-  useEffect(() => {
-    const t = setInterval(() => {
-      setStats(p => ({ ...p, uptime: Math.floor((Date.now() - APP_START_TIME)/1000), cpuUsage: Math.floor(Math.random()*30)+10, cpuTemp: Math.floor(Math.random()*20)+55, ramUsage: Math.floor(Math.random()*4)+3.5, storageUsed: Math.floor(Math.random()*50)+120, networkSpeed: (Math.random()*5+0.5).toFixed(2) }))
-    }, 3000)
-    return () => clearInterval(t)
-  }, [])
-
   // MUSIC
   const handleGenerateMusic = async () => {
     if (!requireLogin('Music Generator')) return
-    if (!musicDesc.trim()) { alert('Describe the music you want first.'); return }
-    setMusicGenerating(true); setMusicInfo('📡 Trying Tunova API...'); setMusicDownloadUrl(null)
-    const fallbackLocalMusic = () => {
+    if (!musicDesc.trim()) { alert('Describe the music first.'); return }
+    setMusicGenerating(true); setMusicInfo('📡 Trying Tunova...'); setMusicDownloadUrl(null)
+    const fallback = () => {
       try {
         const style = guessMusicStyle(musicDesc)
         const bars = Math.max(2, Math.round(musicDuration * style.bpm / 60 / 4))
-        setMusicInfo(`🎵 Built-in synth — ${style.name} • ${style.bpm} BPM • ${bars} bars`)
+        setMusicInfo(`🎵 Built-in synth — ${style.name} • ${style.bpm} BPM`)
         const notes = generateRichMelody(style.bpm, style.scale, bars)
         const { ctx, duration } = playRichMelody(notes, musicQuality, style.bpm)
         setMusicPlaying(true)
@@ -1540,9 +1590,9 @@ export default function App() {
     try {
       const res = await fetch('/api/music', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: musicDesc, duration: musicDuration }) })
       const data = await res.json()
-      if (!res.ok || data.error) { setMusicInfo('⚠️ Tunova unavailable — using built-in synth...'); return fallbackLocalMusic() }
+      if (!res.ok || data.error) { setMusicInfo('⚠️ Tunova unavailable — using built-in synth'); return fallback() }
       const taskId = data.id || data.task_id || data.data?.id || data.result?.id
-      if (!taskId) { setMusicInfo('⚠️ No task ID — using built-in synth...'); return fallbackLocalMusic() }
+      if (!taskId) { setMusicInfo('⚠️ No task ID — using built-in synth'); return fallback() }
       setMusicInfo('✓ Tunova task created. Polling...')
       let attempts = 0
       const poll = setInterval(async () => {
@@ -1551,995 +1601,4 @@ export default function App() {
           const check = await fetch(`/api/music-status?task_id=${taskId}`)
           const status = await check.json()
           const url = status.audio_url || status.url || status.data?.audio_url || status.result?.audio_url
-          if (url) { clearInterval(poll); setMusicDownloadUrl(url); setMusicInfo('✓ Tunova music ready!'); const audio = new Audio(url); audio.volume = 0.9; audio.play().catch(()=>{}); setMusicAudioRef(audio); setMusicPlaying(true); audio.onended = () => setMusicPlaying(false); setMusicGenerating(false) }
-          else if (status.status === 'failed' || status.error) { clearInterval(poll); setMusicInfo('⚠️ Tunova failed — using built-in synth...'); fallbackLocalMusic() }
-          else { setMusicInfo(`⏳ Tunova generating... (${attempts * 3}s)`) }
-        } catch (e) { if (attempts >= 20) { clearInterval(poll); fallbackLocalMusic() } }
-        if (attempts >= 20) { clearInterval(poll); fallbackLocalMusic() }
-      }, 3000)
-    } catch (e) { fallbackLocalMusic() }
-  }
-
-  // VIDEO
-  const handleGenerateVideo = async () => {
-    if (!requireLogin('Video Generator')) return
-    if (!videoDesc.trim()) { alert('Describe the video you want first.'); return }
-    setVideoGenerating(true); setVideoInfo('📡 Trying Agnes AI...'); setVideoResultUrl(null); setVideoTaskId(null)
-    const fallbackLocal = () => {
-      const style = guessVideoStyle(videoDesc)
-      setVideoInfo(`🎬 Built-in engine — ${style.label} style • ${videoDuration}s. Rendering...`)
-      setVideoGenerating(false)
-      setTimeout(() => {
-        if (!canvasRef.current) return
-        setVideoRecording(true)
-        const rec = startCanvasVideo(canvasRef.current, style, videoDesc, profile?.name || 'CYPHER4X', (t) => setVideoProgress(Math.floor((t % 1) * 100)))
-        videoRecorderRef.current = rec
-        setTimeout(async () => {
-          if (!videoRecorderRef.current) return
-          const blob = await videoRecorderRef.current.stop()
-          videoRecorderRef.current = null; setVideoRecording(false)
-          const url = URL.createObjectURL(blob)
-          setVideoResultUrl(url)
-          setVideoInfo('✓ Video ready! Tap download.')
-        }, videoDuration * 1000)
-      }, 100)
-    }
-    try {
-      const res = await fetch('/api/video', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: videoDesc, duration: videoDuration, quality: videoQuality }) })
-      const data = await res.json()
-      if (!res.ok || data.error) { setVideoInfo('⚠️ Agnes unavailable — using built-in engine...'); return fallbackLocal() }
-      const vId = data.video_id || data.id || data.task_id || data.data?.id
-      if (!vId) { setVideoInfo('⚠️ No task ID — using built-in engine...'); return fallbackLocal() }
-      setVideoTaskId(vId); setVideoInfo('✓ Agnes task created. Polling...'); setVideoPolling(true); setVideoGenerating(false)
-      let attempts = 0
-      const poll = setInterval(async () => {
-        attempts++
-        try {
-          const check = await fetch(`/api/video-status?video_id=${vId}`)
-          const status = await check.json()
-          const url = status.video_url || status.url || status.output?.url || status.data?.video_url
-          if (url) { clearInterval(poll); setVideoResultUrl(url); setVideoInfo('✓ Agnes video ready!'); setVideoPolling(false) }
-          else if (status.status === 'failed' || status.error) { clearInterval(poll); setVideoInfo('⚠️ Agnes failed — using built-in engine...'); setVideoPolling(false); fallbackLocal() }
-          else { setVideoInfo(`⏳ Agnes generating... (${attempts * 5}s)`) }
-        } catch (e) { if (attempts >= 15) { clearInterval(poll); setVideoPolling(false); fallbackLocal() } }
-        if (attempts >= 15) { clearInterval(poll); setVideoPolling(false); fallbackLocal() }
-      }, 5000)
-    } catch (e) { fallbackLocal() }
-  }
-  const handleStopLocalVideo = async () => { if (!videoRecorderRef.current) return; const blob = await videoRecorderRef.current.stop(); videoRecorderRef.current = null; setVideoRecording(false); const url = URL.createObjectURL(blob); setVideoResultUrl(url); setVideoInfo('✓ Video ready! Tap download.') }
-
-  // CYBER TERMINAL
-  const fmtU = (s) => `${Math.floor(s/3600).toString().padStart(2,'0')}:${Math.floor((s%3600)/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`
-  const fmtT = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-
-  const runCyberCommand = async (cmd) => {
-    if (!requireLogin('Terminal')) return
-    const parts = cmd.trim().split(/\s+/); const base = parts[0]?.toLowerCase()
-    const args = parts.slice(1).join(' '); const arg1 = parts[1]
-    let out = ''
-    const helpText = `CYPHER4X Terminal ${VERSION} — commands:\n\nFiles:    pwd, ls, cd, cat, mkdir, touch, rm\nSystem:   whoami, uname, uptime, date, df, free, ps, neofetch\nNetwork:  ping, ifconfig, curl, dns, ip, portscan\nSecurity: hash, base64, unbase64, hex, rot13, passcheck, ctf\nUtility:  echo, calc, clear, help, about, ethics\nPkg:      pkg (simulated)`
-    try {
-      switch (base) {
-        case 'pwd': out = '/data/data/com.termux/files/home'; break
-        case 'ls': out = 'Documents/  Downloads/  Pictures/  Projects/  README.md  notes.txt'; break
-        case 'whoami': out = userMode === 'loggedin' ? email : 'guest@cypher4x'; break
-        case 'uname': out = arg1 === '-a' ? `Linux localhost 5.15.0-cypher4x #1 aarch64 GNU/Linux` : 'Linux'; break
-        case 'uptime': out = ` ${new Date().toLocaleTimeString()} up ${fmtU(stats.uptime)}`; break
-        case 'date': out = new Date().toString(); break
-        case 'neofetch': out = `   OS: ${VERSION_FULL}\n   Shell: csh 1.0\n   Uptime: ${fmtU(stats.uptime)}`; break
-        case 'ping': out = arg1 ? `PING ${arg1} (127.0.0.1): 4 packets transmitted, 4 received, 0% packet loss` : 'Usage: ping <host>'; break
-        case 'ifconfig': out = `wlan0: inet 192.168.1.${Math.floor(Math.random() * 200) + 10}  netmask 255.255.255.0`; break
-        case 'curl': { if (!arg1) { out = 'Usage: curl <url>'; break } setCyberLines(prev => [...prev, { type: 'cmd', text: `$ ${cmd}` }, { type: 'out', text: `Fetching...` }]); try { const r = await fetch(arg1); const text = await r.text(); out = `HTTP ${r.status}\n\n${text.slice(0, 800)}` } catch (e) { out = 'curl: ' + e.message } setCyberLines(prev => [...prev, { type: 'out', text: out }]); return }
-        case 'dns': { if (!arg1) { out = 'Usage: dns <domain>'; break } try { const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(arg1)}&type=A`); const d = await r.json(); out = d.Answer ? d.Answer.map(a => `${arg1}\t${a.TTL}\tA\t${a.data}`).join('\n') : 'No records' } catch (e) { out = 'Error: ' + e.message } break }
-        case 'ip': { if (!arg1) { out = 'Usage: ip <address>'; break } try { const r = await fetch(`https://ipapi.co/${encodeURIComponent(arg1)}/json/`); const d = await r.json(); out = `IP: ${d.ip}\nCity: ${d.city}\nCountry: ${d.country_name}\nISP: ${d.org}` } catch (e) { out = 'Error: ' + e.message } break }
-        case 'portscan': { if (!arg1) { out = 'Usage: portscan <host>'; break } out = `⚠️ SIMULATION ONLY\nTarget: ${arg1}\n`; [21,22,80,443,3306,8080].forEach(p => { out += `  ${p}: ${Math.random() > 0.75 ? 'open' : 'closed'}\n` }); break }
-        case 'hash': { if (!args) { out = 'Usage: hash <text>'; break } const buf = new TextEncoder().encode(args); const h = await crypto.subtle.digest('SHA-256', buf); out = Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join(''); break }
-        case 'base64': out = (() => { try { return btoa(args) } catch { return 'Invalid' } })(); break
-        case 'unbase64': out = (() => { try { return atob(args) } catch { return 'Invalid' } })(); break
-        case 'hex': out = Array.from(new TextEncoder().encode(args)).map(b => b.toString(16).padStart(2, '0')).join(' '); break
-        case 'rot13': out = args.replace(/[a-zA-Z]/g, c => String.fromCharCode((c <= 'Z' ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26)); break
-        case 'passcheck': { if (!args) { out = 'Usage: passcheck <password>'; break } const c = { len: args.length >= 12, low: /[a-z]/.test(args), up: /[A-Z]/.test(args), dig: /\d/.test(args), sp: /[^A-Za-z0-9]/.test(args), ok: !/^(password|123456)/i.test(args) }; const s = Object.values(c).filter(Boolean).length; out = `Score ${s}/6 — ${s >= 5 ? '🟢 Strong' : s >= 3 ? '🟡 Medium' : '🔴 Weak'}`; break }
-        case 'ctf': { const ch = [{ q: 'ROT13 of "Uryyb"?', a: 'hello' }, { q: 'HTTPS port?', a: '443' }][Math.floor(Math.random() * 2)]; setCtfChallenge(ch); out = `🎯 ${ch.q}\n\nType "ctfcheck <answer>"`; break }
-        case 'ctfcheck': if (!ctfChallenge) { out = 'No CTF.'; break } out = args.toLowerCase().trim() === ctfChallenge.a.toLowerCase() ? '✅ Correct!' : `❌ Answer: ${ctfChallenge.a}`; setCtfChallenge(null); break
-        case 'echo': out = args; break
-        case 'calc': { try { out = String(Function(`"use strict"; return (${args})`)()) } catch { out = 'Invalid' } break }
-        case 'clear': setCyberLines([{ type: 'info', text: 'Terminal cleared.' }]); return
-        case 'pkg': out = `pkg - SIMULATED\nUsage: pkg [search|install|list|update]`; break
-        case 'help': out = helpText; break
-        case 'about': out = `CYPHER4X Terminal ${VERSION}\nSimulated Linux shell.`; break
-        case 'ethics': out = `🔒 Educational use only. Only test systems you own.`; break
-        default: out = `csh: command not found: ${base}\nType "help"`
-      }
-    } catch (e) { out = 'Error: ' + e.message }
-    setCyberLines(prev => [...prev, { type: 'cmd', text: `$ ${cmd}` }, { type: 'out', text: out }])
-  }
-  const handleCyberSubmit = (e) => { e.preventDefault(); if (!cyberInput.trim()) return; runCyberCommand(cyberInput); setCyberInput('') }
-
-  const runCyberTool = async () => {
-    if (!requireLogin('Cyber Tools')) return
-    let out = ''
-    try {
-      switch (cyberTool) {
-        case 'passcheck': { const pw = cyberToolInput; if (!pw) { out = 'Enter a password'; break } const c = { len: pw.length >= 12, low: /[a-z]/.test(pw), up: /[A-Z]/.test(pw), dig: /\d/.test(pw), sp: /[^A-Za-z0-9]/.test(pw), ok: !/^(password|123456)/i.test(pw) }; const s = Object.values(c).filter(Boolean).length; out = `Score ${s}/6\n${s >= 5 ? '🟢 Strong' : s >= 3 ? '🟡 Medium' : '🔴 Weak'}`; break }
-        case 'hash': { const b = new TextEncoder().encode(cyberToolInput); const h = await crypto.subtle.digest('SHA-256', b); out = Array.from(new Uint8Array(h)).map(x => x.toString(16).padStart(2, '0')).join(''); break }
-        case 'base64': out = (() => { try { return btoa(cyberToolInput) } catch { return 'Invalid' } })(); break
-        case 'unbase64': out = (() => { try { return atob(cyberToolInput) } catch { return 'Invalid' } })(); break
-        case 'hex': out = Array.from(new TextEncoder().encode(cyberToolInput)).map(b => b.toString(16).padStart(2, '0')).join(' '); break
-        case 'rot13': out = cyberToolInput.replace(/[a-zA-Z]/g, c => String.fromCharCode((c <= 'Z' ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26)); break
-        case 'dns': { const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(cyberToolInput)}&type=A`); const d = await r.json(); out = d.Answer ? d.Answer.map(a => `A  ${a.data}  TTL ${a.TTL}`).join('\n') : 'No records'; break }
-        case 'ip': { const r = await fetch(`https://ipapi.co/${encodeURIComponent(cyberToolInput)}/json/`); const d = await r.json(); out = `IP: ${d.ip}\nCity: ${d.city}\nCountry: ${d.country_name}`; break }
-        case 'portscan': { const open = [80, 443].filter(() => Math.random() > 0.3); out = `⚠️ SIM\nOPEN: ${open.join(', ') || 'none'}`; break }
-        default: out = 'Unknown tool'
-      }
-    } catch (e) { out = 'Error: ' + e.message }
-    setCyberToolOutput(out)
-  }
-
-  // PROFILE
-  const handleAvatarChange = useCallback((e) => { const f = e.target.files[0]; if (!f) return; if (!f.type.startsWith('image/')) return alert('Image only'); const rd = new FileReader(); rd.onloadend = () => setProfileForm(p => ({ ...p, avatar: rd.result })); rd.readAsDataURL(f) }, [])
-  const saveProfile = useCallback(() => { if (!profileForm.name.trim() || !profileForm.username.trim()) { alert('Name & Username required'); return } const np = { ...profileForm, username: profileForm.username.toLowerCase().replace(/[^a-z0-9_]/g, ''), updatedAt: new Date().toISOString() }; setProfile(np); setEditingProfile(false); speakText(`Updated, ${np.name}!`) }, [profileForm, speakText])
-  const openEditProfile = useCallback(() => { setProfileForm({ name: profile?.name || '', username: profile?.username || '', avatar: profile?.avatar || '', bio: profile?.bio || '' }); setEditingProfile(true); setSidebarOpen(false) }, [profile])
-  const resetAllData = useCallback(() => {
-    if (!confirm('Reset ALL data?')) return
-    if (userMode === 'loggedin') saveUserData(email, pin, { profile: null, chats: [{ id: 'chat-' + Date.now(), title: 'Chat 1', messages: [], createdAt: Date.now() }], commandHistory: [], backgroundImage: null, theme, settings })
-    setProfile(null); setChats([{ id: 'default-' + Date.now(), title: 'Chat 1', messages: [], createdAt: Date.now() }]); setCommandHistory([])
-    setBackgroundImage(null); setSidebarOpen(false)
-  }, [userMode, email, pin, theme, settings])
-  const exportChat = useCallback(() => { const d = { chats, commandHistory, profile, exportedAt: new Date().toISOString() }; const b = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' }); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `cypher4x_${Date.now()}.json`; a.click(); URL.revokeObjectURL(u) }, [chats, commandHistory, profile])
-
-  const dash = getDashboardInfo()
-
-  // ============ RENDER ============
-  if (showIntro) return (
-    <div style={styles.introContainer}>
-      <div style={styles.introBackground} />
-      <div style={styles.introContent}>
-        {introStep === 0 && <h1 style={{...styles.introText, animation: 'fadeUp 1s ease'}}>INITIALIZING SYSTEM</h1>}
-        {introStep === 1 && <h1 style={{...styles.introText, animation: 'fadeUp 1s ease'}}>HACKERS HUB <span style={{color: theme.primary}}>PRESENTS</span></h1>}
-        {introStep === 2 && <h1 style={{...styles.introText, color: theme.primary, animation: 'pulse3 1s ease'}}>CYPHER4X</h1>}
-      </div>
-    </div>
-  )
-
-  if (isEnteringAI) return (
-    <div style={styles.enterOverlay}>
-      <div style={styles.enterBackground} />
-      <div style={styles.enterContent}>
-        <h1 style={{ ...styles.enterTitle, color: theme.primary, textShadow: `0 0 20px ${theme.primary}` }}>CYPHER4X</h1>
-        <p style={styles.enterSubtitleSmall}>{VERSION_FULL}</p>
-        <div style={styles.enterUpdatingWrap}>
-          <div style={{...styles.enterUpdatingLabel, color: theme.primary}}>Updating</div>
-          <div style={{...styles.enterUpdatingDots, color: theme.primary}}>
-            <span style={{ animation: 'pulse3 1s 0s ease-in-out infinite' }}>.</span>
-            <span style={{ animation: 'pulse3 1s 0.2s ease-in-out infinite' }}>.</span>
-            <span style={{ animation: 'pulse3 1s 0.4s ease-in-out infinite' }}>.</span>
-          </div>
-        </div>
-        <div style={styles.enterProgressBarWrap}><div style={{ ...styles.enterProgressBar, width: `${enterProgress}%`, backgroundColor: theme.primary }} /></div>
-        <span style={{...styles.enterPercent, color: theme.primary}}>{Math.round(enterProgress)}%</span>
-        <p style={styles.enterMessageSmall}>{enterMessage}</p>
-      </div>
-    </div>
-  )
-
-  if (showGuestLimit) return (
-    <div style={{ ...styles.guestLimitOverlay, background: theme.secondary }}>
-      <div style={{ ...styles.guestLimitCard, borderColor: theme.primary }}>
-        <h2 style={{ ...styles.guestLimitTitle, color: theme.primary }}>Free Trial Limit Reached</h2>
-        <p style={styles.guestLimitText}>You've used all 5 free messages. Login to continue.</p>
-        <div style={styles.guestLimitButtons}>
-          <button onClick={() => { setShowGuestLimit(false); setShowLogin(true); setShowAuthModal(true) }} style={{ ...styles.guestLimitLoginBtn, backgroundColor: theme.primary }}>Login</button>
-          <button onClick={() => { setShowGuestLimit(false); setShowLogin(false); setShowAuthModal(true) }} style={styles.guestLimitSignupBtn}>Sign Up</button>
-        </div>
-      </div>
-    </div>
-  )
-
-  if (showAuthModal) return (
-    <div style={styles.authModalOverlay}>
-      <div style={{ ...styles.authModalCard, borderColor: theme.primary }}>
-        <button onClick={() => setShowAuthModal(false)} style={styles.authModalClose}>✕</button>
-        <h1 style={{ ...styles.authTitle, color: theme.primary }}>CYPHER4X</h1>
-        <p style={{ color: theme.primary, fontSize: 12, marginBottom: 12 }}>{VERSION_FULL}</p>
-        <p style={{ ...styles.authSubtitle, color: theme.primary }}>{showLogin ? 'Login' : 'Sign Up'}</p>
-        <div style={{ ...styles.authError, color: theme.primary }}>{authError}</div>
-        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} style={styles.authInput} />
-        <input type="password" placeholder="4-digit PIN" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))} style={styles.authInput} maxLength="4" />
-        <button onClick={handleAuthSubmit} style={{ ...styles.authBtn, backgroundColor: theme.primary }}>{showLogin ? 'Login' : 'Create Account'}</button>
-        <div style={styles.authSwitch}>
-          <span>{showLogin ? 'No account?' : 'Have account?'}</span>
-          <button onClick={() => { setShowLogin(!showLogin); setAuthError('') }} style={{ ...styles.authSwitchBtn, color: theme.primary }}>{showLogin ? 'Sign Up' : 'Login'}</button>
-        </div>
-      </div>
-    </div>
-  )
-
-  if (showPracticalWorkspace) return (
-    <div style={{...styles.practicalContainer, backgroundColor: practicalBg, color: practicalBg === '#ffffff' ? '#000000' : '#ffffff'}}>
-      <div style={{...styles.practicalHeader, borderBottomColor: practicalBg === '#ffffff' ? '#ddd' : '#333'}}>
-        <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
-          <button onClick={() => setShowPracticalWorkspace(false)} style={{...styles.practicalExitBtn, borderColor: '#00ff41', color: '#00ff41'}}><Icon name="arrowLeft" size={20} color="#00ff41" /> EXIT</button>
-          <h1 style={{...styles.practicalTitle, color: '#00ff41'}}>PRACTICAL WORKSPACE</h1>
-        </div>
-        <div style={{display: 'flex', alignItems: 'center', gap: 15}}>
-          <button onClick={() => setPracticalBg(practicalBg === '#ffffff' ? '#000000' : '#ffffff')} style={{...styles.practicalExportBtn, borderColor: practicalBg === '#ffffff' ? '#000' : '#fff', color: practicalBg === '#ffffff' ? '#000' : '#fff'}}>
-            <Icon name="refresh" size={16} color={practicalBg === '#ffffff' ? '#000' : '#fff'} /> TOGGLE BG
-          </button>
-        </div>
-      </div>
-
-      <div style={styles.practicalCanvas}>
-        {practicalLogs.map(log => (
-          <div key={log.id} style={{...styles.practicalMsg, alignSelf: log.role === 'user' ? 'flex-end' : 'flex-start', backgroundColor: log.role === 'user' ? '#00ff41' : (practicalBg === '#ffffff' ? '#f0f0f0' : '#1a1a1a'), color: log.role === 'user' ? '#000' : (practicalBg === '#ffffff' ? '#000' : '#fff')}}>
-            {log.type === 'text' && <p style={{margin: 0, whiteSpace: 'pre-wrap'}}>{log.content}</p>}
-            {log.type === 'image' && (
-              <div>
-                <img src={log.content} alt="Generated" style={{maxWidth: '100%', maxHeight: '60vh', borderRadius: 8}} />
-                <button onClick={() => handlePracticalDownload(log)} style={{marginTop: 10, padding: '8px 16px', backgroundColor: '#00ff41', border: 'none', borderRadius: 4, fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6}}><Icon name="download" size={16} color="#000" /> DOWNLOAD IMAGE</button>
-              </div>
-            )}
-            {log.type === 'code' && (
-              <div style={{width: '100%', overflowX: 'auto'}}>
-                <pre style={{margin: 0, fontFamily: 'monospace', fontSize: 13, whiteSpace: 'pre', color: practicalBg === '#ffffff' ? '#000' : '#fff'}}>{log.content}</pre>
-                <button onClick={() => handlePracticalDownload(log)} style={{marginTop: 10, padding: '8px 16px', backgroundColor: '#00ff41', border: 'none', borderRadius: 4, fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6}}><Icon name="download" size={16} color="#000" /> DOWNLOAD CODE</button>
-              </div>
-            )}
-          </div>
-        ))}
-        {practicalBuildState === 'building' && (
-          <div style={{color: '#00ff41', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: 8}}>
-            <Icon name="hourglass" size={18} color="#00ff41" />
-            <span>Building... {practicalBuildTimer}s remaining</span>
-          </div>
-        )}
-        {practicalProcessing && practicalBuildState !== 'building' && (
-          <div style={{color: '#00ff41', fontStyle: 'italic'}}>{practicalActionText || 'AI is processing...'}</div>
-        )}
-        <div ref={practicalEndRef} />
-      </div>
-
-      <form onSubmit={handlePracticalSubmit} style={{...styles.practicalInputRow, backgroundColor: practicalBg === '#ffffff' ? '#fff' : '#0a0a0a', borderTopColor: practicalBg === '#ffffff' ? '#ddd' : '#333'}}>
-        <label style={{...styles.practicalAttachBtn, color: practicalBg === '#ffffff' ? '#000' : '#fff'}}>
-          <Icon name="image" size={24} color={practicalBg === '#ffffff' ? '#000' : '#fff'} />
-          <input type="file" accept="image/*" style={{display: 'none'}} onChange={(e) => {
-            const f = e.target.files[0]; if (!f) return;
-            const rd = new FileReader(); rd.onloadend = () => { setPracticalLogs(prev => [...prev, { id: Date.now(), role: 'user', type: 'image', content: rd.result }]) }; rd.readAsDataURL(f); e.target.value = '';
-          }} />
-        </label>
-        <input type="text" value={practicalInput} onChange={(e) => setPracticalInput(e.target.value)} placeholder={practicalBuildState === 'awaiting_type' ? "What kind of game?" : practicalBuildState === 'awaiting_lang' ? "What language?" : "Ask AI to create anything..."} style={{...styles.practicalInput, color: practicalBg === '#ffffff' ? '#000' : '#fff', borderColor: practicalBg === '#ffffff' ? '#ccc' : '#444'}} disabled={practicalProcessing || practicalBuildState === 'building'} />
-        <button type="button" onClick={handlePracticalVoice} style={{...styles.practicalMicBtn, backgroundColor: isRecording ? '#00ff41' : 'transparent', padding: 8}}>
-          <Icon name="mic" size={24} color={practicalBg === '#ffffff' ? '#000' : '#fff'} />
-        </button>
-        <button type="submit" style={{...styles.practicalSendBtn, backgroundColor: '#00ff41', width: 44, height: 44, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', flexShrink: 0}} disabled={practicalProcessing || practicalBuildState === 'building'}>
-          <Icon name="send" size={18} color="#000" />
-        </button>
-      </form>
-    </div>
-  )
-
-  if (showWorkspace) return (
-    <div style={styles.workspaceContainer}>
-      <div style={styles.workspaceHeader}>
-        <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
-          <button onClick={() => setShowWorkspace(false)} style={{...styles.workspaceExitBtn, borderColor: theme.primary}}><Icon name="arrowLeft" size={20} color={theme.primary} /> EXIT</button>
-          <h1 style={{...styles.workspaceTitle, color: theme.primary}}>CYPHER4X WORKSPACE</h1>
-        </div>
-        <div style={{display: 'flex', alignItems: 'center', gap: 15}}>
-          <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
-            <span style={{width: 8, height: 8, borderRadius: '50%', backgroundColor: workspaceProcessing ? '#ffcc00' : '#00ff41'}} />
-            <span style={{color: '#888', fontSize: 12}}>{workspaceProcessing ? 'AGENT ACTIVE' : 'AGENT IDLE'}</span>
-          </div>
-          <RedBall isSpeaking={isAISpeaking} theme={theme} size={40} />
-        </div>
-      </div>
-      <div style={styles.workspaceBody}>
-        <div style={styles.workspaceLeftPanel}>
-          <div style={styles.workspacePanelHeader}><Icon name="layers" size={16} color={theme.primary} /> ACTIVE TASKS ({workspaceTasks.length})</div>
-          <div style={styles.workspaceTaskList}>
-            {workspaceTasks.length === 0 && <span style={{color: '#555', fontSize: 12, fontStyle: 'italic'}}>No active tasks...</span>}
-            {workspaceTasks.map(t => (
-              <div key={t.id} style={styles.workspaceTaskItem}>
-                <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: 4}}>
-                  <span style={{color: '#ddd', fontSize: 12}}>{t.text}</span>
-                  <span style={{color: t.status === 'done' ? '#00ff41' : '#ffcc00', fontSize: 10}}>{t.status.toUpperCase()}</span>
-                </div>
-                <div style={{width: '100%', height: 4, backgroundColor: '#111', borderRadius: 2, overflow: 'hidden'}}>
-                  <div style={{width: `${t.progress}%`, height: '100%', backgroundColor: t.status === 'done' ? '#00ff41' : theme.primary, transition: 'width 0.3s ease'}} />
-                </div>
-              </div>
-            ))}
-          </div>
-          <div style={{...styles.workspacePanelHeader, marginTop: 15}}><Icon name="terminal" size={16} color={theme.primary} /> AGENT LOGS</div>
-          <div style={styles.workspaceLogList}>
-            {workspaceLogs.map((log, i) => (
-              <div key={i} style={{marginBottom: 6, fontSize: 11, fontFamily: 'monospace'}}>
-                <span style={{color: log.type === 'user' ? theme.primary : log.type === 'ai' ? '#4f8' : '#888'}}>[{log.type.toUpperCase()}]</span>
-                <span style={{color: '#ccc'}}> {log.text}</span>
-              </div>
-            ))}
-            <div ref={workspaceEndRef} />
-          </div>
-        </div>
-        <div style={styles.workspaceCenterPanel}>
-          <div style={styles.workspaceTabs}>
-            <button onClick={() => setWorkspaceActiveTab('canvas')} style={{...styles.workspaceTabBtn, borderBottomColor: workspaceActiveTab === 'canvas' ? theme.primary : 'transparent', color: workspaceActiveTab === 'canvas' ? theme.primary : '#888'}}>CANVAS</button>
-            <button onClick={() => setWorkspaceActiveTab('code')} style={{...styles.workspaceTabBtn, borderBottomColor: workspaceActiveTab === 'code' ? theme.primary : 'transparent', color: workspaceActiveTab === 'code' ? theme.primary : '#888'}}>CODE</button>
-            <button onClick={() => setWorkspaceActiveTab('web')} style={{...styles.workspaceTabBtn, borderBottomColor: workspaceActiveTab === 'web' ? theme.primary : 'transparent', color: workspaceActiveTab === 'web' ? theme.primary : '#888'}}>WEB</button>
-          </div>
-          <div style={styles.workspaceCanvasArea}>
-            {workspaceActiveTab === 'canvas' && (workspaceContent?.type === '3d' ? <div style={{textAlign: 'center'}}><h3 style={{color: theme.primary, marginBottom: 20}}>{workspaceContent.data.title}</h3><img src={workspaceContent.data.image} alt="Generated 3D" style={{maxWidth: '100%', maxHeight: '60vh', borderRadius: 12, border: `1px solid ${hexA(theme.primary, 0.3)}`}} /></div> : <div style={{textAlign: 'center', color: '#555'}}><Icon name="image" size={64} color="#333" /><p style={{marginTop: 15}}>No visual output yet.</p></div>)}
-            {workspaceActiveTab === 'code' && (workspaceContent?.type === 'code' ? <div style={{width: '100%', height: '100%', overflow: 'auto', backgroundColor: '#0a0a0a', padding: 20, borderRadius: 8, border: '1px solid #333'}}><pre style={{margin: 0, color: '#e0e0e0', fontFamily: 'monospace', fontSize: 13, whiteSpace: 'pre-wrap'}}>{workspaceContent.data.code}</pre></div> : <div style={{textAlign: 'center', color: '#555'}}><Icon name="file" size={64} color="#333" /><p style={{marginTop: 15}}>No code generated yet.</p></div>)}
-            {workspaceActiveTab === 'web' && (workspaceContent?.type === 'web' ? <div style={{width: '100%', height: '100%', overflow: 'auto', padding: 20}}><h3 style={{color: theme.primary, marginBottom: 15}}>Search Results: {workspaceContent.data.query}</h3><p style={{color: '#ccc', lineHeight: 1.6}}>{workspaceContent.data.results.answer}</p></div> : <div style={{textAlign: 'center', color: '#555'}}><Icon name="globe" size={64} color="#333" /><p style={{marginTop: 15}}>No web data fetched yet.</p></div>)}
-          </div>
-        </div>
-        <div style={styles.workspaceRightPanel}>
-          <div style={styles.workspacePanelHeader}><Icon name="sparkles" size={16} color={theme.primary} /> AGENT COMMAND</div>
-          <div style={{...styles.workspaceChatArea, overflowX: 'auto', whiteSpace: 'nowrap'}}>
-             {workspaceLogs.filter(l => l.type === 'ai' || l.type === 'user').slice(-5).map((log, i) => (
-               <div key={i} style={{padding: 8, marginBottom: 8, borderRadius: 6, backgroundColor: log.type === 'user' ? hexA(theme.primary, 0.2) : 'rgba(255,255,255,0.05)', borderLeft: log.type === 'user' ? `3px solid ${theme.primary}` : '3px solid #4f8', minWidth: '100%', boxSizing: 'border-box'}}>
-                  <div style={{color: '#888', fontSize: 9, marginBottom: 2}}>{log.type === 'user' ? 'YOU' : 'CYPHER4X'}</div>
-                  <div style={{color: '#ddd', fontSize: 12, whiteSpace: 'pre-wrap'}}>{renderMessageContent({ id: i, content: log.text })}</div>
-               </div>
-             ))}
-          </div>
-          <form onSubmit={handleWorkspaceSubmit} style={styles.workspaceInputRow}>
-            <input type="text" value={workspaceCommand} onChange={(e) => setWorkspaceCommand(e.target.value)} placeholder="Command AI agent..." style={styles.workspaceInput} disabled={workspaceProcessing} />
-            <button type="button" onClick={handleWorkspaceVoice} style={{...styles.workspaceMicBtn, backgroundColor: isRecording ? theme.primary : '#1a1a1a'}}><Icon name="mic" size={18} color="#fff" /></button>
-            <button type="submit" style={{...styles.workspaceSendBtn, backgroundColor: theme.primary, width: 40, height: 40, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center'}} disabled={workspaceProcessing}><Icon name="send" size={18} color="#fff" /></button>
-          </form>
-        </div>
-      </div>
-    </div>
-  )
-
-  if (showSettings) return (
-    <div style={styles.settingsFullscreen}>
-      <style>{`.toggle-switch{position:relative;display:inline-block;width:46px;height:24px;flex-shrink:0}.toggle-switch input{opacity:0;width:0;height:0}.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#333;transition:.3s;border-radius:24px}.toggle-slider:before{content:"";position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;transition:.3s;border-radius:50%}.toggle-switch input:checked+.toggle-slider{background:${theme.primary}}.toggle-switch input:checked+.toggle-slider:before{transform:translateX(22px)}`}</style>
-      <div style={styles.settingsHeaderFull}>
-        <h1 style={{ ...styles.settingsTitleFull, color: theme.primary }}>Settings · {VERSION}</h1>
-        <button onClick={() => setShowSettings(false)} style={styles.settingsCloseFull}><Icon name="close" size={28} color="#fff" /></button>
-      </div>
-      <div style={styles.settingsBodyFull}>
-
-        <div style={styles.settingsSection}>
-          <h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Location Services</h3>
-          <div style={styles.settingItem}><span>Enable Location (Weather)</span><label className="toggle-switch"><input type="checkbox" checked={settings.locationEnabled} onChange={(e) => setSettings({ ...settings, locationEnabled: e.target.checked })} /><span className="toggle-slider"></span></label></div>
-          <p style={styles.bgHint}>Allows the AI to fetch local weather and display it on the Home screen.</p>
-        </div>
-
-        <div style={styles.settingsSection}>
-          <h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Theme & Colors</h3>
-          <div style={styles.settingItem}><span>Primary color</span><input type="color" value={theme.primary} onChange={(e) => setTheme({ ...theme, primary: e.target.value })} style={styles.colorPicker} /></div>
-          <div style={styles.settingItem}><span>Secondary color (background)</span><input type="color" value={theme.secondary} onChange={(e) => setTheme({ ...theme, secondary: e.target.value })} style={styles.colorPicker} /></div>
-          <div style={styles.settingItem}><span>Ball color</span><input type="color" value={theme.ballColor} onChange={(e) => setTheme({ ...theme, ballColor: e.target.value, ballColorLight: lightenColor(e.target.value), ballColorDark: darkenColor(e.target.value) })} style={styles.colorPicker} /></div>
-          <div style={styles.presetRow}>
-            <button onClick={() => setTheme({ ...theme, primary: '#ff003c', ballColor: '#ff003c', ballColorLight: '#ff6688', ballColorDark: '#990022' })} style={{ ...styles.presetBtn, backgroundColor: '#ff003c' }}>Red</button>
-            <button onClick={() => setTheme({ ...theme, primary: '#00c8ff', ballColor: '#00c8ff', ballColorLight: '#66ddff', ballColorDark: '#006699' })} style={{ ...styles.presetBtn, backgroundColor: '#00c8ff' }}>Cyan</button>
-            <button onClick={() => setTheme({ ...theme, primary: '#00ff41', ballColor: '#00ff41', ballColorLight: '#66ff88', ballColorDark: '#008822' })} style={{ ...styles.presetBtn, backgroundColor: '#00ff41' }}>Green</button>
-            <button onClick={() => setTheme({ ...theme, primary: '#ffcc00', ballColor: '#ffcc00', ballColorLight: '#ffe066', ballColorDark: '#996600' })} style={{ ...styles.presetBtn, backgroundColor: '#ffcc00' }}>Gold</button>
-            <button onClick={() => setTheme({ ...theme, primary: '#c800ff', ballColor: '#c800ff', ballColorLight: '#dd66ff', ballColorDark: '#660088' })} style={{ ...styles.presetBtn, backgroundColor: '#c800ff' }}>Purple</button>
-          </div>
-        </div>
-
-        <div style={styles.settingsSection}>
-          <h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>General</h3>
-          <div style={styles.settingItem}><span>Welcome Messages</span><label className="toggle-switch"><input type="checkbox" checked={settings.welcomeEnabled} onChange={(e) => setSettings({ ...settings, welcomeEnabled: e.target.checked })} /><span className="toggle-slider"></span></label></div>
-          <div style={styles.settingItem}><span>Auto-start Voice</span><label className="toggle-switch"><input type="checkbox" checked={settings.autoStartVoice} onChange={(e) => setSettings({ ...settings, autoStartVoice: e.target.checked })} /><span className="toggle-slider"></span></label></div>
-          <div style={styles.settingItem}><span>Read Aloud</span><label className="toggle-switch"><input type="checkbox" checked={settings.readAloud} onChange={(e) => setSettings({ ...settings, readAloud: e.target.checked })} /><span className="toggle-slider"></span></label></div>
-          <div style={styles.settingItem}><span>Safe Links</span><label className="toggle-switch"><input type="checkbox" checked={settings.safeLinks} onChange={(e) => setSettings({ ...settings, safeLinks: e.target.checked })} /><span className="toggle-slider"></span></label></div>
-          <div style={styles.settingItem}><span>🔒 Restrict Tools (Login required)</span><label className="toggle-switch"><input type="checkbox" checked={settings.restrictTools} onChange={(e) => setSettings({ ...settings, restrictTools: e.target.checked })} /><span className="toggle-slider"></span></label></div>
-        </div>
-
-        <div style={styles.settingsSection}>
-          <h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Interface</h3>
-          <div style={styles.settingItem}><span>Auto-scroll</span><label className="toggle-switch"><input type="checkbox" checked={settings.autoScroll} onChange={(e) => setSettings({ ...settings, autoScroll: e.target.checked })} /><span className="toggle-slider"></span></label></div>
-          <div style={styles.settingItem}><span>Show Timestamps</span><label className="toggle-switch"><input type="checkbox" checked={settings.showTimestamps} onChange={(e) => setSettings({ ...settings, showTimestamps: e.target.checked })} /><span className="toggle-slider"></span></label></div>
-          <div style={styles.settingItem}><span>Typing Indicator</span><label className="toggle-switch"><input type="checkbox" checked={settings.typingIndicator} onChange={(e) => setSettings({ ...settings, typingIndicator: e.target.checked })} /><span className="toggle-slider"></span></label></div>
-          <div style={styles.settingItem}><span>Haptic</span><label className="toggle-switch"><input type="checkbox" checked={settings.haptic} onChange={(e) => setSettings({ ...settings, haptic: e.target.checked })} /><span className="toggle-slider"></span></label></div>
-          <div style={styles.settingItem}><span>Sound Effects</span><label className="toggle-switch"><input type="checkbox" checked={settings.soundFx} onChange={(e) => setSettings({ ...settings, soundFx: e.target.checked })} /><span className="toggle-slider"></span></label></div>
-        </div>
-
-        <div style={styles.settingsSection}>
-          <h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Voice</h3>
-          <div style={styles.settingItem}><span>Speed</span><input type="range" min="0.5" max="2" step="0.1" value={settings.voiceSpeed} onChange={(e) => setSettings({ ...settings, voiceSpeed: parseFloat(e.target.value) })} style={{ ...styles.settingsRange, accentColor: theme.primary }} /><span style={styles.settingValueSidebar}>{settings.voiceSpeed}x</span></div>
-          <div style={styles.settingItem}><span>Gender</span><select value={voiceGender} onChange={(e) => setVoiceGender(e.target.value)} style={styles.settingsSelect}><option value="male">Male</option><option value="female">Female</option></select></div>
-        </div>
-
-        <div style={styles.settingsSection}>
-          <h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Background Image (chat only)</h3>
-          <div style={styles.backgroundControls}>
-            <label style={{ ...styles.uploadBtn, backgroundColor: theme.primary }}><Icon name="image" size={18} color="#fff" /><span>Choose Image</span><input ref={bgInputRef} type="file" accept="image/*" onChange={handleBackgroundChange} style={{ display: 'none' }} /></label>
-            {backgroundImage && <button onClick={resetBackground} style={styles.resetBtn}><Icon name="refresh" size={18} color="#fff" /><span>Reset</span></button>}
-          </div>
-          {backgroundImage && <div style={styles.bgPreview}><img src={backgroundImage} alt="Preview" style={styles.bgPreviewImg} /></div>}
-        </div>
-      </div>
-      <button onClick={() => setShowSettings(false)} style={{ ...styles.settingsDoneFull, backgroundColor: theme.primary }}>Done</button>
-    </div>
-  )
-
-  if (showMusicPanel) return (
-    <div style={styles.settingsFullscreen}>
-      <div style={styles.settingsHeaderFull}><h1 style={{ ...styles.settingsTitleFull, color: theme.primary }}>🎵 Music Generator</h1><button onClick={() => setShowMusicPanel(false)} style={styles.settingsCloseFull}><Icon name="close" size={28} color="#fff" /></button></div>
-      <div style={styles.settingsBodyFull}>
-        <div style={styles.settingsSection}><h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Describe Your Music</h3><input value={musicDesc} onChange={(e) => setMusicDesc(e.target.value)} placeholder="e.g. romantic piano with soft vocals..." style={styles.settingsSelect} /><p style={styles.bgHint}>Tries Tunova API → falls back to built-in synth.</p></div>
-        <div style={styles.settingsSection}><h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Duration</h3><div style={styles.settingItem}><span>{musicDuration}s</span><input type="range" min="15" max="180" step="5" value={musicDuration} onChange={(e) => setMusicDuration(parseInt(e.target.value))} style={{ ...styles.settingsRange, accentColor: theme.primary }} /></div></div>
-        <div style={styles.settingsSection}><h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Quality</h3><select value={musicQuality} onChange={(e) => setMusicQuality(e.target.value)} style={styles.settingsSelect}><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></div>
-        {musicInfo && <pre style={{ color: musicInfo.startsWith('❌') ? '#ff6688' : musicInfo.startsWith('⚠️') ? '#ffcc00' : '#4f8', textAlign: 'center', fontSize: 12, fontWeight: 'bold', whiteSpace: 'pre-wrap', fontFamily: 'monospace', padding: 12, background: '#0a0a0a', borderRadius: 8, border: '1px solid #333' }}>{musicInfo}</pre>}
-        {musicDownloadUrl && <a href={musicDownloadUrl} download={`cypher4x_music_${Date.now()}.mp3`} style={{ ...styles.uploadBtn, backgroundColor: theme.primary, justifyContent: 'center', textDecoration: 'none', marginTop: 12 }}><Icon name="download" size={16} color="#fff" /><span>Download</span></a>}
-      </div>
-      <button onClick={handleGenerateMusic} disabled={musicGenerating} style={{ ...styles.settingsDoneFull, backgroundColor: theme.primary }}>{musicGenerating ? 'Submitting...' : musicPlaying ? 'Playing...' : 'Generate Music'}</button>
-    </div>
-  )
-
-  if (showVideoPanel) return (
-    <div style={styles.settingsFullscreen}>
-      <div style={styles.settingsHeaderFull}><h1 style={{ ...styles.settingsTitleFull, color: theme.primary }}>🎬 Video Generator</h1><button onClick={() => setShowVideoPanel(false)} style={styles.settingsCloseFull}><Icon name="close" size={28} color="#fff" /></button></div>
-      <div style={styles.settingsBodyFull}>
-        <div style={styles.settingsSection}><h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Describe Your Video</h3><input value={videoDesc} onChange={(e) => setVideoDesc(e.target.value)} placeholder="e.g. anime sakura, cinematic drone..." style={styles.settingsSelect} /><p style={styles.bgHint}>Tries Agnes AI → falls back to built-in engine.</p></div>
-        <div style={styles.settingsSection}><h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Duration</h3><div style={styles.settingItem}><span>{videoDuration}s</span><input type="range" min="3" max="30" step="1" value={videoDuration} onChange={(e) => setVideoDuration(parseInt(e.target.value))} style={{ ...styles.settingsRange, accentColor: theme.primary }} /></div></div>
-        <div style={styles.settingsSection}><h3 style={{ ...styles.settingsSectionTitle, color: theme.primary }}>Quality</h3><select value={videoQuality} onChange={(e) => setVideoQuality(e.target.value)} style={styles.settingsSelect}><option value="low">480p</option><option value="medium">720p</option><option value="high">1080p</option></select></div>
-        <canvas ref={canvasRef} width={videoQuality === 'high' ? 720 : videoQuality === 'medium' ? 480 : 320} height={videoQuality === 'high' ? 480 : videoQuality === 'medium' ? 320 : 240} style={{ width: '100%', borderRadius: 12, background: '#000', marginTop: 8, display: videoRecording || videoResultUrl ? 'block' : 'none' }} />
-        {videoInfo && <pre style={{ color: videoInfo.startsWith('❌') ? '#ff6688' : videoInfo.startsWith('⚠️') ? '#ffcc00' : '#4f8', textAlign: 'center', fontSize: 12, fontWeight: 'bold', whiteSpace: 'pre-wrap', fontFamily: 'monospace', padding: 12, background: '#0a0a0a', borderRadius: 8, border: '1px solid #333' }}>{videoInfo}</pre>}
-        {videoRecording && <p style={{ color: theme.primary, textAlign: 'center', marginTop: 8 }}>● Recording... {videoProgress}%</p>}
-        {videoResultUrl && <video src={videoResultUrl} controls style={{ width: '100%', borderRadius: 12, marginTop: 12 }} />}
-        {videoResultUrl && <a href={videoResultUrl} download={`cypher4x_video_${Date.now()}.webm`} style={{ ...styles.uploadBtn, backgroundColor: theme.primary, justifyContent: 'center', textDecoration: 'none', marginTop: 12 }}><Icon name="download" size={16} color="#fff" /><span>Download</span></a>}
-      </div>
-      {videoRecording ? (
-        <button onClick={handleStopLocalVideo} style={{ ...styles.settingsDoneFull, backgroundColor: theme.primary }}>Stop & Save</button>
-      ) : (
-        <button onClick={handleGenerateVideo} disabled={videoGenerating || videoPolling} style={{ ...styles.settingsDoneFull, backgroundColor: theme.primary }}>{videoGenerating ? 'Submitting...' : videoPolling ? 'Generating...' : 'Generate Video'}</button>
-      )}
-    </div>
-  )
-
-  if (showCyberLab) {
-    const tools = [{id:'passcheck',label:'Password'},{id:'hash',label:'Hash'},{id:'base64',label:'B64 Enc'},{id:'unbase64',label:'B64 Dec'},{id:'hex',label:'Hex'},{id:'rot13',label:'ROT13'},{id:'dns',label:'DNS'},{id:'ip',label:'IP'},{id:'portscan',label:'PortSim'}]
-    return (
-      <div style={styles.settingsFullscreen}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', backgroundColor: '#000', borderBottom: '1px solid #1a1a1a', flexShrink: 0 }}>
-          <button onClick={() => setShowCyberLab(false)} style={{ background: 'none', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 14 }}>
-            <Icon name="arrowLeft" size={20} color="#fff" /> exit
-          </button>
-          <span style={{ color: theme.primary, fontSize: 12, fontFamily: "'Courier New', monospace" }}>csh@cypher4x:~$</span>
-          <button onClick={() => setCyberLines([{ type: 'info', text: `${VERSION_FULL} — type "help"` }])} style={{ background: 'none', border: '1px solid #333', color: '#888', padding: '3px 10px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>clear</button>
-        </div>
-        <div style={{ display: 'flex', padding: '8px 16px', gap: 8, flexShrink: 0, background: '#111', borderBottom: '1px solid #333' }}>
-          <button onClick={() => setCyberTab('terminal')} style={{ flex: 1, padding: 10, background: cyberTab === 'terminal' ? theme.primary : '#1a1a1a', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 'bold', cursor: 'pointer', fontSize: 12 }}>Terminal</button>
-          <button onClick={() => setCyberTab('tools')} style={{ flex: 1, padding: 10, background: cyberTab === 'tools' ? theme.primary : '#1a1a1a', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 'bold', cursor: 'pointer', fontSize: 12 }}>Tools</button>
-        </div>
-        {cyberTab === 'terminal' && (<>
-          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: 16, background: '#000', fontFamily: "'Courier New', monospace", fontSize: 13, color: '#ddd' }}>
-            {cyberLines.map((l, i) => <pre key={i} style={{ margin: '2px 0', whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: l.type === 'cmd' ? '#4f8' : l.type === 'info' ? theme.primary : '#ddd', fontWeight: l.type === 'cmd' ? 'bold' : 'normal' }}>{l.text}</pre>)}
-            <div ref={cyberEndRef} />
-          </div>
-          <form onSubmit={handleCyberSubmit} style={{ display: 'flex', gap: 8, padding: 12, paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))', background: '#111', borderTop: '1px solid #333' }}>
-            <span style={{ color: '#4f8', fontWeight: 'bold', alignSelf: 'center' }}>~ $</span>
-            <input value={cyberInput} onChange={(e) => setCyberInput(e.target.value)} placeholder='Type a command (help)' style={{ flex: 1, padding: 10, background: '#000', border: '1px solid #333', color: '#fff', borderRadius: 4, fontFamily: "'Courier New', monospace", outline: 'none' }} autoComplete="off" autoCapitalize="off" spellCheck="false" />
-            <button type="submit" style={{ padding: '8px 14px', background: theme.primary, border: 'none', borderRadius: 4, color: '#fff', cursor: 'pointer' }}><Icon name="send" size={16} color="#fff" /></button>
-          </form>
-        </>)}
-        {cyberTab === 'tools' && (
-          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: 16 }}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
-              {tools.map(t => <button key={t.id} onClick={() => { setCyberTool(t.id); setCyberToolOutput('') }} style={{ padding: '6px 12px', borderRadius: 20, border: cyberTool === t.id ? `1px solid ${theme.primary}` : '1px solid #333', background: cyberTool === t.id ? hexA(theme.primary, 0.15) : '#1a1a1a', color: '#fff', fontSize: 12, cursor: 'pointer' }}>{t.label}</button>)}
-            </div>
-            <input value={cyberToolInput} onChange={(e) => setCyberToolInput(e.target.value)} placeholder="Input..." style={styles.settingsSelect} />
-            <button onClick={runCyberTool} style={{ ...styles.uploadBtn, backgroundColor: theme.primary, marginTop: 12, width: '100%', justifyContent: 'center' }}><Icon name="zap" size={16} color="#fff" /><span>Run</span></button>
-            {cyberToolOutput && (<div style={{ marginTop: 16 }}><pre style={{ background: '#000', border: '1px solid #333', borderRadius: 8, padding: 12, color: '#4f8', fontFamily: "'Courier New', monospace", fontSize: 12, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{cyberToolOutput}</pre><button onClick={() => navigator.clipboard.writeText(cyberToolOutput)} style={{ ...styles.uploadBtn, backgroundColor: theme.primary, marginTop: 8, width: '100%', justifyContent: 'center' }}><Icon name="copy" size={16} color="#fff" /><span>Copy</span></button></div>)}
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  if (isFullscreenCall) return (
-    <div style={styles.fullscreenCallOverlay}>
-      <button onClick={toggleFullscreenCall} style={styles.returnBtn}><Icon name="arrowLeft" size={28} color="#fff" /> Return</button>
-      <div style={styles.fullscreenCallContentNoBall}>
-        <div style={styles.fullscreenListeningStatus}>{isListening ? <div style={{...styles.fullscreenListeningDot, backgroundColor: theme.primary}} /> : isAISpeaking ? <div style={{...styles.fullscreenSpeakingDot, backgroundColor: theme.primary}} /> : null}<span style={styles.fullscreenStatusText}>{isListening ? 'Listening...' : isAISpeaking ? 'Speaking...' : 'Tap mic to talk'}</span></div>
-        {interimTranscript && <div style={styles.fullscreenTranscript}>{interimTranscript}</div>}
-        <button onClick={interruptAndListen} style={{...styles.fullscreenMicBtn, backgroundColor: theme.primary, borderColor: theme.primary}} disabled={isProcessing}><Icon name="mic" size={48} color="#fff" /></button>
-      </div>
-    </div>
-  )
-
-  if (showRotateOverlay) return (
-    <div style={styles.rotateOverlay}>
-      <div style={{...styles.rotateCard, borderColor: theme.primary}}>
-        <Icon name="rotate" size={48} color={theme.primary} />
-        <div style={styles.rotateText}>Pls Rotate device if you are using Android</div>
-        <button onClick={() => setShowRotateOverlay(false)} style={{...styles.rotateOkBtn, backgroundColor: theme.primary}}>OK</button>
-      </div>
-    </div>
-  )
-
-  if (showChatOverview) return (
-    <div style={{...styles.chatOverviewContainer, backgroundColor: theme.secondary, backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center'}}>
-      <div style={{...styles.chatOverviewHeader, justifyContent: 'space-between', borderBottomColor: theme.primary}}>
-        <button onClick={() => setShowChatOverview(false)} style={styles.chatOverviewBackBtn}><Icon name="arrowLeft" size={24} color="#fff" /> Back</button>
-        <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
-          <button onClick={() => setChatOverviewVoiceEnabled(!chatOverviewVoiceEnabled)} style={styles.chatOverviewVoiceToggle}><Icon name={chatOverviewVoiceEnabled ? 'volume2' : 'volumeX'} size={22} color="#fff" /></button>
-          <button onClick={() => setShowChatMenu(!showChatMenu)} style={styles.chatOverviewVoiceToggle}><Icon name="menu" size={22} color="#fff" /></button>
-        </div>
-      </div>
-      {showChatMenu && (
-        <div style={styles.chatMenuDropdown}>
-          <div style={{padding: 10, borderBottom: '1px solid #333', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-            <span style={{color: theme.primary, fontSize: 12, fontWeight: 'bold'}}>CHAT SECTIONS</span>
-            <button onClick={createNewChat} style={{background: theme.primary, border: 'none', borderRadius: 4, padding: '4px 8px', color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4}}><Icon name="plus" size={12} color="#fff"/> NEW</button>
-          </div>
-          <div style={{maxHeight: 300, overflowY: 'auto'}}>
-            {chats.map(c => (
-              <div key={c.id} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', borderBottom: '1px solid #1a1a1a', backgroundColor: activeChatId === c.id ? hexA(theme.primary, 0.1) : 'transparent'}}>
-                <span onClick={() => switchChat(c.id)} style={{color: activeChatId === c.id ? theme.primary : '#ccc', fontSize: 13, cursor: 'pointer', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{c.title}</span>
-                <div style={{display: 'flex', gap: 6}}>
-                  <button onClick={() => renameChat(c.id)} style={{background: 'none', border: 'none', cursor: 'pointer', padding: 4}}><Icon name="edit" size={14} color="#888"/></button>
-                  <button onClick={() => deleteChat(c.id)} style={{background: 'none', border: 'none', cursor: 'pointer', padding: 4}}><Icon name="trash" size={14} color="#888"/></button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-      <div style={styles.chatOverviewMessages}>
-        {conversation.length === 0 && <div style={styles.chatOverviewEmpty}><p>Start a conversation! Tap "New" to create a fresh chat.</p></div>}
-        {conversation.map(msg => (
-          <div key={msg.id} style={{ ...styles.chatOverviewMsg, alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', backgroundColor: msg.role === 'user' ? theme.primary : 'rgba(26,26,26,0.9)', ...(settings.compactMode ? { padding: '6px 10px' } : {}) }}>
-            {msg.replyToText && <div style={{...styles.replyQuote, borderLeftColor: theme.primary}}><Icon name="reply" size={12} color={theme.primary} /><span style={{...styles.replyQuoteText, color: theme.primary}}>{msg.replyToText}...</span></div>}
-            {renderMessageContent(msg)}
-            {msg.file && (<div style={styles.filePreviewPC}>{msg.file.type.startsWith('image/') && <img src={msg.file.data} alt="" style={{ maxWidth: '100%', maxHeight: '120px', borderRadius: 4, marginTop: 4 }} />}{msg.file.type.startsWith('video/') && <video controls style={{ maxWidth: '100%', maxHeight: '120px', borderRadius: 4, marginTop: 4 }}><source src={msg.file.data} type={msg.file.type} /></video>}{!msg.file.type.startsWith('image/') && !msg.file.type.startsWith('video/') && <div style={{ fontSize: 10, color: '#888', marginTop: 2 }}>📎 {msg.file.name}</div>}</div>)}
-            {settings.showTimestamps && <span style={styles.chatOverviewMsgTime}>{fmtT(msg.time)}</span>}
-            <div style={styles.msgActions}>
-              <button onClick={() => handleReply(msg)} style={styles.msgActionBtn}><Icon name="reply" size={14} color="#888" /></button>
-              {msg.role === 'user' && <button onClick={() => handleEditMessage(msg.id)} style={styles.msgActionBtn}><Icon name="edit" size={14} color="#888" /></button>}
-              <button onClick={() => handleDeleteMessage(msg.id)} style={styles.msgActionBtn}><Icon name="trash" size={14} color="#888" /></button>
-              <button onClick={() => handleShareMessage(msg)} style={styles.msgActionBtn}><Icon name="copy" size={14} color="#888" /></button>
-            </div>
-          </div>
-        ))}
-        {isProcessing && settings.typingIndicator && <div style={{ ...styles.chatOverviewMsg, alignSelf: 'flex-start', backgroundColor: 'rgba(26,26,26,0.9)' }}><span style={styles.chatOverviewMsgText}>● ● ●</span></div>}
-        <div ref={chatEndRef} />
-      </div>
-      {replyingTo && <div style={{...styles.replyBar, borderTopColor: theme.primary}}><div style={{ flex: 1, overflow: 'hidden' }}><div style={{ color: theme.primary, fontSize: 11, fontWeight: 'bold', marginBottom: 2 }}>Replying to:</div><div style={{ color: '#ddd', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{replyingTo.content.slice(0, 60)}...</div></div><button onClick={() => setReplyingTo(null)} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', padding: 4 }}><Icon name="x" size={18} color="#888" /></button></div>}
-      <div style={styles.chatOverviewInputRowRaised}>
-        <input type="text" value={chatOverviewInput} onChange={(e) => setChatOverviewInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && sendOverviewText()} placeholder={pendingCode ? 'Answer the question...' : replyingTo ? 'Reply...' : 'Type a message...'} style={styles.chatOverviewInput} disabled={isProcessing} />
-        <div style={styles.voiceControls}>
-          {!isRecordingVoice && !voicePaused ? <button onClick={startVoiceRecording} style={styles.chatOverviewMicBtn}><Icon name="mic" size={20} color="#fff" /></button> : (<>{voicePaused ? <button onClick={resumeVoiceRecording} style={styles.chatOverviewMicBtn}><Icon name="play" size={20} color="#4f8" /></button> : <button onClick={pauseVoiceRecording} style={styles.chatOverviewMicBtn}><Icon name="pause" size={20} color={theme.primary} /></button>}<button onClick={deleteVoiceRecording} style={styles.chatOverviewMicBtn}><Icon name="trash" size={20} color={theme.primary} /></button><button onClick={sendVoiceRecording} style={{...styles.chatOverviewSendBtn, backgroundColor: theme.primary}} disabled={isProcessing || !voiceTranscript.trim()}><Icon name="send" size={20} color="#fff" /></button></>)}
-        </div>
-        <label style={styles.chatOverviewAttachBtn}><Icon name="file" size={20} color="#fff" /><input type="file" accept="image/*,video/*,.pdf,.doc,.docx,.txt" onChange={handleOverviewFileShare} style={{ display: 'none' }} /></label>
-        <button onClick={sendOverviewText} style={{...styles.chatOverviewSendBtn, backgroundColor: theme.primary}} disabled={isProcessing}><Icon name="send" size={20} color="#fff" /></button>
-      </div>
-      {voiceTranscript && !chatOverviewListening && <div style={styles.voiceTranscriptPreview}>"{voiceTranscript}"</div>}
-    </div>
-  )
-
-  if (editingProfile) return (
-    <div style={styles.profileContainer}><div style={{...styles.profileCard, borderColor: theme.primary}}><h1 style={{...styles.profileTitle, color: theme.primary}}>EDIT PROFILE</h1><div style={styles.avatarUploadArea} onClick={() => fileInputRef.current?.click()}>{profileForm.avatar ? <img src={profileForm.avatar} alt="" style={styles.avatarPreview} /> : <span style={{...styles.avatarIcon, color: theme.primary}}><Icon name="camera" size={32} color={theme.primary} /><br />Tap to select</span>}</div><input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} /><div style={styles.inputGroup}><label style={{...styles.label, color: theme.primary}}><Icon name="user" size={14} color={theme.primary} /> Name *</label><input type="text" value={profileForm.name} onChange={(e) => setProfileForm(p => ({ ...p, name: e.target.value }))} style={{...styles.textInput, borderColor: theme.primary}} /></div><div style={styles.inputGroup}><label style={{...styles.label, color: theme.primary}}><Icon name="atSign" size={14} color={theme.primary} /> Username *</label><input type="text" value={profileForm.username} onChange={(e) => setProfileForm(p => ({ ...p, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') }))} style={{...styles.textInput, borderColor: theme.primary}} /></div><div style={styles.inputGroup}><label style={{...styles.label, color: theme.primary}}><Icon name="pencil" size={14} color={theme.primary} /> Bio</label><textarea value={profileForm.bio} onChange={(e) => setProfileForm(p => ({ ...p, bio: e.target.value }))} style={{...styles.bioInput, borderColor: theme.primary}} /></div><div style={styles.profileBtnRow}><button onClick={() => setEditingProfile(false)} style={styles.cancelBtn}>Cancel</button><button onClick={saveProfile} style={{...styles.createBtn, backgroundColor: theme.primary}}>SAVE</button></div></div></div>
-  )
-
-  if (viewMode === 'android') return (
-    <div style={{ ...styles.appAndroid, backgroundColor: theme.secondary, ...(settings.highContrast ? { filter: 'contrast(1.3)' } : {}) }}>
-      {sidebarOpen && (<>
-        <div style={styles.sidebarOverlay} onClick={() => setSidebarOpen(false)} />
-        <div style={styles.sidebar}>
-          <div style={styles.sidebarHeader}>
-            <h2 style={{...styles.sidebarTitle, color: theme.primary}}><Icon name="settings" size={20} color={theme.primary} /> CONTROL PANEL</h2>
-            <button onClick={() => setSidebarOpen(false)} style={styles.closeBtn}><Icon name="x" size={20} color="#888" /></button>
-          </div>
-
-          <div style={styles.sidebarSection}>
-            <h3 style={{...styles.sectionTitle, color: theme.primary, borderBottomColor: '#333'}}><Icon name="calendar" size={16} color={theme.primary} /> AI DASHBOARD</h3>
-            <div style={{...styles.statsCard, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6}}>
-              <span style={{fontSize: 11, color: '#ccc'}}>{dash.date}</span>
-              <span style={{fontSize: 11, color: theme.primary, fontWeight: 'bold'}}>{dash.time}</span>
-              <span style={{fontSize: 11, color: '#ccc'}}>{dash.day}</span>
-              {dash.temp && <span style={{fontSize: 11, color: theme.primary}}>{dash.temp}</span>}
-            </div>
-          </div>
-
-          <div style={styles.sidebarSection}>
-            <h3 style={{...styles.sectionTitle, color: theme.primary, borderBottomColor: '#333'}}><Icon name="desktop" size={16} color={theme.primary} /> VIEW MODE</h3>
-            <div style={styles.settingRow}><span style={styles.settingLabel}>Android</span><button onClick={toggleView} style={styles.toggleBtn}>PC</button></div>
-          </div>
-
-          <div style={styles.sidebarSection}>
-            <h3 style={{...styles.sectionTitle, color: theme.primary, borderBottomColor: '#333'}}><Icon name="sparkles" size={16} color={theme.primary} /> QUICK TOOLS {settings.restrictTools && userMode !== 'loggedin' && <Icon name="lock" size={12} color="#888" />}</h3>
-            <button onClick={() => { setSidebarOpen(false); setShowWorkspace(true) }} style={{...styles.toolBtn, backgroundColor: hexA(theme.primary, 0.2), border: `1px solid ${theme.primary}`}}><Icon name="layers" size={16} color={theme.primary} /> AI WORKSPACE</button>
-            <button onClick={() => { setSidebarOpen(false); setShowPracticalWorkspace(true) }} style={{...styles.toolBtn, backgroundColor: 'rgba(0,255,65,0.2)', border: `1px solid #00ff41`}}><Icon name="zap" size={16} color="#00ff41" /> PRACTICAL WORKSPACE</button>
-            <button onClick={() => { if (requireLogin('Cyber Lab')) { setSidebarOpen(false); setShowCyberLab(true) } }} style={styles.toolBtn}><Icon name="shield" size={16} color="#fff" /> Cyber Lab / Terminal</button>
-            <button onClick={() => { if (requireLogin('Music Generator')) { setSidebarOpen(false); setShowMusicPanel(true) } }} style={styles.toolBtn}><Icon name="music" size={16} color="#fff" /> Music Generator</button>
-            <button onClick={() => { if (requireLogin('Video Generator')) { setSidebarOpen(false); setShowVideoPanel(true) } }} style={styles.toolBtn}><Icon name="video" size={16} color="#fff" /> Video Generator</button>
-            <button onClick={() => { setSidebarOpen(false); setShowSettings(true) }} style={styles.toolBtn}><Icon name="cog" size={16} color="#fff" /> Settings</button>
-          </div>
-
-          <div style={styles.sidebarSection}>
-            <h3 style={{...styles.sectionTitle, color: theme.primary, borderBottomColor: '#333'}}><Icon name="chart" size={16} color={theme.primary} /> SYSTEM</h3>
-            <div style={styles.statsCard}>
-              <div style={styles.statRow}><span style={styles.statLabel}><Icon name="hourglass" size={14} color="#888" /> Uptime</span><span style={{...styles.statValue, color: theme.primary}}>{fmtU(stats.uptime)}</span></div>
-              <div style={styles.statRow}><span style={styles.statLabel}><Icon name="cpu" size={14} color="#888" /> CPU</span><span style={{...styles.statValue, color: theme.primary}}>{stats.cpuUsage}%</span></div>
-              <div style={styles.statRow}><span style={styles.statLabel}><Icon name="memory" size={14} color="#888" /> RAM</span><span style={{...styles.statValue, color: theme.primary}}>{stats.ramUsage.toFixed(1)} GB</span></div>
-            </div>
-          </div>
-
-          <div style={styles.sidebarSection}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <h3 style={{...styles.sectionTitle, color: theme.primary, borderBottomColor: '#333'}}><Icon name="chat" size={16} color={theme.primary} /> CHAT ({chats.length})</h3>
-              <button onClick={() => { setSidebarOpen(false); setShowChatOverview(true) }} style={styles.overviewBtn}><Icon name="desktop" size={14} color="#fff" /> Overview</button>
-            </div>
-            <select value={activeChatId || ''} onChange={(e) => switchChat(e.target.value)} style={{ width: '100%', padding: 8, background: '#1a1a1a', color: '#fff', border: '1px solid #333', borderRadius: 6, marginBottom: 8, fontSize: 12, boxSizing: 'border-box' }}>
-              {chats.map(c => <option key={c.id} value={c.id}>{c.title} ({c.messages.length})</option>)}
-            </select>
-            <button onClick={createNewChat} style={{ ...styles.toolBtn, marginBottom: 8 }}><Icon name="plus" size={16} color="#fff" /> New Chat</button>
-
-            <div style={{ maxHeight: 220, overflowY: 'auto', marginBottom: 8, border: '1px solid #1a1a1a', borderRadius: 6, padding: 6, backgroundColor: '#050505' }}>
-              {conversation.length === 0 && <p style={styles.dashEmptyPC}>No messages yet</p>}
-              {conversation.slice(-30).map(msg => (
-                <div key={msg.id} style={{ padding: '6px 8px', marginBottom: 4, borderRadius: 4, background: msg.role === 'user' ? hexA(theme.primary, 0.15) : 'rgba(255,255,255,0.04)', borderLeft: msg.role === 'user' ? `3px solid ${theme.primary}` : '3px solid #ff6688' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
-                    <span style={{ fontWeight: 'bold', color: msg.role === 'user' ? theme.primary : '#fff', fontSize: 10, letterSpacing: 1 }}>{msg.role === 'user' ? (profile?.name || 'YOU') : 'CYPHER4X'}</span>
-                    <span style={{ fontSize: 9, color: '#666' }}>{fmtT(msg.time)}</span>
-                  </div>
-                  <div style={{ color: '#ddd', fontSize: 12, wordBreak: 'break-word', whiteSpace: 'pre-wrap', lineHeight: 1.4 }}>
-                    {msg.content.length > 200 ? msg.content.slice(0, 200) + '…' : msg.content}
-                  </div>
-                </div>
-              ))}
-              {isProcessing && <div style={{ padding: '6px 8px', color: theme.primary, fontSize: 11, fontStyle: 'italic' }}>● CYPHER4X is typing...</div>}
-            </div>
-
-            <div style={styles.inputRow}>
-              <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') sendTextMessage() }} placeholder="Send message..." style={styles.textInputSmall} />
-              <label style={styles.sendBtnSmall} title="Attach file">
-                <Icon name="paperclip" size={16} color="#fff" />
-                <input type="file" accept="image/*,video/*,.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx" onChange={handleOverviewFileShare} style={{ display: 'none' }} />
-              </label>
-              <button onClick={sendTextMessage} style={{...styles.sendBtnSmall, backgroundColor: theme.primary}} disabled={isProcessing}><Icon name="send" size={16} color="#fff" /></button>
-            </div>
-
-            <button onClick={() => { setSidebarOpen(false); startRecording() }} style={{ ...styles.toolBtn, marginTop: 4 }}><Icon name="mic" size={16} color="#fff" /> Tap to Speak</button>
-            <div style={styles.commandActionsPC}>
-              <button onClick={clearConversation} style={styles.dashBtnPC}><Icon name="trash" size={14} color="#fff" /> Clear</button>
-              <button onClick={exportChat} style={styles.dashBtnPC}><Icon name="save" size={14} color="#fff" /> Export</button>
-            </div>
-          </div>
-
-          <div style={styles.sidebarSection}>
-            <h3 style={{...styles.sectionTitle, color: theme.primary, borderBottomColor: '#333'}}><Icon name="user" size={16} color={theme.primary} /> PROFILE</h3>
-            <div style={styles.profileCardSidebar}>
-              <div style={styles.profileAvatarWrapper}>{profile?.avatar ? <img src={profile.avatar} alt="" style={styles.profileAvatar} /> : <div style={{...styles.profileAvatarPlaceholder, backgroundColor: theme.primary}}>{profile?.name?.charAt(0) || '?'}</div>}</div>
-              <div style={styles.profileInfo}><div style={styles.profileName}>{profile?.name || 'User'}</div><div style={styles.profileHandle}><Icon name="atSign" size={12} color="#888" />{profile?.username || 'anonymous'}</div></div>
-            </div>
-            <button onClick={openEditProfile} style={styles.sidebarBtn}><Icon name="edit" size={14} color="#fff" /> Edit Profile</button>
-            {userMode === 'loggedin' ? <button onClick={handleLogout} style={styles.logoutBtn}><Icon name="close" size={14} color="#fff" /> Logout</button> : <button onClick={() => { setShowAuthModal(true); setShowLogin(true) }} style={styles.sidebarBtn}><Icon name="settings" size={14} color="#fff" /> Login</button>}
-          </div>
-
-          <div style={styles.sidebarSection}>
-            <h3 style={{...styles.sectionTitle, color: theme.primary, borderBottomColor: '#333'}}><Icon name="alertTriangle" size={16} color={theme.primary} /> DANGER ZONE</h3>
-            <button onClick={resetAllData} style={styles.dangerBtn}><Icon name="trash" size={14} color="#fff" /> Reset All</button>
-          </div>
-          <div style={{ textAlign: 'center', color: '#666', fontSize: 10, padding: '12px 0', borderTop: '1px solid #1a1a1a', marginTop: 12 }}>{VERSION_FULL}</div>
-        </div>
-      </>)}
-
-      <div style={{ ...styles.mainContentAndroid, backgroundColor: theme.secondary, backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
-        <div style={{...styles.backgroundAndroid, background: backgroundImage ? 'none' : `radial-gradient(ellipse at center, ${hexA(theme.primary, 0.06)} 0%, ${theme.secondary} 100%)`}}>
-          <RedBall isSpeaking={isAISpeaking} theme={theme} />
-          <div style={{...styles.faceTitleAndroid, color: theme.primary, textShadow: `0 0 40px ${theme.primary}`}}>CYPHER4X</div>
-        </div>
-        <div style={{ position: 'absolute', top: 22, left: '50%', transform: 'translateX(-50%)', color: theme.primary, fontSize: 10, letterSpacing: 2, fontWeight: 'bold', zIndex: 10 }}>{VERSION}</div>
-        <div style={styles.topBarAndroid}>
-          <button onClick={() => setSidebarOpen(true)} style={{ ...styles.hamburgerBtn, position: 'static' }}><Icon name="menu" size={28} color={theme.primary} /></button>
-          <div style={styles.topRightButtons}>
-            <button onClick={toggleFullscreenCall} style={{...styles.callButtonTopRight, borderColor: theme.primary, color: theme.primary, padding: '6px 10px'}}><Icon name="phone" size={18} color={isCallActive ? '#4f8' : theme.primary} /><span style={styles.callLabelTop}>{isFullscreenCall ? 'ACTIVE' : 'CALL'}</span></button>
-            <button onClick={() => setShowSettings(true)} style={styles.settingsButtonTop}><Icon name="cog" size={20} color="#fff" /></button>
-          </div>
-        </div>
-
-        <div style={{ position: 'absolute', top: 70, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 12, backgroundColor: 'rgba(0,0,0,0.6)', padding: '6px 16px', borderRadius: 20, border: `1px solid ${hexA(theme.primary, 0.3)}`, zIndex: 10 }}>
-          <span style={{ color: theme.primary, fontSize: 11, fontWeight: 'bold' }}>{dash.date}</span>
-          <span style={{ color: '#fff', fontSize: 11 }}>{dash.time}</span>
-          <span style={{ color: '#ccc', fontSize: 11 }}>{dash.day}</span>
-          {dash.temp && <span style={{ color: theme.primary, fontSize: 11 }}>{dash.temp}</span>}
-        </div>
-
-        <div style={styles.listeningContainer}>
-          {isListening ? (<><div style={styles.listeningDot} /><span style={styles.listeningText}>Listening...</span>{interimTranscript && <span style={styles.interimText}>"{interimTranscript}"</span>}{interimTranscript && <button onClick={sendInterim} style={{...styles.sendInterimBtn, backgroundColor: theme.primary}} disabled={isProcessing}><Icon name="send" size={16} color="#fff" /><span>Send</span></button>}</>) : isProcessing ? <span style={styles.listeningText}>Processing...</span> : isRecording ? (<><div style={{ ...styles.listeningDot, backgroundColor: theme.primary }} /><span style={styles.listeningText}>Recording...</span>{interimTranscript && <span style={styles.interimText}>"{interimTranscript}"</span>}</>) : null}
-        </div>
-        <div style={styles.voiceButtonContainer}>
-          <button onClick={startRecording} disabled={isRecording || isProcessing || isFullscreenCall} style={{ ...styles.voiceButton, borderColor: theme.primary, ...(isRecording ? { backgroundColor: theme.primary, borderColor: theme.primary } : {}) }}>
-            <Icon name="mic" size={40} color="#fff" />
-            <span style={styles.voiceLabel}>{isRecording ? 'Recording...' : isProcessing ? 'Processing...' : 'Tap to Speak'}</span>
-          </button>
-        </div>
-        {settings.overlayButton && <button onClick={toggleOverlay} style={{ ...styles.floatingBtn, backgroundColor: overlayActive ? theme.primary : 'rgba(0,0,0,0.7)', borderColor: overlayActive ? theme.primary : '#333' }}><Icon name={overlayListening ? 'mic' : 'sparkles'} size={22} color={overlayActive ? '#fff' : theme.primary} /></button>}
-      </div>
-    </div>
-  )
-
-  return (
-    <div style={{ ...styles.appPC, backgroundColor: theme.secondary, ...(settings.highContrast ? { filter: 'contrast(1.3)' } : {}) }}>
-      <header style={{...styles.headerPC, borderBottomColor: hexA(theme.primary, 0.3)}}>
-        <div style={styles.headerLeft}>
-          <h1 style={{...styles.titlePC, color: theme.primary}}>CYPHER4X</h1>
-          <span style={{...styles.versionBadgePC, color: theme.primary, backgroundColor: hexA(theme.primary, 0.13)}}>{VERSION}</span>
-        </div>
-        <div style={styles.headerRight}>
-          <button onClick={toggleFullscreenCall} style={{...styles.callBtnPC, borderColor: theme.primary, color: theme.primary, padding: '4px 8px'}}><Icon name="phone" size={16} color={theme.primary} /><span>CALL</span></button>
-          <button onClick={() => { if (requireLogin('Cyber Lab')) setShowCyberLab(true) }} style={styles.settingsBtnPC} title="Terminal"><Icon name="shield" size={20} color="#fff" /></button>
-          <button onClick={() => { if (requireLogin('Music Generator')) setShowMusicPanel(true) }} style={styles.settingsBtnPC} title="Music"><Icon name="music" size={20} color="#fff" /></button>
-          <button onClick={() => { if (requireLogin('Video Generator')) setShowVideoPanel(true) }} style={styles.settingsBtnPC} title="Video"><Icon name="video" size={20} color="#fff" /></button>
-          <button onClick={() => setShowSettings(true)} style={styles.settingsBtnPC} title="Settings"><Icon name="cog" size={20} color="#fff" /></button>
-          <button onClick={toggleView} style={styles.settingsBtnPC} title="Switch to Android view"><Icon name="mobile" size={20} color="#fff" /></button>
-          <button onClick={startRecording} disabled={isRecording || isProcessing} style={{...styles.voiceBtnPC, borderColor: theme.primary, color: theme.primary}}><Icon name="mic" size={20} color={theme.primary} /><span>Speak</span></button>
-        </div>
-      </header>
-      <div style={styles.pcLayout}>
-        <div style={styles.pcSidebar}>
-          <div style={styles.pcSidebarSection}>
-            <h3 style={{...styles.pcSidebarTitle, color: theme.primary}}><Icon name="chart" size={16} color={theme.primary} /> STATS</h3>
-            <div style={styles.pcSidebarRow}><span>CPU</span><span>{stats.cpuUsage}%</span></div>
-            <div style={styles.pcSidebarRow}><span>RAM</span><span>{stats.ramUsage.toFixed(1)} GB</span></div>
-            <div style={styles.pcSidebarRow}><span>Uptime</span><span>{fmtU(stats.uptime)}</span></div>
-          </div>
-
-          <div style={styles.pcSidebarSection}>
-            <h3 style={{...styles.pcSidebarTitle, color: theme.primary}}><Icon name="calendar" size={16} color={theme.primary} /> DASHBOARD</h3>
-            <div style={styles.pcSidebarRow}><span>Date</span><span>{dash.date}</span></div>
-            <div style={styles.pcSidebarRow}><span>Time</span><span>{dash.time}</span></div>
-            <div style={styles.pcSidebarRow}><span>Day</span><span>{dash.day}</span></div>
-            {dash.temp && <div style={styles.pcSidebarRow}><span>Temp</span><span>{dash.temp}</span></div>}
-          </div>
-
-          <div style={styles.pcSidebarSection}>
-            <h3 style={{...styles.pcSidebarTitle, color: theme.primary}}><Icon name="chat" size={16} color={theme.primary} /> CHATS</h3>
-            <button onClick={createNewChat} style={styles.sidebarBtnPC}><Icon name="plus" size={14} color="#fff" /> New Chat</button>
-            <button onClick={() => setShowChatOverview(true)} style={styles.sidebarBtnPC}><Icon name="chat" size={14} color="#fff" /> Open Chat</button>
-          </div>
-          <div style={styles.pcSidebarSection}>
-            <h3 style={{...styles.pcSidebarTitle, color: theme.primary}}><Icon name="user" size={16} color={theme.primary} /> PROFILE</h3>
-            <button onClick={openEditProfile} style={styles.sidebarBtnPC}><Icon name="edit" size={14} color="#fff" /> Edit Profile</button>
-            {userMode === 'loggedin' ? <button onClick={handleLogout} style={styles.logoutBtnPC}><Icon name="close" size={14} color="#fff" /> Logout</button> : <button onClick={() => { setShowAuthModal(true); setShowLogin(true) }} style={styles.sidebarBtnPC}><Icon name="settings" size={14} color="#fff" /> Login</button>}
-          </div>
-          <div style={{ textAlign: 'center', color: '#666', fontSize: 10, padding: '12px 0', borderTop: '1px solid #1a1a1a', marginTop: 12 }}>{VERSION_FULL}</div>
-        </div>
-        <div style={{ ...styles.pcMain, backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
-          <div style={styles.pcBallContainer}><RedBall isSpeaking={isAISpeaking} theme={theme} /></div>
-          <div style={styles.pcListeningContainer}>
-            {isListening ? <><div style={styles.listeningDot} /><span style={styles.listeningText}>Listening...</span>{interimTranscript && <span style={styles.interimText}>"{interimTranscript}"</span>}</> : isProcessing ? <span style={styles.listeningText}>Processing...</span> : isRecording ? <><div style={{ ...styles.listeningDot, backgroundColor: theme.primary }} /><span style={styles.listeningText}>Recording...</span></> : null}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ==================================================
-// STYLES
-// ==================================================
-const styles = {
-  introContainer: { position: 'fixed', inset: 0, backgroundColor: '#000', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' },
-  introBackground: { position: 'absolute', inset: 0, background: 'radial-gradient(circle at center, #111 0%, #000 100%)' },
-  introContent: { position: 'relative', zIndex: 1, textAlign: 'center' },
-  introText: { color: '#fff', fontSize: 'clamp(20px, 5vw, 48px)', fontWeight: 'bold', letterSpacing: 6, fontFamily: "'Courier New', monospace", textTransform: 'uppercase' },
-
-  enterOverlay: { position: 'fixed', inset: 0, backgroundColor: '#000', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', fontFamily: "'Courier New',monospace" },
-  enterBackground: { position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, #1a0000 0%, #000 70%)' },
-  enterContent: { position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: 420, padding: 20 },
-  enterTitle: { fontSize: 38, letterSpacing: 10, margin: '0 0 8px', fontWeight: 'bold' },
-  enterSubtitleSmall: { color: '#ff6688', fontSize: 12, letterSpacing: 3, marginBottom: 50, opacity: 0.7 },
-  enterUpdatingWrap: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 24 },
-  enterUpdatingLabel: { fontSize: 22, fontWeight: 'bold', letterSpacing: 4 },
-  enterUpdatingDots: { display: 'flex', alignItems: 'center', gap: 0, fontSize: 22, fontWeight: 'bold' },
-  enterProgressBarWrap: { width: '100%', height: 4, backgroundColor: '#1a1a1a', borderRadius: 4, overflow: 'hidden', marginBottom: 8 },
-  enterProgressBar: { height: '100%', transition: 'width 0.1s linear' },
-  enterPercent: { fontSize: 12, letterSpacing: 2 },
-  enterMessageSmall: { color: '#888', fontSize: 11, letterSpacing: 2, marginTop: 16, minHeight: 16 },
-
-  appAndroid: { minHeight: '100vh', height: '100vh', color: '#e0e0e0', fontFamily: "'Segoe UI','Courier New',monospace", overflow: 'hidden', margin: 0, padding: 0 },
-  practicalContainer: { position: 'fixed', inset: 0, zIndex: 99998, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
-  practicalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', borderBottom: '1px solid', flexShrink: 0 },
-  practicalExitBtn: { display: 'flex', alignItems: 'center', gap: 6, backgroundColor: 'transparent', border: '1px solid', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', fontSize: 12, fontWeight: 'bold' },
-  practicalExportBtn: { display: 'flex', alignItems: 'center', gap: 6, backgroundColor: 'transparent', border: '1px solid', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', fontSize: 12, fontWeight: 'bold' },
-  practicalTitle: { margin: 0, fontSize: 16, letterSpacing: 2, fontWeight: 'bold' },
-  practicalCanvas: { flex: 1, overflowY: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 16 },
-  practicalMsg: { padding: 12, borderRadius: 8, maxWidth: '80%', lineHeight: 1.6, fontSize: 15 },
-  practicalInputRow: { display: 'flex', gap: 8, alignItems: 'center', padding: '12px 20px', borderTop: '1px solid', flexShrink: 0 },
-  practicalInput: { flex: 1, padding: '12px 16px', backgroundColor: 'transparent', border: '1px solid', borderRadius: 24, fontSize: 15, outline: 'none' },
-  practicalMicBtn: { padding: 10, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  practicalSendBtn: { border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  practicalAttachBtn: { padding: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-
-  workspaceContainer: { position: 'fixed', inset: 0, backgroundColor: '#050505', zIndex: 99998, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
-  workspaceHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', backgroundColor: '#0a0a0a', borderBottom: '1px solid #222', flexShrink: 0 },
-  workspaceExitBtn: { display: 'flex', alignItems: 'center', gap: 6, backgroundColor: 'transparent', border: '1px solid', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', fontSize: 12, fontWeight: 'bold' },
-  workspaceTitle: { margin: 0, fontSize: 16, letterSpacing: 2, fontWeight: 'bold' },
-  workspaceBody: { flex: 1, display: 'flex', flexDirection: 'row', overflow: 'hidden' },
-  workspaceLeftPanel: { width: 'clamp(250px, 25%, 350px)', backgroundColor: '#0a0a0a', borderRight: '1px solid #222', display: 'flex', flexDirection: 'column', padding: 15, overflow: 'hidden' },
-  workspacePanelHeader: { color: '#fff', fontSize: 11, fontWeight: 'bold', letterSpacing: 1, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 },
-  workspaceTaskList: { flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, paddingRight: 5 },
-  workspaceTaskItem: { backgroundColor: '#111', padding: 10, borderRadius: 6, border: '1px solid #222' },
-  workspaceLogList: { flex: 1, overflowY: 'auto', backgroundColor: '#000', borderRadius: 6, padding: 10, border: '1px solid #222' },
-  workspaceCenterPanel: { flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#111', overflow: 'hidden' },
-  workspaceTabs: { display: 'flex', borderBottom: '1px solid #222', backgroundColor: '#0a0a0a', flexShrink: 0 },
-  workspaceTabBtn: { flex: 1, padding: '12px 0', backgroundColor: 'transparent', border: 'none', borderBottom: '2px solid transparent', cursor: 'pointer', fontSize: 12, fontWeight: 'bold', letterSpacing: 1 },
-  workspaceCanvasArea: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20, overflow: 'auto', position: 'relative' },
-  workspaceRightPanel: { width: 'clamp(350px, 40%, 500px)', backgroundColor: '#0a0a0a', borderLeft: '1px solid #222', display: 'flex', flexDirection: 'column', padding: 15, overflow: 'hidden' },
-  workspaceChatArea: { flex: 1, overflowY: 'auto', overflowX: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 5, marginBottom: 10 },
-  workspaceInputRow: { display: 'flex', gap: 8, alignItems: 'center', backgroundColor: '#111', padding: 8, borderRadius: 8, border: '1px solid #333' },
-  workspaceInput: { flex: 1, padding: '10px 12px', backgroundColor: 'transparent', border: 'none', color: '#fff', fontSize: 13, outline: 'none' },
-  workspaceMicBtn: { padding: 10, borderRadius: 6, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  workspaceSendBtn: { padding: 10, borderRadius: 6, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-
-  authModalOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.9)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
-  authModalCard: { width: '100%', maxWidth: 400, backgroundColor: '#111', border: '2px solid', borderRadius: 12, padding: 30, textAlign: 'center', position: 'relative' },
-  authModalClose: { position: 'absolute', top: 10, right: 15, background: 'none', border: 'none', color: '#888', fontSize: 24, cursor: 'pointer' },
-  authTitle: { fontSize: 32, letterSpacing: 4, marginBottom: 4 },
-  authSubtitle: { fontSize: 18, marginBottom: 20 },
-  authError: { fontSize: 14, minHeight: 24, marginBottom: 12 },
-  authInput: { width: '100%', padding: 12, marginBottom: 12, backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: 6, fontSize: 16, outline: 'none', boxSizing: 'border-box' },
-  authBtn: { width: '100%', padding: 14, color: '#fff', border: 'none', borderRadius: 6, fontSize: 18, fontWeight: 'bold', cursor: 'pointer', marginTop: 8 },
-  authSwitch: { marginTop: 16, display: 'flex', justifyContent: 'center', gap: 8, color: '#888', fontSize: 14 },
-  authSwitchBtn: { background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 'bold', textDecoration: 'underline' },
-  guestLimitOverlay: { position: 'fixed', inset: 0, zIndex: 99998, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
-  guestLimitCard: { backgroundColor: '#111', border: '2px solid', borderRadius: 20, padding: '40px 30px', maxWidth: 420, width: '100%', textAlign: 'center' },
-  guestLimitTitle: { fontSize: 24, marginBottom: 16 },
-  guestLimitText: { color: '#ddd', fontSize: 16, lineHeight: 1.6, marginBottom: 24 },
-  guestLimitButtons: { display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' },
-  guestLimitLoginBtn: { padding: '12px 30px', color: '#fff', border: 'none', borderRadius: 30, fontSize: 16, fontWeight: 'bold', cursor: 'pointer', flex: 1, minWidth: 100 },
-  guestLimitSignupBtn: { padding: '12px 30px', backgroundColor: '#1a3a3a', color: '#fff', border: '1px solid #2a5a5a', borderRadius: 30, fontSize: 16, fontWeight: 'bold', cursor: 'pointer', flex: 1, minWidth: 100 },
-  settingsFullscreen: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, height: '100dvh', backgroundColor: '#000', zIndex: 100000, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
-  settingsHeaderFull: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #333', backgroundColor: '#0a0000', flexShrink: 0 },
-  settingsTitleFull: { fontSize: 20, margin: 0, letterSpacing: 2 },
-  settingsCloseFull: { background: 'none', border: 'none', cursor: 'pointer', padding: 8, display: 'flex' },
-  settingsBodyFull: { flex: 1, minHeight: 0, overflowY: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 20, WebkitOverflowScrolling: 'touch' },
-  settingsSection: { borderBottom: '1px solid #1a1a1a', paddingBottom: 20 },
-  settingsSectionTitle: { fontSize: 14, margin: '0 0 16px', letterSpacing: 1, textTransform: 'uppercase' },
-  settingsDoneFull: { padding: 16, color: '#fff', border: 'none', fontSize: 16, fontWeight: 'bold', cursor: 'pointer', flexShrink: 0, paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))' },
-  backgroundControls: { display: 'flex', gap: 10, flexWrap: 'wrap' },
-  uploadBtn: { padding: '10px 16px', color: '#fff', borderRadius: 6, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 'bold', border: 'none' },
-  resetBtn: { padding: '10px 16px', backgroundColor: '#333', color: '#fff', borderRadius: 6, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 'bold', border: 'none' },
-  bgPreview: { marginTop: 12, borderRadius: 8, overflow: 'hidden', border: '1px solid #333' },
-  bgPreviewImg: { width: '100%', maxHeight: 150, objectFit: 'cover', display: 'block' },
-  bgHint: { color: '#888', fontSize: 12, marginTop: 8, fontStyle: 'italic', lineHeight: 1.5 },
-  settingItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#fff', fontSize: 15, marginBottom: 14, gap: 10 },
-  settingsSelect: { padding: '10px 12px', backgroundColor: '#000', border: '1px solid #444', color: '#fff', borderRadius: 6, fontSize: 14, width: '100%', boxSizing: 'border-box' },
-  settingsRange: { width: 140 },
-  // ✅ FIX #4 — renamed duplicate key (was settingValue twice)
-  settingValueSidebar: { color: '#ff6688', minWidth: 40, textAlign: 'right', fontWeight: 'bold' },
-  colorPicker: { width: 60, height: 32, border: '1px solid #333', borderRadius: 6, background: '#000', cursor: 'pointer' },
-  presetRow: { display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 },
-  presetBtn: { padding: '6px 14px', border: '1px solid #333', borderRadius: 20, color: '#fff', fontSize: 12, fontWeight: 'bold', cursor: 'pointer', textShadow: '0 1px 2px rgba(0,0,0,0.6)' },
-  rotateOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.9)', zIndex: 99996, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
-  rotateCard: { backgroundColor: '#111', border: '2px solid', borderRadius: 20, padding: '40px 30px', maxWidth: 400, width: '100%', textAlign: 'center' },
-  rotateText: { color: '#fff', fontSize: 18, margin: '20px 0', lineHeight: 1.6 },
-  rotateOkBtn: { padding: '12px 40px', color: '#fff', border: 'none', borderRadius: 30, fontSize: 16, fontWeight: 'bold', cursor: 'pointer' },
-  fullscreenCallOverlay: { position: 'fixed', inset: 0, backgroundColor: '#000', zIndex: 99995, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 },
-  returnBtn: { position: 'absolute', top: 20, left: 20, backgroundColor: 'rgba(255,0,60,0.3)', border: '1px solid #ff003c', borderRadius: 30, padding: '10px 20px', color: '#fff', fontSize: 16, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' },
-  fullscreenCallContentNoBall: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 30, width: '100%', maxWidth: 500, flex: 1 },
-  fullscreenListeningStatus: { display: 'flex', alignItems: 'center', gap: 12, backgroundColor: 'rgba(255,255,255,0.05)', padding: '8px 20px', borderRadius: 30, border: '1px solid rgba(255,0,60,0.2)' },
-  fullscreenListeningDot: { width: 12, height: 12, borderRadius: '50%', animation: 'pulseText 0.8s ease-in-out infinite' },
-  fullscreenSpeakingDot: { width: 12, height: 12, borderRadius: '50%', animation: 'pulseText 0.8s ease-in-out infinite' },
-  fullscreenStatusText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  fullscreenTranscript: { color: '#ff6688', fontSize: 16, fontStyle: 'italic', padding: '8px 20px', backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 12, maxWidth: '90%', textAlign: 'center', border: '1px solid rgba(255,0,60,0.2)', minHeight: 40 },
-  fullscreenMicBtn: { width: 'clamp(70px,14vw,100px)', height: 'clamp(70px,14vw,100px)', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-
-  chatOverviewContainer: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, height: '100dvh', backgroundColor: '#000', zIndex: 99994, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
-  chatOverviewHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', backgroundColor: '#111', borderBottom: '1px solid #333', flexShrink: 0, gap: 12 },
-  chatOverviewBackBtn: { background: 'none', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, cursor: 'pointer' },
-  chatOverviewVoiceToggle: { background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: 6, borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.05)' },
-  chatMenuDropdown: { position: 'absolute', top: 60, right: 20, width: 'clamp(250px, 80vw, 350px)', backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: 8, zIndex: 99999, boxShadow: '0 4px 20px rgba(0,0,0,0.8)', overflow: 'hidden' },
-  chatOverviewMessages: { flex: 1, minHeight: 0, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8, WebkitOverflowScrolling: 'touch' },
-  chatOverviewEmpty: { color: '#666', textAlign: 'center', fontSize: 16, marginTop: 40 },
-  chatOverviewMsg: { maxWidth: '88%', padding: '10px 14px', borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 4, position: 'relative' },
-  chatOverviewMsgText: { color: '#fff', fontSize: 14, wordBreak: 'break-word', whiteSpace: 'pre-wrap' },
-  chatOverviewMsgTime: { fontSize: 10, color: '#888', alignSelf: 'flex-end' },
-  replyQuote: { display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', backgroundColor: 'rgba(255,255,255,0.08)', borderLeft: '3px solid', borderRadius: 4, marginBottom: 4 },
-  replyQuoteText: { fontSize: 11, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
-  replyBar: { display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', backgroundColor: '#1a1a1a', borderTop: '2px solid' },
-  chatOverviewInputRowRaised: { display: 'flex', gap: 8, padding: '12px 16px', paddingBottom: 'max(30px, env(safe-area-inset-bottom, 50px))', backgroundColor: '#111', borderTop: '1px solid #333', flexShrink: 0, alignItems: 'center' },
-  chatOverviewInput: { flex: 1, padding: '10px 14px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: 20, fontSize: 14, outline: 'none' },
-  chatOverviewMicBtn: { background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: 8, borderRadius: '50%', backgroundColor: 'rgba(255,0,60,0.2)' },
-  chatOverviewAttachBtn: { background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: 8, borderRadius: '50%', backgroundColor: 'rgba(255,0,60,0.2)', display: 'flex', alignItems: 'center' },
-  chatOverviewSendBtn: { background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: 8, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  voiceControls: { display: 'flex', gap: 6, alignItems: 'center' },
-  voiceTranscriptPreview: { position: 'absolute', bottom: 80, left: 16, right: 16, backgroundColor: 'rgba(0,0,0,0.8)', padding: '8px 16px', borderRadius: 12, color: '#ff6688', fontSize: 14, fontStyle: 'italic', border: '1px solid rgba(255,0,60,0.3)', textAlign: 'center' },
-  msgActions: { display: 'flex', gap: 4, justifyContent: 'flex-end', marginTop: 4, opacity: 0.7 },
-  msgActionBtn: { background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: 4 },
-  codeBlockWrap: { marginTop: 8, marginBottom: 8, borderRadius: 8, overflow: 'hidden', border: '1px solid #333', backgroundColor: '#0a0a0a', alignSelf: 'stretch' },
-  codeBlockHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', backgroundColor: '#1a1a1a' },
-  codeLang: { fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1 },
-  codeCopyBtn: { display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, fontWeight: 'bold', cursor: 'pointer' },
-  codeBlock: { margin: 0, padding: 12, color: '#e0e0e0', fontSize: 12, fontFamily: "'Courier New',monospace", whiteSpace: 'pre', overflowX: 'auto', lineHeight: 1.5 },
-  profileContainer: { backgroundColor: '#000', minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
-  profileCard: { width: '100%', maxWidth: 420, backgroundColor: '#111', border: '2px solid', borderRadius: 12, padding: 28 },
-  profileTitle: { textAlign: 'center', marginBottom: 24, fontSize: 22 },
-  avatarUploadArea: { width: 130, height: 130, borderRadius: '50%', border: '3px dashed', margin: '0 auto 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: '#1a1a1a' },
-  avatarPreview: { width: '100%', height: '100%', objectFit: 'cover' },
-  avatarIcon: { fontSize: 14, textAlign: 'center' },
-  inputGroup: { marginBottom: 18 },
-  label: { fontSize: 14, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 },
-  textInput: { width: '100%', padding: 14, backgroundColor: '#000', border: '1px solid', color: '#fff', borderRadius: 8, fontSize: 15, outline: 'none', boxSizing: 'border-box' },
-  bioInput: { width: '100%', minHeight: 80, padding: 14, backgroundColor: '#000', border: '1px solid', color: '#fff', borderRadius: 8, fontSize: 15, outline: 'none', resize: 'vertical', boxSizing: 'border-box' },
-  profileBtnRow: { display: 'flex', gap: 12, marginTop: 12 },
-  createBtn: { flex: 1, padding: 14, color: '#fff', border: 'none', borderRadius: 8, fontSize: 16, fontWeight: 'bold', cursor: 'pointer' },
-  cancelBtn: { padding: '14px 20px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer' },
-  sidebarOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 998 },
-  sidebar: { position: 'fixed', top: 0, left: 0, bottom: 0, width: 380, maxWidth: '90vw', backgroundColor: '#0a0000', borderRight: '2px solid #ff003c', zIndex: 999, overflowY: 'auto', padding: 16 },
-  sidebarHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, paddingBottom: 10, borderBottom: '1px solid #333' },
-  sidebarTitle: { fontSize: 18, fontWeight: 'bold', margin: 0, fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: 8 },
-  closeBtn: { backgroundColor: 'transparent', border: 'none', color: '#888', fontSize: 20, cursor: 'pointer', padding: 4, display: 'flex' },
-  sidebarSection: { marginBottom: 12 },
-  sectionTitle: { fontSize: 14, margin: '0 0 8px', paddingBottom: 4, borderBottom: '1px solid #333', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: 6 },
-  settingRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  settingLabel: { fontSize: 13, color: '#ddd' },
-  toggleBtn: { padding: '4px 12px', borderRadius: 3, border: 'none', fontSize: 11, fontWeight: 'bold', cursor: 'pointer', backgroundColor: '#333', color: '#fff' },
-  toolBtn: { padding: '8px 12px', backgroundColor: '#1a1a1a', color: '#fff', border: '1px solid #333', borderRadius: 6, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 'bold' },
-  statsCard: { border: '1px solid #ff003c40', borderRadius: 6, padding: '10px 12px', backgroundColor: '#0a0a0a' },
-  statRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 0', fontSize: 12 },
-  statLabel: { color: '#aaa', display: 'flex', alignItems: 'center', gap: 4 },
-  statValue: { fontWeight: 500 },
-  profileCardSidebar: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 },
-  profileAvatarWrapper: { flexShrink: 0 },
-  profileAvatar: { width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', border: '2px solid #ff003c' },
-  profileAvatarPlaceholder: { width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  profileInfo: { display: 'flex', flexDirection: 'column' },
-  profileName: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
-  profileHandle: { color: '#888', fontSize: 12, display: 'flex', alignItems: 'center', gap: 2 },
-  sidebarBtn: { padding: '6px 12px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 13 },
-  dangerBtn: { padding: '6px 12px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 13 },
-  logoutBtn: { padding: '6px 12px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 13 },
-  overviewBtn: { padding: '4px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 },
-  topRightButtons: { display: 'flex', gap: 8, alignItems: 'center' },
-  settingsButtonTop: { backgroundColor: 'rgba(0,0,0,0.6)', border: '2px solid #333', borderRadius: 30, padding: '6px 12px', display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#fff' },
-  settingsBtnPC: { backgroundColor: 'rgba(0,0,0,0.6)', border: '1px solid #333', borderRadius: 16, padding: '4px 10px', display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#fff', marginLeft: 6 },
-  floatingBtn: { position: 'absolute', bottom: 150, right: 25, width: 56, height: 56, borderRadius: '50%', border: '2px solid', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.5)' },
-  mainContentAndroid: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', height: '100vh', margin: 0, padding: 0 },
-  backgroundAndroid: { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 0 },
-  ballContainer: { position: 'relative', width: 300, height: 300, pointerEvents: 'none', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  ball3DContainer: { perspective: 800, transformStyle: 'preserve-3d' },
-  ball3D: { width: 180, height: 180, borderRadius: '50%', position: 'relative', transformStyle: 'preserve-3d' },
-  ballHighlight: { position: 'absolute', top: '18%', left: '22%', width: '35%', height: '25%', borderRadius: '50%', background: 'radial-gradient(ellipse,rgba(255,255,255,0.6) 0%,transparent 70%)', filter: 'blur(4px)', pointerEvents: 'none' },
-  ballInnerGlow: { position: 'absolute', top: '15%', left: '15%', width: '70%', height: '70%', borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,100,140,0.2) 0%,transparent 60%)', pointerEvents: 'none' },
-  ring1: { position: 'absolute', top: '50%', left: '50%', width: 240, height: 240, marginLeft: -120, marginTop: -120, borderRadius: '50%', border: '2px solid', animation: 'spinRing 12s linear infinite' },
-  ring2: { position: 'absolute', top: '50%', left: '50%', width: 280, height: 280, marginLeft: -140, marginTop: -140, borderRadius: '50%', border: '1px solid', animation: 'spinRing 18s linear infinite reverse' },
-  ring3: { position: 'absolute', top: '50%', left: '50%', width: 200, height: 200, marginLeft: -100, marginTop: -100, borderRadius: '50%', border: '1px dashed', animation: 'spinRing 8s linear infinite' },
-  faceTitleAndroid: { position: 'absolute', bottom: '35%', fontSize: 'clamp(42px,6vw,68px)', fontWeight: 'bold', letterSpacing: 10, textAlign: 'center', width: '100%', zIndex: 2, animation: 'pulseText 2.5s ease-in-out infinite', fontFamily: "'Courier New',monospace" },
-  topBarAndroid: { position: 'absolute', top: 20, left: 20, right: 20, zIndex: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  callButtonTopRight: { backgroundColor: 'rgba(0,0,0,0.6)', border: '2px solid', borderRadius: 30, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14, fontWeight: 'bold', letterSpacing: 1 },
-  callLabelTop: { fontSize: 12, fontWeight: 'bold', letterSpacing: 1, color: '#fff' },
-  listeningContainer: { position: 'absolute', top: 90, left: '50%', transform: 'translateX(-50%)', zIndex: 10, display: 'flex', alignItems: 'center', gap: 12, backgroundColor: 'rgba(0,0,0,0.5)', padding: '8px 20px', borderRadius: 30, border: '1px solid rgba(255,0,60,0.2)', flexWrap: 'wrap', justifyContent: 'center' },
-  listeningDot: { width: 10, height: 10, borderRadius: '50%', backgroundColor: '#4f8', animation: 'pulseText 0.8s ease-in-out infinite' },
-  listeningText: { color: '#fff', fontSize: 16, fontWeight: 'bold', letterSpacing: 2, fontFamily: "'Courier New',monospace" },
-  interimText: { color: '#ff6688', fontSize: 14, fontStyle: 'italic', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderLeft: '1px solid rgba(255,0,60,0.3)', paddingLeft: 12 },
-  sendInterimBtn: { border: 'none', borderRadius: 20, padding: '4px 14px', display: 'flex', alignItems: 'center', gap: 6, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 'bold' },
-  voiceButtonContainer: { position: 'absolute', bottom: 50, left: '50%', transform: 'translateX(-50%)', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 },
-  voiceButton: { width: 90, height: 90, borderRadius: '50%', backgroundColor: '#1a1a1a', border: '3px solid', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 },
-  voiceLabel: { color: '#fff', fontSize: 12, fontWeight: 'bold', letterSpacing: 1, marginTop: 4 },
-  hamburgerBtn: { backgroundColor: 'transparent', border: 'none', cursor: 'pointer', zIndex: 15, padding: 8, borderRadius: 4 },
-  appPC: { minHeight: '100vh', height: '100vh', color: '#e0e0e0', fontFamily: "'Segoe UI','Courier New',monospace", overflow: 'hidden', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '100vw' },
-  headerPC: { padding: '6px 12px', borderBottom: '1px solid', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, backgroundColor: '#0a0000', flexWrap: 'wrap', gap: 4, minHeight: 44 },
-  headerLeft: { display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
-  titlePC: { margin: 0, fontSize: 'clamp(16px,4vw,22px)', fontWeight: 'bold', letterSpacing: 2 },
-  versionBadgePC: { fontSize: 10, padding: '2px 8px', borderRadius: 10 },
-  headerRight: { display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
-  callBtnPC: { backgroundColor: 'rgba(0,0,0,0.6)', border: '1px solid', borderRadius: 16, padding: '3px 10px', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontSize: 11, fontWeight: 'bold' },
-  voiceBtnPC: { backgroundColor: 'rgba(0,0,0,0.6)', border: '1px solid', borderRadius: 16, padding: '3px 10px', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontSize: 11, fontWeight: 'bold' },
-  pcLayout: { flex: 1, display: 'flex', flexDirection: 'row', overflow: 'hidden', width: '100%', height: '100%' },
-  pcSidebar: { width: 'clamp(180px,30%,280px)', backgroundColor: '#0a0a0a', overflowY: 'auto', padding: '8px 10px', flexShrink: 0, borderRight: '1px solid #333', height: '100%', boxSizing: 'border-box' },
-  pcSidebarSection: { marginBottom: 12, borderBottom: '1px solid #1a1a1a', paddingBottom: 8 },
-  pcSidebarTitle: { fontSize: 12, margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 4, fontWeight: 'bold' },
-  pcSidebarRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 0', fontSize: 11, color: '#ccc' },
-  pcMain: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', backgroundColor: '#050505', overflow: 'hidden', height: '100%', padding: 10 },
-  pcBallContainer: { position: 'relative', width: 'clamp(160px,25vw,300px)', height: 'clamp(160px,25vw,300px)', pointerEvents: 'none', marginBottom: 10 },
-  pcListeningContainer: { display: 'flex', alignItems: 'center', gap: 8, backgroundColor: 'rgba(0,0,0,0.5)', padding: '4px 16px', borderRadius: 30, border: '1px solid rgba(255,0,60,0.2)', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '90%' },
-  filePreviewPC: { marginTop: 4 },
-  dashBtnPC: { padding: '3px 10px', backgroundColor: '#222', color: '#fff', border: '1px solid #333', borderRadius: 4, cursor: 'pointer', fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 },
-  dashEmptyPC: { color: '#666', fontSize: 12, textAlign: 'center', padding: '6px 0' },
-  inputRow: { display: 'flex', gap: 6, marginTop: 4, marginBottom: 6 },
-  textInputSmall: { flex: 1, padding: '6px 10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: 4, fontSize: 13, outline: 'none', minWidth: 0 },
-  sendBtnSmall: { padding: '6px 12px', backgroundColor: '#333', border: 'none', borderRadius: 4, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#fff' },
-  commandActionsPC: { display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' },
-  sidebarBtnPC: { padding: '5px 10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
-  logoutBtnPC: { padding: '5px 10px', backgroundColor: '#880000', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12 },
-	  }
+          if (url) { clearInterval(poll); setMusicDownloadUrl(url); setMusicInfo('✓ Ready!');
